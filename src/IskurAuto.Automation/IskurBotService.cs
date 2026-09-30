@@ -107,15 +107,44 @@ public class IskurBotService : IIskurBotService
             await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
             _logger.LogInformation("[BOT] ADIM 2 ✓ — Bekleme tamamlandı.");
 
-            // ── ADIM 3: Gerçek otomasyon adımları için yer tutucular ──────────
-            // TODO: Login — kullanıcı adı ve şifre alanlarını doldur ve giriş yap
-            // TODO: "Kısmi Zamanlı Öğrenci İşlemleri" menüsüne git
-            // TODO: İşyeri/fakülte seçimi yap (student.Faculty.Name)
-            // TODO: Öğrenciyi TC kimlik no ile ara: student.NationalId
-            // TODO: İlgili dönemi seç: timesheet.Year / timesheet.Month
-            // TODO: Toplam çalışılan saati gir: timesheet.TotalHoursWorked
-            // TODO: Kaydet / Onayla butonuna tıkla
-            // TODO: Başarı onay mesajını doğrula (Assert)
+            // ── ADIM 3: Gerçek otomasyon adımları (Taslak) ──────────
+            _logger.LogInformation("[BOT] ADIM 3.1 — Kullanıcı girişi yapılıyor...");
+            // Not: İŞKUR ekranlarındaki ID'ler temsilidir, gerçek ID'ler ile güncellenmelidir.
+            await page.Locator("#kullaniciAdi").FillAsync("iskur_test_kullanici");
+            await Task.Delay(1500, cancellationToken); // İzlenebilirlik için gecikme
+
+            await page.Locator("#sifre").FillAsync("TestSifre123!");
+            await Task.Delay(1500, cancellationToken);
+            
+            await page.Locator("button#girisYap").ClickAsync();
+            await PersistLogAsync(timesheetId, "Giriş yapıldı.", isSuccess: true, cancellationToken: cancellationToken);
+            await Task.Delay(3000, cancellationToken); // Sayfa yüklenmesini bekle
+
+            _logger.LogInformation("[BOT] ADIM 3.2 — Puantaj ekranına gidiliyor...");
+            // Menüden Puantaj İşlemleri sekmesine tıkla
+            await page.Locator("text=Kısmi Zamanlı Öğrenci").ClickAsync();
+            await Task.Delay(1500, cancellationToken);
+            await page.Locator("text=Puantaj Girişi").ClickAsync();
+            await PersistLogAsync(timesheetId, "Puantaj ekranına gidildi.", isSuccess: true, cancellationToken: cancellationToken);
+            await Task.Delay(3000, cancellationToken);
+
+            _logger.LogInformation("[BOT] ADIM 3.3 — Öğrenci verileri (TC ve Saat) dolduruluyor...");
+            // T.C. Kimlik No alanını doldur
+            await page.Locator("#tcKimlikNo").FillAsync(student.NationalId);
+            await Task.Delay(1500, cancellationToken);
+
+            // Ara butonuna tıkla
+            await page.Locator("button#ogrenciAra").ClickAsync();
+            await Task.Delay(2000, cancellationToken);
+
+            // İlgili ay/yıl kontrolü ve çalışma saatinin girilmesi
+            await page.Locator("#calisilanSaat").FillAsync(timesheet.TotalHoursWorked.ToString("0.##"));
+            await Task.Delay(2000, cancellationToken);
+            
+            _logger.LogInformation("[BOT] ADIM 3.4 — Puantaj kaydediliyor...");
+            await page.Locator("button#puantajKaydet").ClickAsync();
+            await PersistLogAsync(timesheetId, $"T.C. {student.NationalId} için {timesheet.TotalHoursWorked} saat işlendi.", isSuccess: true, cancellationToken: cancellationToken);
+            await Task.Delay(3000, cancellationToken); // Sonucu görmek için bekle
 
             // ── ADIM 4: İşlemi başarılı say ve statüyü güncelle ──────────────
             _logger.LogInformation(

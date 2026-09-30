@@ -5,6 +5,7 @@ using IskurAuto.Data.Context;
 using IskurAuto.Service.DTOs;
 using IskurAuto.Service.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace IskurAuto.Service.Implementations;
 
@@ -15,12 +16,12 @@ namespace IskurAuto.Service.Implementations;
 public class TimesheetService : ITimesheetService
 {
     private readonly IskurAutoDbContext _context;
-    private readonly IIskurBotService _botService;
+    private readonly IServiceScopeFactory _scopeFactory;
 
-    public TimesheetService(IskurAutoDbContext context, IIskurBotService botService)
+    public TimesheetService(IskurAutoDbContext context, IServiceScopeFactory scopeFactory)
     {
-        _context    = context    ?? throw new ArgumentNullException(nameof(context));
-        _botService = botService ?? throw new ArgumentNullException(nameof(botService));
+        _context      = context      ?? throw new ArgumentNullException(nameof(context));
+        _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
     }
 
     // ─── Maker (Fakülte Sekreteri) Operasyonları ─────────────────────────────
@@ -123,11 +124,15 @@ public class TimesheetService : ITimesheetService
             await _context.SaveChangesAsync();
 
             // Playwright otomasyonunu tetikle — fire-and-forget (HTTP yanıtını bloklamaz)
-            // Bot kendi DbContext'i üzerinden statüyü ProcessedToIskur'a güncelleyecek
-            // ve her adımı TaskLog tablosuna yazacaktır.
-            _ = Task.Run(
-                () => _botService.RunTimesheetEntryAsync(timesheet.Id, CancellationToken.None),
-                CancellationToken.None);
+            // Playwright otomasyonunu tetikle — fire-and-forget (HTTP yanıtını bloklamaz)
+            // Yeni bir scope oluşturarak, servisin HTTP isteğiyle birlikte ölmesini engelliyoruz.
+            int tsId = timesheet.Id;
+            _ = Task.Run(async () =>
+            {
+                using var scope = _scopeFactory.CreateScope();
+                var botService = scope.ServiceProvider.GetRequiredService<IIskurBotService>();
+                await botService.RunTimesheetEntryAsync(tsId, CancellationToken.None);
+            }, CancellationToken.None);
         }
         else
         {

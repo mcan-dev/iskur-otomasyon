@@ -51,7 +51,7 @@ public class AuthController : ControllerBase
             "maker" => new List<Claim>
             {
                 new(AppClaimTypes.UserId,    "1"),
-                new(ClaimTypes.Role,         "FacultySecretary"),
+                new(AppClaimTypes.Role,      "FacultySecretary"),
                 new(AppClaimTypes.FacultyId, "1"),
                 new(JwtRegisteredClaimNames.Sub, "maker"),
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
@@ -59,7 +59,7 @@ public class AuthController : ControllerBase
             "checker" => new List<Claim>
             {
                 new(AppClaimTypes.UserId,    "2"),
-                new(ClaimTypes.Role,         "SksAdmin"),
+                new(AppClaimTypes.Role,      "SksAdmin"),
                 new(JwtRegisteredClaimNames.Sub, "checker"),
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             },
@@ -99,7 +99,7 @@ public class AuthController : ControllerBase
             Token     = tokenString,
             ExpiresAt = DateTime.UtcNow.AddMinutes(expiryMins),
             Username  = request.Username,
-            Role      = claims.First(c => c.Type == ClaimTypes.Role).Value
+            Role      = claims.First(c => c.Type == AppClaimTypes.Role).Value
         });
     }
 

@@ -48,6 +48,9 @@ builder.Services
     })
     .AddJwtBearer(options =>
     {
+        // .NET 8 varsayılan olarak JsonWebTokenHandler kullanır. Claim mapping'i kapatıyoruz.
+        options.MapInboundClaims = false;
+
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer           = true,
@@ -58,7 +61,7 @@ builder.Services
             ValidAudience            = audience,
             IssuerSigningKey         = signingKey,
             ClockSkew                = TimeSpan.Zero,          // Token süresini tam dakikada kes
-            RoleClaimType            = ClaimTypes.Role,        // Rol claim'ini standart olarak oku
+            RoleClaimType            = AppClaimTypes.Role,     // Rol claim'ini "role" (kısa anahtar) olarak oku
             NameClaimType            = AppClaimTypes.UserId    // Name claim'ini UserId'den oku
         };
     });
