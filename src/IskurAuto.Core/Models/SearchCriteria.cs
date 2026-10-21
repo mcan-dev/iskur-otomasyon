@@ -46,3 +46,21 @@ public class WorkPlanSearchCriteria
     public int? AdvisorUserId { get; set; }
     public WorkPlanStatus? Status { get; set; }
 }
+
+public class LeaveSearchCriteria
+{
+    public int? Year { get; set; }
+    public int? StudentId { get; set; }
+    public int? DepartmentId { get; set; }
+    public int? AdvisorUserId { get; set; }
+    public LeaveStatus? Status { get; set; }
+}
+
+public class AbsenceSearchCriteria
+{
+    public int? Year { get; set; }
+    public int? Month { get; set; }
+    public int? StudentId { get; set; }
+    public int? DepartmentId { get; set; }
+    public int? AdvisorUserId { get; set; }
+}

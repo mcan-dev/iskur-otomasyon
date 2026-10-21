@@ -31,5 +31,8 @@ public interface IWorkPlanRepository : IRepository<MonthlyWorkPlan>
 
     Task<IReadOnlyList<MonthlyWorkPlan>> SearchAsync(WorkPlanSearchCriteria criteria, CancellationToken ct = default);
 
+    /// <summary>Verilen tarih aralığıyla kesişen aylara ait planlar (günleriyle, salt okunur).</summary>
+    Task<IReadOnlyList<MonthlyWorkPlan>> GetPlansInRangeAsync(int studentId, DateOnly from, DateOnly to, CancellationToken ct = default);
+
     void RemoveDays(IEnumerable<WorkPlanDay> days);
 }

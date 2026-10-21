@@ -278,4 +278,19 @@ public class DatabaseConstraintTests
 
         await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
     }
+
+    [Fact]
+    public async Task Database_RejectsSecondActiveAbsenceForSameDay_ButAllowsAfterRevoke()
+    {
+        using var db = new TestDb();
+        var seed = TestData.Seed(db);
+        using var ctx = db.NewContext();
+        var day = new DateOnly(2026, 10, 10);
+
+        ctx.Absences.Add(new Absence { StudentProfileId = seed.MehmetId, Date = day, RecordedByUserId = seed.AdminId });
+        await ctx.SaveChangesAsync();
+
+        ctx.Absences.Add(new Absence { StudentProfileId = seed.MehmetId, Date = day, RecordedByUserId = seed.AdminId });
+        await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
+    }
 }

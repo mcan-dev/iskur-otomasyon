@@ -27,6 +27,11 @@ public static class DependencyInjection
         services.AddScoped<IWorkPlanService, WorkPlanService>();
         services.AddScoped<ICourseDayService, CourseDayService>();
         services.AddScoped<ICalendarService, CalendarService>();
+        services.AddScoped<LeavePolicyService>();
+        services.AddScoped<ILeavePolicyProvider>(sp => sp.GetRequiredService<LeavePolicyService>());
+        services.AddScoped<ILeaveSettingsService>(sp => sp.GetRequiredService<LeavePolicyService>());
+        services.AddScoped<ILeaveService, LeaveService>();
+        services.AddScoped<IAbsenceService, AbsenceService>();
 
         return services;
     }

@@ -76,6 +76,18 @@ public class WorkPlanRepository : GenericRepository<MonthlyWorkPlan>, IWorkPlanR
         return await query.OrderBy(p => p.StudentProfile.User.FullName).ToListAsync(ct);
     }
 
+    public async Task<IReadOnlyList<MonthlyWorkPlan>> GetPlansInRangeAsync(int studentId, DateOnly from, DateOnly to, CancellationToken ct = default)
+    {
+        var fromKey = from.Year * 12 + from.Month;
+        var toKey = to.Year * 12 + to.Month;
+
+        return await Context.WorkPlans.AsNoTracking()
+            .Include(p => p.Days)
+            .Where(p => p.StudentProfileId == studentId
+                        && p.Year * 12 + p.Month >= fromKey && p.Year * 12 + p.Month <= toKey)
+            .ToListAsync(ct);
+    }
+
     public void RemoveDays(IEnumerable<WorkPlanDay> days) => Context.WorkPlanDays.RemoveRange(days);
 
     private IQueryable<MonthlyWorkPlan> WithDetails()
