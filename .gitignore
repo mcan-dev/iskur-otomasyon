@@ -490,3 +490,6 @@ appsettings.Development.json
 *.db
 *.db-shm
 *.db-wal
+
+# Yüklenen belgeler
+App_Data/

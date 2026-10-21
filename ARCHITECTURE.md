@@ -86,13 +86,27 @@ veriyi yükleyip bu sınıfa verir. Kurallar:
 Takvimde renkler: kırmızı (kullanılamaz gün), sarı (dersli gün), yeşil (seçilmiş gün), gri (boş, henüz seçilmemiş).
 Her günde renkle birlikte metin etiketi de döner.
 
-## 7. Aşamalar
+## 7. İzin ve devamsızlık (Aşama 3)
+
+Hesaplamalar `LeaveDayCounter` ve `LeaveBalanceCalculator` sınıflarında, veritabanından bağımsız saf fonksiyonlardır.
+
+- İzin hakkından düşen gün: ay için çalışma planı varsa yalnızca planlı günler (yarım gün 0,5), plan yoksa hafta içi ve tatil olmayan her gün.
+  Saatlik izin tek gün için alınır ve saat / tam gün saati olarak hesaplanır.
+- İzin takvim yılına aittir, iki yıla yayılamaz. Çakışan (bekleyen veya onaylı) izin alınamaz.
+- Sınırı aşan talep engellenmez; bakiye yanıtında uyarı olarak döner, karar fakülte yönetimindedir.
+- Onay ve ret yalnızca fakülte yönetiminde, ret için gerekçe zorunlu. Onaylanan gün sayısı talep anında sabitlenir.
+- Sağlık raporlu izin ayrı izlenir; izin hakkından düşüp düşmeyeceği ayarla belirlenir.
+- Devamsızlık kaydı fakülte yönetimi tarafından girilir, silinmez, gerekçeyle geri alınır. Yalnızca mazeretsiz devamsızlık sınıra sayılır.
+- Sınırlar (`LeaveDayLimit`, uyarı eşikleri, devamsızlık sınırı) `SystemSettings` tablosunda durur; kod değişmeden güncellenir.
+- Belgeler `IDocumentStore` arkasında saklanır (şimdilik yerel klasör). Personel belgeyi açtığında denetim kaydı düşer.
+
+## 8. Aşamalar
 
 | Aşama | İçerik | Durum |
 |---|---|---|
 | 1 | Veri modeli, kimlik doğrulama, roller, öğrenci kaydı/profili, geçmiş, denetim | **Tamamlandı** |
 | 2 | Aylık çalışma planı (takvim, 1–3 gün/hafta, tatil/ders kuralları, yarım gün) | **Tamamlandı** |
-| 3 | İzin / devamsızlık (parametrik 10 gün limiti, uyarı) | |
+| 3 | İzin / devamsızlık (parametrik 10 gün limiti, uyarı) | **Tamamlandı** |
 | 4 | 30 sn dinamik QR ile devam | |
 | 5 | Görev ve danışman değerlendirme, raporlar (Excel/CSV) | |
 | 6 | Test senaryoları, kurulum ve teknik dokümantasyon | |

@@ -22,6 +22,8 @@ builder.Services.AddDataLayer(connectionString);
 var workPlanSettings = builder.Configuration.GetSection(WorkPlanSettings.SectionName).Get<WorkPlanSettings>()
     ?? new WorkPlanSettings();
 builder.Services.AddServiceLayer(workPlanSettings);
+builder.Services.AddSingleton<IDocumentStore>(new LocalDocumentStore(
+    builder.Configuration["Storage:DocumentsPath"] ?? "App_Data/documents"));
 
 // ─── 2. API katmanına özgü servisler ──────────────────────────────────────
 builder.Services.AddHttpContextAccessor();
