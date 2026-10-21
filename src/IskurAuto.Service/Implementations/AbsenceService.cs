@@ -69,6 +69,10 @@ public class AbsenceService : IAbsenceService
     {
         _current.RequireRole(UserRole.FacultyAdmin);
 
+        var reason = request.Reason?.Trim();
+        if (string.IsNullOrEmpty(reason) || reason.Length < 3)
+            throw new DomainValidationException(nameof(request.Reason), "Geri alma gerekçesini yazmalısınız.");
+
         var absence = await _absences.GetDetailAsync(absenceId, ct)
             ?? throw new NotFoundException("Devamsızlık kaydı bulunamadı.");
 
@@ -77,7 +81,7 @@ public class AbsenceService : IAbsenceService
 
         absence.RevokedAt = _clock.UtcNow;
         absence.RevokedByUserId = _current.UserId;
-        absence.RevokeReason = request.Reason.Trim();
+        absence.RevokeReason = reason;
 
         await _audit.RecordAsync(AuditActions.AbsenceRevoked, nameof(Absence), absence.Id, ct: ct);
         await _uow.SaveChangesAsync(ct);
