@@ -12,7 +12,7 @@ Ayrıntılar: [ARCHITECTURE.md](ARCHITECTURE.md), [docs/DATABASE.md](docs/DATABA
 ```bash
 dotnet restore
 dotnet tool install --global dotnet-ef
-dotnet ef migrations add AddWorkPlans --project src/IskurAuto.Data --startup-project src/IskurAuto.API
+dotnet ef migrations add AddLeaves --project src/IskurAuto.Data --startup-project src/IskurAuto.API
 dotnet run --project src/IskurAuto.API
 ```
 
@@ -27,7 +27,8 @@ dotnet user-secrets set "Bootstrap:AdminPassword" "<güçlü parola>" --project 
 ```
 
 Frontend adresi `Cors:AllowedOrigins` içine eklenir. Çalışma planı kuralları `WorkPlan` bölümünden değiştirilir
-(haftalık gün sınırı, düzeltme son günü, tam gün saati).
+(haftalık gün sınırı, düzeltme son günü, tam gün saati). İzin ve devamsızlık sınırları ise koddan değil, fakülte yönetimi tarafından
+`PUT /api/settings/leave` ile değiştirilir. Yüklenen belgeler `Storage:DocumentsPath` klasöründe tutulur.
 
 ## Demo hesaplar
 
@@ -51,8 +52,8 @@ dotnet test
 | Aşama | İçerik | Durum |
 |---|---|---|
 | 1 | Kayıt, giriş, roller, öğrenci profili, katılım/birim/danışman geçmişi, denetim | Bitti |
-| 2 | Aylık çalışma planı, takvim, tatil ve sınav dönemi | Bitti (migration üretilecek) |
-| 3 | İzin ve devamsızlık | Sırada |
+| 2 | Aylık çalışma planı, takvim, tatil ve sınav dönemi | Bitti |
+| 3 | İzin, devamsızlık, izin hakkı takibi ve uyarılar | Bitti (migration üretilecek) |
 | 4 | QR ile devam | |
 | 5 | Görev, değerlendirme, raporlar | |
 | 6 | Test senaryoları, teknik dokümantasyon | |
@@ -63,6 +64,8 @@ dotnet test
 - Token süresi dolana kadar eski rol geçerli kalır (varsayılan 120 dk).
 - TC ve IBAN veritabanında düz saklanıyor, yalnızca gösterimde maskeleniyor. TC için NVİ doğrulaması yok.
 - Öğrenci kaydı onaysız.
+- İzin hakkı takvim yılı bazındadır ve izin iki yıla yayılamaz.
+- Yüklenen belgeler diskte düz saklanır, şifrelenmez.
 - Resmî tatiller ve sınav dönemleri elle girilir, otomatik kaynak yok.
 - Haftalık gün sınırı plan bazında denetlenir; ay sınırındaki bir hafta iki plan arasında bölünürse toplam kontrol edilmez.
 - SQLite'ta Türkçe karakterli aramalar büyük/küçük harfe duyarlıdır.

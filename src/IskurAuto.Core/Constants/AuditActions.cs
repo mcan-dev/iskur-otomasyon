@@ -36,4 +36,14 @@ public static class AuditActions
     public const string HolidayDeleted       = "Holiday.Deleted";
     public const string ExamPeriodCreated    = "ExamPeriod.Created";
     public const string ExamPeriodDeleted    = "ExamPeriod.Deleted";
+
+    public const string LeaveRequested       = "Leave.Requested";
+    public const string LeaveCancelled       = "Leave.Cancelled";
+    public const string LeaveApproved        = "Leave.Approved";
+    public const string LeaveRejected        = "Leave.Rejected";
+    public const string LeaveDocumentAdded   = "Leave.DocumentAdded";
+    public const string LeaveDocumentViewed  = "Leave.DocumentViewed";
+    public const string AbsenceRecorded      = "Absence.Recorded";
+    public const string AbsenceRevoked       = "Absence.Revoked";
+    public const string LeavePolicyChanged   = "Settings.LeavePolicyChanged";
 }
