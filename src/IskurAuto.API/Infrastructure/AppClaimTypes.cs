@@ -1,18 +1,19 @@
 namespace IskurAuto.API.Infrastructure;
 
 /// <summary>
-/// JWT token içinde kullanılan özel claim isimlerini merkezi olarak tanımlar.
-/// Hem token üretimi hem de controller tarafındaki claim okuma işlemlerinde
-/// bu sabitler kullanılmalıdır; string literal tekrarının önüne geçer.
+/// JWT içinde kullanılan özel claim adları. Token üretimi (JwtTokenService) ve okuma (CurrentUser)
+/// aynı sabitleri kullanır; string literal tekrarı ve yazım hatası riskini önler.
 /// </summary>
 public static class AppClaimTypes
 {
-    /// <summary>Kullanıcının veritabanı ID'si.</summary>
+    /// <summary>Kullanıcının veritabanı Id'si.</summary>
     public const string UserId = "uid";
 
-    /// <summary>Kullanıcının bağlı olduğu fakültenin ID'si (Tenant kimliği).</summary>
-    public const string FacultyId = "fid";
-
-    /// <summary>Kullanıcının rolü (Örn: "FacultySecretary", "SksAdmin").</summary>
+    /// <summary>Kullanıcının rolü: FacultyAdmin | DepartmentHead | Advisor | Student.</summary>
     public const string Role = "role";
+
+    /// <summary>Bölüm Başkanı / Danışman için bölüm Id'si (yetki sınırı).</summary>
+    public const string DepartmentId = "did";
+
+    public const string Email = "email";
 }
