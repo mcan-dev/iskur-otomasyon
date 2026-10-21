@@ -485,3 +485,8 @@ $RECYCLE.BIN/
 
 # Custom Exclusions
 appsettings.Development.json
+
+# SQLite veritabanı dosyaları (geliştirme verisi, repoya girmemeli)
+*.db
+*.db-shm
+*.db-wal
