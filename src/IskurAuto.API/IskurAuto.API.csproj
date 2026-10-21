@@ -4,6 +4,9 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- XML yorumları Swagger arayüzünde endpoint açıklaması olarak görünür. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,9 +20,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- API, Service'e (iş mantığı) ve Data'ya (yalnızca bağımlılık kaydı ve geliştirme tohum verisi için,
+         yani "composition root" görevi) bağlıdır. Controller'lar Data'yı doğrudan kullanmaz. -->
     <ProjectReference Include="..\IskurAuto.Service\IskurAuto.Service.csproj" />
     <ProjectReference Include="..\IskurAuto.Data\IskurAuto.Data.csproj" />
-    <ProjectReference Include="..\IskurAuto.Automation\IskurAuto.Automation.csproj" />
   </ItemGroup>
 
 </Project>

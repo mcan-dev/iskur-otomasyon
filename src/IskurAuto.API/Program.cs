@@ -1,130 +1,124 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Text;
+using System.Text.Json.Serialization;
 using IskurAuto.API.Infrastructure;
-using IskurAuto.Automation;
 using IskurAuto.Core.Interfaces;
-using IskurAuto.Data.Context;
-using IskurAuto.Data.Repositories;
-using IskurAuto.Service.Implementations;
-using IskurAuto.Service.Interfaces;
+using IskurAuto.Data;
+using IskurAuto.Service;
+using IskurAuto.Service.Abstractions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ─── 1. Veritabanı Bağlantısı ─────────────────────────────────────────────
-builder.Services.AddDbContext<IskurAutoDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("IskurAutoDb"),
-        sqlOptions => sqlOptions.MigrationsAssembly("IskurAuto.Data")
-    )
-);
+// ─── 1. Katmanların bağımlılık kayıtları ──────────────────────────────────
+// Program.cs yalnızca "hangi katman var" der; her katmanın içini kendi DependencyInjection.cs'i bilir.
+var connectionString = builder.Configuration.GetConnectionString("IskurAutoDb")
+    ?? throw new InvalidOperationException("ConnectionStrings:IskurAutoDb yapılandırması eksik.");
 
-// ─── 2. Repository ve Servis Kayıtları (DI) ──────────────────────────────
-builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
-builder.Services.AddScoped<ITimesheetService, TimesheetService>();
-builder.Services.AddScoped<IIskurBotService, IskurBotService>(); // Playwright otomasyon botu
+builder.Services.AddDataLayer(connectionString);
+builder.Services.AddServiceLayer();
 
-// ─── 3. JWT Kimlik Doğrulama ve Yetkilendirme ────────────────────────────
-var jwtSection  = builder.Configuration.GetSection("JwtSettings");
-var secretKey   = jwtSection["SecretKey"]
-    ?? throw new InvalidOperationException("JWT SecretKey yapılandırması eksik.");
-var issuer      = jwtSection["Issuer"]   ?? "IskurAutoAPI";
-var audience    = jwtSection["Audience"] ?? "IskurAutoClients";
-var signingKey  = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+// ─── 2. API katmanına özgü servisler ──────────────────────────────────────
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUser, CurrentUser>();
+builder.Services.AddSingleton<ITokenService, JwtTokenService>();
 
-// Gelen JWT claim'lerini Microsoft'un uzun şema isimlerine (http://schemas...) dönüştürmesini engelle
-// Aksi takdirde kendi verdiğimiz "role" claim'i kaybolur ve [Authorize(Roles = "...")] çalışmaz!
+// ─── 3. JWT kimlik doğrulama ──────────────────────────────────────────────
+var jwt = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
+
+// Fail-fast: zayıf ya da örnek anahtarla uygulama başlamaz. Sessizce güvensiz çalışmaktansa açıkça durmak iyidir.
+if (jwt.SecretKey.Length < 32)
+    throw new InvalidOperationException("JwtSettings:SecretKey en az 32 karakter olmalıdır.");
+if (!builder.Environment.IsDevelopment() && jwt.SecretKey == JwtOptions.DevelopmentPlaceholderKey)
+    throw new InvalidOperationException(
+        "Üretimde örnek JWT anahtarı kullanılamaz. 'dotnet user-secrets' veya ortam değişkeniyle JwtSettings:SecretKey tanımlayın.");
+
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+
+// Gelen "role" claim'ini Microsoft'un uzun şema adına (http://schemas.../role) çevirmesini engelle;
+// aksi halde [Authorize(Roles = "...")] kısa "role" claim'ini bulamaz ve 403 verir.
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
 builder.Services
     .AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme    = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     })
     .AddJwtBearer(options =>
     {
-        // .NET 8 varsayılan olarak JsonWebTokenHandler kullanır. Claim mapping'i kapatıyoruz.
         options.MapInboundClaims = false;
-
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer           = true,
-            ValidateAudience         = true,
-            ValidateLifetime         = true,
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer              = issuer,
-            ValidAudience            = audience,
-            IssuerSigningKey         = signingKey,
-            ClockSkew                = TimeSpan.Zero,          // Token süresini tam dakikada kes
-            RoleClaimType            = AppClaimTypes.Role,     // Rol claim'ini "role" (kısa anahtar) olarak oku
-            NameClaimType            = AppClaimTypes.UserId    // Name claim'ini UserId'den oku
+            ValidIssuer = jwt.Issuer,
+            ValidAudience = jwt.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.SecretKey)),
+            ClockSkew = TimeSpan.Zero,                 // süre dolunca tam o anda geçersiz
+            RoleClaimType = AppClaimTypes.Role,
+            NameClaimType = AppClaimTypes.UserId
         };
     });
 
 builder.Services.AddAuthorization();
 
-// ─── 4. Controller'lar ────────────────────────────────────────────────────
-builder.Services.AddControllers();
+// ─── 4. CORS ──────────────────────────────────────────────────────────────
+// Tarayıcı, farklı adresten (örn. React: localhost:5173) gelen istekleri sunucu izin vermedikçe engeller.
+// İzinli adresler yapılandırmadan okunur; "herkese izin ver" (AllowAnyOrigin) bilerek kullanılmaz.
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+builder.Services.AddCors(options => options.AddPolicy("Frontend", policy =>
+    policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod()));
 
-// ─── 5. Swagger / OpenAPI (JWT Authorize Butonu ile) ─────────────────────
+// ─── 5. Controller'lar ────────────────────────────────────────────────────
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Enum'lar JSON'da sayı (0,1,2) yerine okunur metin ("Student") olarak gider.
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
+
+// ─── 6. Swagger ───────────────────────────────────────────────────────────
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title       = "İŞKUR Otomasyon Sistemi API",
-        Version     = "v1",
-        Description = "Üniversiteler için kısmi zamanlı öğrenci puantaj yönetimi ve " +
-                      "İŞKUR sistemine otonom veri girişi sağlayan çoklu kiracı (Multi-Tenant) API.\n\n" +
-                      "**Kimlik Doğrulama:** Sağ üst köşedeki 🔒 Authorize butonuna " +
-                      "`Bearer <token>` formatında JWT giriniz.",
-        Contact = new OpenApiContact
-        {
-            Name = "SKS / Öğrenci İşleri Daire Başkanlığı"
-        }
+        Title = "Teknoloji Fakültesi İŞKUR Otomasyonu API",
+        Version = "v1",
+        Description = "İŞKUR öğrenci programı süreçlerinin (kayıt, çalışma planı, izin, devam, görev, rapor) yönetimi.\n\n" +
+                      "**Kimlik doğrulama:** `POST /api/auth/login` ile token alın, sağ üstteki **Authorize** düğmesine " +
+                      "yalnızca token metnini yapıştırın."
     });
 
-    // ── JWT Güvenlik Tanımı ──
-    var jwtSecurityScheme = new OpenApiSecurityScheme
+    var bearer = new OpenApiSecurityScheme
     {
-        Scheme       = "bearer",
+        Scheme = "bearer",
         BearerFormat = "JWT",
-        Name         = "Authorization",
-        In           = ParameterLocation.Header,
-        Type         = SecuritySchemeType.Http,
-        Description  = "JWT token'ınızı aşağıya **sadece token metnini** girin (Bearer prefix gerekmez).",
-        Reference = new OpenApiReference
-        {
-            Id   = JwtBearerDefaults.AuthenticationScheme,
-            Type = ReferenceType.SecurityScheme
-        }
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Description = "Yalnızca token metnini girin (başına 'Bearer' yazmayın).",
+        Reference = new OpenApiReference { Id = JwtBearerDefaults.AuthenticationScheme, Type = ReferenceType.SecurityScheme }
     };
+    options.AddSecurityDefinition(bearer.Reference.Id, bearer);
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement { { bearer, Array.Empty<string>() } });
 
-    options.AddSecurityDefinition(jwtSecurityScheme.Reference.Id, jwtSecurityScheme);
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, $"{typeof(Program).Assembly.GetName().Name}.xml");
+    if (File.Exists(xmlPath)) options.IncludeXmlComments(xmlPath);
 
-    // Tüm endpoint'lere global olarak JWT gereksinimini uygula
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        { jwtSecurityScheme, Array.Empty<string>() }
-    });
-
-    // XML dokümantasyon yorumlarını Swagger UI'a ekle
-    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    if (File.Exists(xmlPath))
-        options.IncludeXmlComments(xmlPath);
-
-    // Swagger UI uyumsuzluğunu önlemek için OpenAPI belge sürümünü normalize et
-    options.DocumentFilter<IskurAuto.API.Infrastructure.OpenApiVersionFilter>();
+    options.DocumentFilter<OpenApiVersionFilter>();
 });
 
-// ─── 6. Uygulama Pipeline ─────────────────────────────────────────────────
+// ─── Uygulama hattı (pipeline) — SIRA ÖNEMLİDİR ───────────────────────────
 var app = builder.Build();
+
+// En dışta: sonraki her aşamadan fırlayan hatayı yakalayıp standart yanıta çevirir.
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
@@ -132,19 +126,29 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "İŞKUR Otomasyon API v1");
-        c.RoutePrefix = string.Empty;
+        c.RoutePrefix = string.Empty;   // Swagger ana sayfada açılır
     });
 }
+else
+{
+    // Geliştirmede kapalı: http→https yönlendirmesi, tarayıcının CORS ön kontrol (preflight) isteğini bozar.
+    app.UseHttpsRedirection();
+}
 
-app.UseHttpsRedirection();
-
-// Sıralama kritik: Authentication → Authorization
-app.UseAuthentication();
-app.UseAuthorization();
-
-// ─── Veritabanı Seed İşlemi ───────────────────────────────────────────────
-await IskurAuto.API.Infrastructure.SeedData.InitializeAsync(app.Services);
+app.UseCors("Frontend");           // CORS, kimlik doğrulamadan ÖNCE olmalı
+app.UseAuthentication();           // "Sen kimsin?"  (token'ı çöz)
+app.UseAuthorization();            // "Yetkin var mı?" (rol kontrolü)
 
 app.MapControllers();
 
+// ─── Veritabanı hazırlığı ─────────────────────────────────────────────────
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+await app.Services.InitializeDatabaseAsync();
+if (app.Environment.IsDevelopment())
+    await DatabaseSeeder.SeedDemoDataAsync(app.Services, logger);
+await DatabaseSeeder.EnsureBootstrapAdminAsync(app.Services, app.Configuration, logger);
+
 app.Run();
+
+// WebApplicationFactory ile entegrasyon testi yazabilmek için (sonraki aşamalar).
+public partial class Program { }
