@@ -1,6 +1,6 @@
 # Veritabanı (SQLite + EF Core Code-First)
 
-## Aşama 1'de var olan tablolar
+## Tablolar
 
 ```mermaid
 erDiagram
@@ -13,6 +13,10 @@ erDiagram
     WorkUnit ||--o{ StudentUnitAssignment : ""
     User ||--o{ AdvisorAssignment : "danışman"
     User ||--o{ AuditLog : "işlemi yapan"
+    StudentProfile ||--o{ StudentCourseDay : "dersli günler"
+    StudentProfile ||--o{ MonthlyWorkPlan : "aylık planlar"
+    MonthlyWorkPlan ||--o{ WorkPlanDay : "seçilen günler"
+    User ||--o{ MonthlyWorkPlan : "onaylayan"
 
     Department { int Id string Name string Code bool IsActive }
     WorkUnit { int Id string Name string Description bool IsActive }
@@ -21,6 +25,11 @@ erDiagram
     ProgramParticipation { int Id date StartDate date EndDate string EndReason }
     StudentUnitAssignment { int Id date StartDate date EndDate }
     AdvisorAssignment { int Id date StartDate date EndDate }
+    Holiday { int Id date Date string Name }
+    ExamPeriod { int Id string Name date StartDate date EndDate }
+    StudentCourseDay { int Id int StudentProfileId int DayOfWeek }
+    MonthlyWorkPlan { int Id int StudentProfileId int Year int Month enum Status string StudentNote datetime LastSavedAt int ReviewedByUserId datetime ReviewedAt string ReviewNote }
+    WorkPlanDay { int Id int MonthlyWorkPlanId date Date enum Shift bool IsLessonDay string Note }
     AuditLog { long Id datetime OccurredAt string Action string EntityName int EntityId }
 ```
 
@@ -32,20 +41,21 @@ erDiagram
 | Öğrencinin aynı anda tek açık katılımı / birimi / danışmanı | Filtreli unique index `WHERE "EndDate" IS NULL` |
 | Geçmişi olan kayıt silinemez | Tüm FK'lar `Restrict` |
 | Rol okunabilir | `UserRole` metin olarak saklanır |
+| Öğrencinin bir ay için tek planı | Unique index (öğrenci, yıl, ay) |
+| Bir planda aynı gün tek kez | Unique index (plan, tarih) |
+| Aynı tarih iki kez tatil olamaz | Unique index (tarih) |
 
-## Sonraki aşamalarda eklenecek tablolar (planlanan)
+## Sonraki aşamalarda eklenecek tablolar
 
-`WorkPlan` / `WorkPlanDay` (aylık plan, gün durumu), `Holiday` ve `CourseSchedule` (kurallar), `LeaveRequest` ve `Absence`
-(izin/devamsızlık, limit `SystemSetting` tablosunda), `QrSession` ve `Attendance` (30 sn QR + devam), `TaskAssignment` ve
-`AdvisorEvaluation` (görev/değerlendirme). Her biri aşama sırasında bu belgeye eklenecektir.
+İzin talepleri ve izin hareketleri, devam kayıtları ve QR oturumları, görevler ve danışman değerlendirmeleri.
 
 ## Migration
 
-Bu depoda migration dosyası **yoktur** (eski model değiştiği için silindi). İlk kurulumda üretilir:
+Her aşamada model değişince yeni bir migration eklenir:
 
 ```
 dotnet tool install --global dotnet-ef
-dotnet ef migrations add InitialCreate --project src/IskurAuto.Data --startup-project src/IskurAuto.API
+dotnet ef migrations add <Ad> --project src/IskurAuto.Data --startup-project src/IskurAuto.API
 ```
 
 Uygulama açılırken migration varsa `Migrate()`, yoksa `EnsureCreated()` çalışır.

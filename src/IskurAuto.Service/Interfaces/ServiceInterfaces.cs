@@ -63,3 +63,34 @@ public interface IAuditService
 
     Task<PagedResult<AuditLogDto>> SearchAsync(AuditLogQuery query, CancellationToken ct = default);
 }
+
+public interface IWorkPlanService
+{
+    Task<WorkPlanCalendarDto> GetMyCalendarAsync(int year, int month, CancellationToken ct = default);
+    Task<WorkPlanDto> GetMyPlanAsync(int year, int month, CancellationToken ct = default);
+    Task<IReadOnlyList<WorkPlanDto>> ListMyPlansAsync(CancellationToken ct = default);
+    Task<WorkPlanDto> SaveMyPlanAsync(SaveWorkPlanRequest request, CancellationToken ct = default);
+
+    Task<IReadOnlyList<WorkPlanDto>> SearchAsync(WorkPlanSearchQuery query, CancellationToken ct = default);
+    Task<WorkPlanDto> GetByIdAsync(int planId, CancellationToken ct = default);
+    Task<WorkPlanCalendarDto> GetStudentCalendarAsync(int studentId, int year, int month, CancellationToken ct = default);
+    Task<WorkPlanDto> SaveForStudentAsync(int studentId, SaveWorkPlanRequest request, CancellationToken ct = default);
+    Task<WorkPlanDto> ReviewAsync(int planId, ReviewWorkPlanRequest request, CancellationToken ct = default);
+}
+
+public interface ICourseDayService
+{
+    Task<IReadOnlyList<DayOfWeek>> GetMineAsync(CancellationToken ct = default);
+    Task<IReadOnlyList<DayOfWeek>> SetMineAsync(CourseDaysRequest request, CancellationToken ct = default);
+}
+
+public interface ICalendarService
+{
+    Task<IReadOnlyList<HolidayDto>> ListHolidaysAsync(int year, CancellationToken ct = default);
+    Task<HolidayDto> AddHolidayAsync(HolidayRequest request, CancellationToken ct = default);
+    Task DeleteHolidayAsync(int id, CancellationToken ct = default);
+
+    Task<IReadOnlyList<ExamPeriodDto>> ListExamPeriodsAsync(int year, CancellationToken ct = default);
+    Task<ExamPeriodDto> AddExamPeriodAsync(ExamPeriodRequest request, CancellationToken ct = default);
+    Task DeleteExamPeriodAsync(int id, CancellationToken ct = default);
+}
