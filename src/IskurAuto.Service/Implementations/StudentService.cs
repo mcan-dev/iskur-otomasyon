@@ -116,7 +116,7 @@ public class StudentService : IStudentService
 
         var student = await _students.GetDetailAsync(studentId, ct)
             ?? throw new NotFoundException("Öğrenci bulunamadı.");
-        EnsureCanView(student);
+        _current.EnsureCanView(student);
 
         // Ham TC/IBAN yalnızca öğrencinin kendisine ve fakülte yönetimine gösterilir.
         var reveal = _current.Role is UserRole.FacultyAdmin or UserRole.Student;
@@ -297,25 +297,6 @@ public class StudentService : IStudentService
     private async Task<StudentProfile> LoadAsync(int studentId, CancellationToken ct)
         => await _students.GetDetailAsync(studentId, ct)
            ?? throw new NotFoundException("Öğrenci bulunamadı.");
-
-    /// <summary>
-    /// Kapsam dışı öğrenci için 403 yerine 404 döner: "bu Id var ama yetkin yok" bilgisi
-    /// sızdırılmaz, Id taramasıyla öğrenci varlığı keşfedilemez.
-    /// </summary>
-    private void EnsureCanView(StudentProfile student)
-    {
-        var allowed = _current.Role switch
-        {
-            UserRole.FacultyAdmin => true,
-            UserRole.DepartmentHead => _current.DepartmentId == student.DepartmentId,
-            UserRole.Advisor => student.CurrentAdvisorAssignment?.AdvisorUserId == _current.UserId,
-            UserRole.Student => student.UserId == _current.UserId,
-            _ => false
-        };
-
-        if (!allowed)
-            throw new NotFoundException("Öğrenci bulunamadı.");
-    }
 
     /// <summary>Bitiş tarihinin başlangıçtan önceye düşmemesi için iki tarihten büyüğünü verir.</summary>
     private static DateOnly Latest(DateOnly a, DateOnly b) => a >= b ? a : b;
