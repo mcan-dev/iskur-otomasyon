@@ -75,3 +75,24 @@ Yanlış girilen kayıt gerekçe ve işlemi yapan kullanıcıyla geri alınır, 
 
 ### Sağlık raporu belgesi neden denetimli?
 Belge sağlık verisi içerebilir. Öğrencinin kendisi dışında biri açtığında denetim kaydı düşer; dosya adı rastgele üretilir, yol gezintisi engellenir, yalnızca PDF/JPG/PNG ve en fazla 5 MB kabul edilir.
+
+### Karekod neden veritabanında saklanmıyor?
+Her 30 saniyede yeni bir kayıt üretmek hem gereksiz yazma hem de temizlik işi olurdu. Jeton, oturum numarası ve zaman penceresinden gizli anahtarla imzalanarak hesaplanır; sunucu aynı hesabı yapıp karşılaştırır. Zaman ilerledikçe eski jeton kendiliğinden geçersizleşir.
+
+### Neden bir önceki pencere de kabul ediliyor?
+Öğrenci karekodu okutup göndermeye çalışırken pencere değişebilir. Tolerans olmasa geçerli bir okutma haksız yere reddedilirdi. Bedeli, jetonun en fazla yaklaşık 60 saniye geçerli olmasıdır.
+
+### Karekodun paylaşılması nasıl engelleniyor?
+Tamamen engellenemez: fotoğrafı başkasına iletilebilir. Önlemler: jeton hemen eskir, öğrenci kendi hesabıyla giriş yapmış olmalıdır, oturum başına tek kayıt vardır ve o gün için onaylı planı bulunmayan öğrenci kayıt oluşturamaz. Reddedilen denemeler denetim kaydına düşer.
+
+### Okutma neden onaylı plana bağlı?
+Belge, devamın çalışma planı ve izinle ilişkilendirilmesini ve planlanan ile gerçekleşenin karşılaştırılmasını istiyor. Planı olmayan ya da o gün izinli bir öğrencinin kaydı, karşılaştırmayı anlamsız kılardı.
+
+### Oturumu kim açıyor?
+Belge "yetkili kullanıcı" diyor. Fakülte yönetimi tüm fakülte için, bölüm başkanı yalnızca kendi bölümü için açabilir. Danışman ve öğrenci açamaz.
+
+### Neden otomatik devamsızlık yazılmıyor?
+Devamsızlık idari bir karardır ve izin hakkını etkiler. Planlı günde kayıt yoksa sistem bunu karşılaştırmada "kayıt yok" olarak gösterir; devamsızlık kaydını fakülte yönetimi girer.
+
+### Hatalı kayıt neden silinmiyor?
+Belge düzeltme nedeni ve işlemi yapanın saklanmasını istiyor. Kayıt iptal edilir (`VoidedAt`, kim, neden), satır kalır. İptalden sonra aynı oturum için yeni kayıt oluşabilir.

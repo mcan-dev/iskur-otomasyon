@@ -32,6 +32,7 @@ public static class DependencyInjection
         services.AddScoped<ILeaveSettingsService>(sp => sp.GetRequiredService<LeavePolicyService>());
         services.AddScoped<ILeaveService, LeaveService>();
         services.AddScoped<IAbsenceService, AbsenceService>();
+        services.AddScoped<IAttendanceService, AttendanceService>();
 
         return services;
     }
