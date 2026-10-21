@@ -94,3 +94,38 @@ public interface ICalendarService
     Task<ExamPeriodDto> AddExamPeriodAsync(ExamPeriodRequest request, CancellationToken ct = default);
     Task DeleteExamPeriodAsync(int id, CancellationToken ct = default);
 }
+
+public interface ILeaveService
+{
+    Task<LeaveBalanceDto> GetMyBalanceAsync(int year, CancellationToken ct = default);
+    Task<IReadOnlyList<LeaveDto>> ListMineAsync(int? year, CancellationToken ct = default);
+    Task<LeaveResultDto> RequestAsync(CreateLeaveRequest request, CancellationToken ct = default);
+    Task<LeaveDto> CancelAsync(int leaveId, CancellationToken ct = default);
+    Task<LeaveDto> AttachDocumentAsync(int leaveId, DocumentUpload file, CancellationToken ct = default);
+    Task<DocumentDownload> OpenDocumentAsync(int leaveId, CancellationToken ct = default);
+
+    Task<IReadOnlyList<LeaveDto>> SearchAsync(LeaveSearchQuery query, CancellationToken ct = default);
+    Task<LeaveDto> GetByIdAsync(int leaveId, CancellationToken ct = default);
+    Task<LeaveResultDto> ReviewAsync(int leaveId, ReviewLeaveRequest request, CancellationToken ct = default);
+    Task<LeaveBalanceDto> GetStudentBalanceAsync(int studentId, int year, CancellationToken ct = default);
+    Task<IReadOnlyList<LeaveAlertDto>> GetAlertsAsync(int year, CancellationToken ct = default);
+}
+
+public interface IAbsenceService
+{
+    Task<AbsenceDto> RecordAsync(RecordAbsenceRequest request, CancellationToken ct = default);
+    Task<AbsenceDto> RevokeAsync(int absenceId, RevokeAbsenceRequest request, CancellationToken ct = default);
+    Task<IReadOnlyList<AbsenceDto>> SearchAsync(AbsenceQuery query, CancellationToken ct = default);
+    Task<IReadOnlyList<AbsenceDto>> ListMineAsync(int? year, CancellationToken ct = default);
+}
+
+public interface ILeavePolicyProvider
+{
+    Task<LeavePolicy> GetAsync(CancellationToken ct = default);
+}
+
+public interface ILeaveSettingsService
+{
+    Task<LeavePolicyDto> GetAsync(CancellationToken ct = default);
+    Task<LeavePolicyDto> UpdateAsync(LeavePolicyDto request, CancellationToken ct = default);
+}

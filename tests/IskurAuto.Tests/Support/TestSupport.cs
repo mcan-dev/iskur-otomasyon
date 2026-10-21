@@ -51,6 +51,23 @@ public sealed class FakeCurrentUser : ICurrentUser
     }
 }
 
+public sealed class FakeDocumentStore : IDocumentStore
+{
+    private readonly Dictionary<string, byte[]> _files = new();
+
+    public async Task<string> SaveAsync(Stream content, string extension, CancellationToken ct = default)
+    {
+        using var buffer = new MemoryStream();
+        await content.CopyToAsync(buffer, ct);
+        var name = $"{Guid.NewGuid():N}{extension}";
+        _files[name] = buffer.ToArray();
+        return name;
+    }
+
+    public Task<Stream?> OpenAsync(string storedName, CancellationToken ct = default)
+        => Task.FromResult<Stream?>(_files.TryGetValue(storedName, out var bytes) ? new MemoryStream(bytes) : null);
+}
+
 public sealed class FakeTokenService : ITokenService
 {
     public TokenResult CreateToken(User user) => new($"token-for-{user.Id}", DateTime.UtcNow.AddHours(1));
@@ -68,6 +85,7 @@ public sealed class TestDb : IDisposable
     public FakeClock Clock { get; } = new(new DateTime(2026, 10, 21, 9, 0, 0, DateTimeKind.Utc));
     public FakeCurrentUser Current { get; } = new();
     public WorkPlanSettings WorkPlanSettings { get; } = new();
+    public FakeDocumentStore Documents { get; } = new();
 
     /// <summary>Testlerin hızlı çalışması için düşük yinelemeli hasher (üretimde 600.000).</summary>
     public IPasswordHasher Hasher { get; } = new Pbkdf2PasswordHasher(iterations: 1_000);
@@ -106,6 +124,9 @@ public sealed class TestScope : IDisposable
     public IWorkPlanService WorkPlans { get; }
     public ICourseDayService CourseDays { get; }
     public ICalendarService Calendar { get; }
+    public ILeaveService Leaves { get; }
+    public IAbsenceService Absences { get; }
+    public ILeaveSettingsService LeaveSettings { get; }
 
     public TestScope(TestDb db, IskurAutoDbContext context)
     {
@@ -131,6 +152,14 @@ public sealed class TestScope : IDisposable
             context, db.Clock, audit, db.Current, db.WorkPlanSettings);
         CourseDays = new CourseDayService(students, courseDays, context, audit, db.Current);
         Calendar = new CalendarService(holidays, examPeriods, context, audit, db.Current);
+
+        var leaveRepository = new LeaveRepository(context);
+        var absenceRepository = new AbsenceRepository(context);
+        var policy = new LeavePolicyService(new SystemSettingRepository(context), context, audit, db.Current);
+        LeaveSettings = policy;
+        Leaves = new LeaveService(leaveRepository, absenceRepository, students, holidays, new WorkPlanRepository(context),
+            db.Documents, policy, context, db.Clock, audit, db.Current, db.WorkPlanSettings);
+        Absences = new AbsenceService(absenceRepository, students, context, db.Clock, audit, db.Current);
     }
 
     public void Dispose() => Context.Dispose();

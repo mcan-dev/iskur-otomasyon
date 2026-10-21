@@ -26,6 +26,9 @@ public class IskurAutoDbContext : DbContext, IUnitOfWork
     public DbSet<StudentCourseDay> StudentCourseDays => Set<StudentCourseDay>();
     public DbSet<MonthlyWorkPlan> WorkPlans => Set<MonthlyWorkPlan>();
     public DbSet<WorkPlanDay> WorkPlanDays => Set<WorkPlanDay>();
+    public DbSet<LeaveRequest> LeaveRequests => Set<LeaveRequest>();
+    public DbSet<Absence> Absences => Set<Absence>();
+    public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -60,3 +60,18 @@ Onay, kararın bağlayıcı olması demek. Belge fakülte yönetimine değiştir
 
 ### Tatiller ve sınav dönemleri neden elle giriliyor?
 Dini bayram tarihleri her yıl değişir ve güvenilir bir otomatik kaynak yok. Fakülte yönetimi yıllık bir kez girer.
+
+### İzin sınırı neden veritabanındaki ayarda?
+Belge 10 günlük sınırın değişebileceğini söylüyor. Sınır kodda sabit olsaydı her değişiklik yeni sürüm demekti; ayar tablosunda fakülte yönetimi kendisi günceller ve değişiklik denetim kaydına düşer.
+
+### Sınırı aşan talep neden engellenmiyor?
+Belge "uyarı üretilsin, nihai idari karar kendiliğinden verilmesin" diyor. Sistem uyarır ve ekranlarda belirgin gösterir, kararı fakülte yönetimi verir.
+
+### İzin günleri neden plana göre sayılıyor?
+Öğrenci haftada en fazla 3 gün çalıştığı için gelemeyeceği gün yalnızca planlı günlerdir. Her hafta içi günü saymak izin hakkını olduğundan hızlı tüketirdi. Plan henüz yoksa hafta içi günler sayılır.
+
+### Devamsızlık kaydı neden silinmiyor?
+Yanlış girilen kayıt gerekçe ve işlemi yapan kullanıcıyla geri alınır, böylece geçmiş izlenebilir. Aynı gün için geri alınan kaydın ardından yenisi girilebilir (filtreli unique index).
+
+### Sağlık raporu belgesi neden denetimli?
+Belge sağlık verisi içerebilir. Öğrencinin kendisi dışında biri açtığında denetim kaydı düşer; dosya adı rastgele üretilir, yol gezintisi engellenir, yalnızca PDF/JPG/PNG ve en fazla 5 MB kabul edilir.
