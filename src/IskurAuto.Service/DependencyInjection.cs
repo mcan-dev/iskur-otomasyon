@@ -1,4 +1,5 @@
 using IskurAuto.Core.Interfaces;
+using IskurAuto.Core.Models;
 using IskurAuto.Service.Abstractions;
 using IskurAuto.Service.Common;
 using IskurAuto.Service.Implementations;
@@ -11,8 +12,9 @@ namespace IskurAuto.Service;
 /// <summary>Service katmanının bağımlılık kayıtları. Program.cs yalnızca <c>AddServiceLayer()</c> der.</summary>
 public static class DependencyInjection
 {
-    public static IServiceCollection AddServiceLayer(this IServiceCollection services)
+    public static IServiceCollection AddServiceLayer(this IServiceCollection services, WorkPlanSettings? workPlanSettings = null)
     {
+        services.AddSingleton(workPlanSettings ?? new WorkPlanSettings());
         services.AddSingleton<IClock, SystemClock>();
         services.AddSingleton<IPasswordHasher>(new Pbkdf2PasswordHasher());
 
@@ -22,6 +24,9 @@ public static class DependencyInjection
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IDepartmentService, DepartmentService>();
         services.AddScoped<IWorkUnitService, WorkUnitService>();
+        services.AddScoped<IWorkPlanService, WorkPlanService>();
+        services.AddScoped<ICourseDayService, CourseDayService>();
+        services.AddScoped<ICalendarService, CalendarService>();
 
         return services;
     }

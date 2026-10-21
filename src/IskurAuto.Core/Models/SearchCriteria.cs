@@ -36,3 +36,13 @@ public class AuditLogSearchCriteria
     public DateTime? FromUtc { get; set; }
     public DateTime? ToUtc { get; set; }
 }
+
+public class WorkPlanSearchCriteria
+{
+    public int Year { get; set; }
+    public int Month { get; set; }
+    public int? StudentId { get; set; }
+    public int? DepartmentId { get; set; }
+    public int? AdvisorUserId { get; set; }
+    public WorkPlanStatus? Status { get; set; }
+}

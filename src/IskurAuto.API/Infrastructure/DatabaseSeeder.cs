@@ -35,6 +35,13 @@ public static class DatabaseSeeder
         var eem = new Department { Name = "Elektrik-Elektronik Mühendisliği", Code = "EEM" };
         db.Departments.AddRange(bm, ym, eem);
 
+        db.Holidays.AddRange(
+            new Holiday { Date = new DateOnly(2026, 10, 29), Name = "Cumhuriyet Bayramı" },
+            new Holiday { Date = new DateOnly(2027, 1, 1), Name = "Yılbaşı" },
+            new Holiday { Date = new DateOnly(2027, 4, 23), Name = "Ulusal Egemenlik ve Çocuk Bayramı" },
+            new Holiday { Date = new DateOnly(2027, 5, 1), Name = "Emek ve Dayanışma Günü" },
+            new Holiday { Date = new DateOnly(2027, 5, 19), Name = "Atatürk'ü Anma, Gençlik ve Spor Bayramı" });
+
         var dekanlik = new WorkUnit { Name = "Dekanlık", Description = "Dekanlık ofisi" };
         var sekreterlik = new WorkUnit { Name = "Fakülte Sekreterliği" };
         var lab = new WorkUnit { Name = "Bilgisayar Laboratuvarı" };

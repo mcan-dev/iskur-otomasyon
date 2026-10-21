@@ -69,12 +69,29 @@ Kapsam dışı kayıt için **403 değil 404** döner; böylece kaydın var olup
 * TC kimlik ve IBAN listelerde ve yetkisiz rollerde maskelenir (`123******50`).
 * Doğrulama: TC kimlik algoritması, TR IBAN mod-97, telefon, parola politikası.
 
-## 6. Aşamalar
+## 6. Çalışma planı (Aşama 2)
+
+Kurallar `WorkPlanRules` sınıfında, veritabanından bağımsız saf fonksiyonlar olarak durur; servis yalnızca
+veriyi yükleyip bu sınıfa verir. Kurallar:
+
+- Haftada en az 1, en fazla 3 gün (ayarlanabilir). Hafta, perşembesinin düştüğü aya sayılır.
+- Hafta sonu, resmî tatil ve programa katılım dışındaki günler seçilemez.
+- Dersli gün (öğrencinin beyan ettiği haftanın günleri) açıklama notuyla seçilebilir.
+- Sınav dönemiyle kesişen haftalarda en az 1 gün şartı aranmaz.
+- Yarım gün (öğleden önce / sonra) bir gün sayılır, saati tam günün yarısıdır.
+- Öğrenci planı ilgili ayın bir önceki ayının başından, ayın `EditDeadlineDay`. gününe kadar düzenler.
+  Reddedilen plan süre bitse de düzeltilebilir, onaylanan plan öğrenci tarafından değiştirilemez.
+- Fakülte yönetimi her zaman öğrenci adına düzeltme yapabilir; düzeltilen plan yeniden onaya düşer.
+
+Takvimde renkler: kırmızı (kullanılamaz gün), sarı (dersli gün), yeşil (seçilmiş gün), gri (boş, henüz seçilmemiş).
+Her günde renkle birlikte metin etiketi de döner.
+
+## 7. Aşamalar
 
 | Aşama | İçerik | Durum |
 |---|---|---|
 | 1 | Veri modeli, kimlik doğrulama, roller, öğrenci kaydı/profili, geçmiş, denetim | **Tamamlandı** |
-| 2 | Aylık çalışma planı (takvim, 1–3 gün/hafta, tatil/ders kuralları, yarım gün) | Sırada |
+| 2 | Aylık çalışma planı (takvim, 1–3 gün/hafta, tatil/ders kuralları, yarım gün) | **Tamamlandı** |
 | 3 | İzin / devamsızlık (parametrik 10 gün limiti, uyarı) | |
 | 4 | 30 sn dinamik QR ile devam | |
 | 5 | Görev ve danışman değerlendirme, raporlar (Excel/CSV) | |

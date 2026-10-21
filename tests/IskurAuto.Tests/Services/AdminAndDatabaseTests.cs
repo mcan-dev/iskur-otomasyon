@@ -264,4 +264,18 @@ public class DatabaseConstraintTests
         ctx.Departments.Remove((await ctx.Departments.FindAsync(seed.BmId))!);
         await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
     }
+
+    [Fact]
+    public async Task Database_RejectsSecondPlanForSameStudentAndMonth()
+    {
+        using var db = new TestDb();
+        var seed = TestData.Seed(db);
+        using var ctx = db.NewContext();
+
+        ctx.WorkPlans.AddRange(
+            new MonthlyWorkPlan { StudentProfileId = seed.MehmetId, Year = 2026, Month = 11 },
+            new MonthlyWorkPlan { StudentProfileId = seed.MehmetId, Year = 2026, Month = 11 });
+
+        await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
+    }
 }

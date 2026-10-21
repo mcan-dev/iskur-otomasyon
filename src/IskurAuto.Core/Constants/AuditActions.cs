@@ -27,4 +27,13 @@ public static class AuditActions
     public const string DepartmentUpdated    = "Department.Updated";
     public const string WorkUnitCreated      = "WorkUnit.Created";
     public const string WorkUnitUpdated      = "WorkUnit.Updated";
+
+    public const string WorkPlanSaved        = "WorkPlan.Saved";
+    public const string WorkPlanApproved     = "WorkPlan.Approved";
+    public const string WorkPlanRejected     = "WorkPlan.Rejected";
+    public const string CourseDaysUpdated    = "Student.CourseDaysUpdated";
+    public const string HolidayCreated       = "Holiday.Created";
+    public const string HolidayDeleted       = "Holiday.Deleted";
+    public const string ExamPeriodCreated    = "ExamPeriod.Created";
+    public const string ExamPeriodDeleted    = "ExamPeriod.Deleted";
 }

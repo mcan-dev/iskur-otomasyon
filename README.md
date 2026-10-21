@@ -1,48 +1,68 @@
-# İŞKUR Otomasyonu – Teknoloji Fakültesi
+# İŞKUR Otomasyonu
 
-Kısmi zamanlı öğrenci (İŞKUR) kayıt, plan, izin ve devam takip sistemi. .NET 8, N-katmanlı mimari, EF Core + SQLite, JWT.
+Teknoloji Fakültesi İŞKUR öğrenci programı için kayıt, aylık çalışma planı, izin ve devam takip sistemi.
+.NET 8, EF Core (SQLite), JWT.
 
-Mimari için: [ARCHITECTURE.md](ARCHITECTURE.md) · Veritabanı: [docs/DATABASE.md](docs/DATABASE.md) · Tasarım kararları ("neden böyle?"): [docs/NEDEN-BOYLE.md](docs/NEDEN-BOYLE.md)
+Ayrıntılar: [ARCHITECTURE.md](ARCHITECTURE.md), [docs/DATABASE.md](docs/DATABASE.md), [docs/NEDEN-BOYLE.md](docs/NEDEN-BOYLE.md)
 
-## Gereksinimler
-.NET 8 SDK. (Başka bir şey gerekmez; SQLite bir dosyadır.)
+## Kurulum
 
-## Çalıştırma
+.NET 8 SDK yeterli.
 
 ```bash
 dotnet restore
-dotnet tool install --global dotnet-ef          # bir kez
-dotnet ef migrations add InitialCreate --project src/IskurAuto.Data --startup-project src/IskurAuto.API
+dotnet tool install --global dotnet-ef
+dotnet ef migrations add AddWorkPlans --project src/IskurAuto.Data --startup-project src/IskurAuto.API
 dotnet run --project src/IskurAuto.API
 ```
 
-Swagger: `https://localhost:<port>/swagger` (yalnızca Development).
+Veritabanı (`iskurauto.db`) ilk çalıştırmada oluşur. Development ortamında Swagger ana sayfada açılır.
 
-### Ayarlar
-* **JWT anahtarı** (üretimde zorunlu, ≥ 32 karakter):
-  `dotnet user-secrets set "JwtSettings:SecretKey" "<uzun-rastgele-değer>" --project src/IskurAuto.API`
-* **İlk yönetici** (hiç FacultyAdmin yoksa oluşturulur): `Bootstrap:AdminEmail` ve `Bootstrap:AdminPassword` (aynı yöntemle).
-* **CORS**: frontend adresini `Cors:AllowedOrigins` içine ekleyin.
+Üretimde en az bir ayar şart:
 
-### Demo hesaplar (yalnızca Development, parola `Demo1234!`)
-`sekreter@` (FacultyAdmin), `baskan.bm@` (DepartmentHead), `danisman.bm@` (Advisor), `ogrenci@` ve `ogrenci2@` (Student) — hepsi `@teknoloji.edu.tr`.
+```bash
+dotnet user-secrets set "JwtSettings:SecretKey" "<en az 32 karakter>" --project src/IskurAuto.API
+dotnet user-secrets set "Bootstrap:AdminEmail" "admin@ornek.edu.tr" --project src/IskurAuto.API
+dotnet user-secrets set "Bootstrap:AdminPassword" "<güçlü parola>" --project src/IskurAuto.API
+```
+
+Frontend adresi `Cors:AllowedOrigins` içine eklenir. Çalışma planı kuralları `WorkPlan` bölümünden değiştirilir
+(haftalık gün sınırı, düzeltme son günü, tam gün saati).
+
+## Demo hesaplar
+
+Yalnızca Development'ta oluşur, parola `Demo1234!`:
+
+| Rol | E-posta |
+|---|---|
+| Fakülte Sekreterliği | sekreter@teknoloji.edu.tr |
+| Bölüm Başkanı | baskan.bm@teknoloji.edu.tr |
+| Danışman | danisman.bm@teknoloji.edu.tr |
+| Öğrenci | ogrenci@teknoloji.edu.tr, ogrenci2@teknoloji.edu.tr |
 
 ## Testler
+
 ```bash
 dotnet test
 ```
-`Unit/` saf mantık testleri, `Services/` her teste ayrı bellek içi SQLite kurup gerçek repository + servisleri çalıştırır.
 
-## Aşama 1'de olanlar
-Giriş / öğrenci kaydı / parola değiştirme, 4 rol ve kapsamlı yetki, öğrenci profili (maskeleme), katılımı sonlandırma/yeniden başlatma,
-birim ve danışman atama (geçmiş korunur), kullanıcı-bölüm-birim yönetimi, denetim günlüğü.
+## Durum
 
-## Bilinen sınırlar (savunmada açıkça söylenmeli)
-* Migration dosyası henüz üretilmedi (yukarıdaki komutla üretilir).
-* Hesap kilitleme / brute-force koruması yok.
-* Token içindeki rol, süre dolana kadar (varsayılan 120 dk) geçerlidir; pasifleştirilen kullanıcı girişi anında engellenmez, yalnızca yeni girişi.
-* TC ve IBAN veritabanında şifreli değil (maskeleme yalnızca gösterimde); TC için NVİ doğrulaması yok, yalnızca algoritma kontrolü.
-* Öğrenci kaydı anonim; onay akışı yok.
-* Bölüm başına tek Bölüm Başkanı; danışman öğrencisiyle aynı bölümde olmalı.
-* SQLite'ta Türkçe karakterli arama/sıralama büyük-küçük harf duyarsız değildir (ASCII/ikili karşılaştırma).
-* Bu aşamada veritabanı destekli testler yazar tarafından çalıştırılmadı, yalnızca derleme ve saf mantık testleri doğrulandı; ilk `dotnet test` sonucunu paylaşın.
+| Aşama | İçerik | Durum |
+|---|---|---|
+| 1 | Kayıt, giriş, roller, öğrenci profili, katılım/birim/danışman geçmişi, denetim | Bitti |
+| 2 | Aylık çalışma planı, takvim, tatil ve sınav dönemi | Bitti (migration üretilecek) |
+| 3 | İzin ve devamsızlık | Sırada |
+| 4 | QR ile devam | |
+| 5 | Görev, değerlendirme, raporlar | |
+| 6 | Test senaryoları, teknik dokümantasyon | |
+
+## Bilinen sınırlar
+
+- Hesap kilitleme yok.
+- Token süresi dolana kadar eski rol geçerli kalır (varsayılan 120 dk).
+- TC ve IBAN veritabanında düz saklanıyor, yalnızca gösterimde maskeleniyor. TC için NVİ doğrulaması yok.
+- Öğrenci kaydı onaysız.
+- Resmî tatiller ve sınav dönemleri elle girilir, otomatik kaynak yok.
+- Haftalık gün sınırı plan bazında denetlenir; ay sınırındaki bir hafta iki plan arasında bölünürse toplam kontrol edilmez.
+- SQLite'ta Türkçe karakterli aramalar büyük/küçük harfe duyarlıdır.
