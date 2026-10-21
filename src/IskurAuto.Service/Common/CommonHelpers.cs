@@ -11,7 +11,9 @@ public sealed class SystemClock : IClock
 {
     public DateTime UtcNow => DateTime.UtcNow;
 
-    public DateOnly Today => DateOnly.FromDateTime(UtcNow.AddHours(3));
+    public DateTime LocalNow => UtcNow.AddHours(3);
+
+    public DateOnly Today => DateOnly.FromDateTime(LocalNow);
 }
 
 /// <summary>

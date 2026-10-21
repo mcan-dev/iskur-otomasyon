@@ -64,3 +64,15 @@ public class AbsenceSearchCriteria
     public int? DepartmentId { get; set; }
     public int? AdvisorUserId { get; set; }
 }
+
+public class AttendanceSearchCriteria
+{
+    public DateOnly? Date { get; set; }
+    public int? Year { get; set; }
+    public int? Month { get; set; }
+    public int? SessionId { get; set; }
+    public int? StudentId { get; set; }
+    public int? DepartmentId { get; set; }
+    public int? AdvisorUserId { get; set; }
+    public bool IncludeVoided { get; set; }
+}

@@ -53,8 +53,8 @@ dotnet test
 |---|---|---|
 | 1 | Kayıt, giriş, roller, öğrenci profili, katılım/birim/danışman geçmişi, denetim | Bitti |
 | 2 | Aylık çalışma planı, takvim, tatil ve sınav dönemi | Bitti |
-| 3 | İzin, devamsızlık, izin hakkı takibi ve uyarılar | Bitti (migration üretilecek) |
-| 4 | QR ile devam | |
+| 3 | İzin, devamsızlık, izin hakkı takibi ve uyarılar | Bitti |
+| 4 | 30 saniyede yenilenen QR ile devam takibi | Bitti (migration üretilecek) |
 | 5 | Görev, değerlendirme, raporlar | |
 | 6 | Test senaryoları, teknik dokümantasyon | |
 
@@ -68,4 +68,7 @@ dotnet test
 - Yüklenen belgeler diskte düz saklanır, şifrelenmez.
 - Resmî tatiller ve sınav dönemleri elle girilir, otomatik kaynak yok.
 - Haftalık gün sınırı plan bazında denetlenir; ay sınırındaki bir hafta iki plan arasında bölünürse toplam kontrol edilmez.
+- QR oturumunun gizli anahtarı veritabanında düz saklanır (imza doğrulaması için gerekli); yanıtlarda hiçbir zaman dönmez.
+- Karekod bir öğrenciden diğerine fotoğrafla iletilebilir; jeton yaklaşık 60 saniye geçerli olduğu ve her öğrenci oturum başına tek kayıt oluşturabildiği için etkisi sınırlıdır. Konum doğrulaması yok.
+- Planlı ama devamı olmayan gün otomatik devamsızlık sayılmaz; karşılaştırmada "kayıt yok" olarak görünür, devamsızlığı fakülte yönetimi girer.
 - SQLite'ta Türkçe karakterli aramalar büyük/küçük harfe duyarlıdır.

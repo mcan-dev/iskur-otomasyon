@@ -29,6 +29,8 @@ public class IskurAutoDbContext : DbContext, IUnitOfWork
     public DbSet<LeaveRequest> LeaveRequests => Set<LeaveRequest>();
     public DbSet<Absence> Absences => Set<Absence>();
     public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
+    public DbSet<AttendanceSession> AttendanceSessions => Set<AttendanceSession>();
+    public DbSet<AttendanceRecord> AttendanceRecords => Set<AttendanceRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

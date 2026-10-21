@@ -36,6 +36,8 @@ erDiagram
     WorkPlanDay { int Id int MonthlyWorkPlanId date Date enum Shift bool IsLessonDay string Note }
     LeaveRequest { int Id int StudentProfileId enum Type enum Status date StartDate date EndDate decimal Hours decimal DaysCounted string Reason date AppliedOn int ReviewedByUserId datetime ReviewedAt string ReviewNote string DocumentStoredName }
     Absence { int Id int StudentProfileId date Date enum Type string Note int RecordedByUserId datetime RevokedAt string RevokeReason }
+    AttendanceSession { int Id date Date time StartTime time EndTime string Title int DepartmentId string SecretKey int CreatedByUserId datetime ClosedAt }
+    AttendanceRecord { int Id int StudentProfileId int AttendanceSessionId date Date datetime CheckedInAt int WorkPlanDayId bool IsManual string ManualReason int CreatedByUserId datetime VoidedAt int VoidedByUserId string VoidReason }
     SystemSetting { int Id string Key string Value }
     AuditLog { long Id datetime OccurredAt string Action string EntityName int EntityId }
 ```
@@ -52,11 +54,12 @@ erDiagram
 | Bir planda aynı gün tek kez | Unique index (plan, tarih) |
 | Aynı tarih iki kez tatil olamaz | Unique index (tarih) |
 | Öğrencinin bir günde tek aktif devamsızlığı | Filtreli unique index `WHERE "RevokedAt" IS NULL` |
+| Aynı öğrencinin aynı oturumda tek geçerli devam kaydı | Filtreli unique index `WHERE "VoidedAt" IS NULL` |
 | Ayar anahtarı tektir | Unique index (Key) |
 
 ## Sonraki aşamalarda eklenecek tablolar
 
-Devam kayıtları ve QR oturumları, görevler ve danışman değerlendirmeleri.
+Görevler ve danışman değerlendirmeleri, ilişik kesme kararları.
 
 ## Migration
 
