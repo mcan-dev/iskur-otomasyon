@@ -21,6 +21,11 @@ public class IskurAutoDbContext : DbContext, IUnitOfWork
     public DbSet<StudentUnitAssignment> StudentUnitAssignments => Set<StudentUnitAssignment>();
     public DbSet<AdvisorAssignment> AdvisorAssignments => Set<AdvisorAssignment>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<Holiday> Holidays => Set<Holiday>();
+    public DbSet<ExamPeriod> ExamPeriods => Set<ExamPeriod>();
+    public DbSet<StudentCourseDay> StudentCourseDays => Set<StudentCourseDay>();
+    public DbSet<MonthlyWorkPlan> WorkPlans => Set<MonthlyWorkPlan>();
+    public DbSet<WorkPlanDay> WorkPlanDays => Set<WorkPlanDay>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

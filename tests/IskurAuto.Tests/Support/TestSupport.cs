@@ -1,6 +1,7 @@
 using IskurAuto.Core.Entities;
 using IskurAuto.Core.Enums;
 using IskurAuto.Core.Interfaces;
+using IskurAuto.Core.Models;
 using IskurAuto.Data.Context;
 using IskurAuto.Data.Repositories;
 using IskurAuto.Service.Abstractions;
@@ -66,6 +67,7 @@ public sealed class TestDb : IDisposable
 
     public FakeClock Clock { get; } = new(new DateTime(2026, 10, 21, 9, 0, 0, DateTimeKind.Utc));
     public FakeCurrentUser Current { get; } = new();
+    public WorkPlanSettings WorkPlanSettings { get; } = new();
 
     /// <summary>Testlerin hızlı çalışması için düşük yinelemeli hasher (üretimde 600.000).</summary>
     public IPasswordHasher Hasher { get; } = new Pbkdf2PasswordHasher(iterations: 1_000);
@@ -101,6 +103,9 @@ public sealed class TestScope : IDisposable
     public IDepartmentService Departments { get; }
     public IWorkUnitService WorkUnits { get; }
     public IAuditService Audit { get; }
+    public IWorkPlanService WorkPlans { get; }
+    public ICourseDayService CourseDays { get; }
+    public ICalendarService Calendar { get; }
 
     public TestScope(TestDb db, IskurAutoDbContext context)
     {
@@ -118,6 +123,14 @@ public sealed class TestScope : IDisposable
         Users = new UserService(users, departments, context, db.Hasher, audit, db.Current);
         Departments = new DepartmentService(departments, context, audit, db.Current);
         WorkUnits = new WorkUnitService(units, context, audit, db.Current);
+
+        var holidays = new HolidayRepository(context);
+        var examPeriods = new ExamPeriodRepository(context);
+        var courseDays = new StudentCourseDayRepository(context);
+        WorkPlans = new WorkPlanService(new WorkPlanRepository(context), students, holidays, examPeriods, courseDays,
+            context, db.Clock, audit, db.Current, db.WorkPlanSettings);
+        CourseDays = new CourseDayService(students, courseDays, context, audit, db.Current);
+        Calendar = new CalendarService(holidays, examPeriods, context, audit, db.Current);
     }
 
     public void Dispose() => Context.Dispose();

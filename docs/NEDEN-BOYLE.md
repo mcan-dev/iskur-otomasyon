@@ -45,3 +45,18 @@ Kurulumsuz, tek dosya; bitirme projesi ve jüri demosu için ideal. EF Core saye
 
 ### Neden İŞKUR botu ertelendi?
 Belgenin zorunlu modülleri (kayıt, plan, izin, QR, rapor) botta yok. Önce zorunlular, sonra bot; kod `parked/` içinde saklı.
+
+### Plan kuralları neden ayrı bir sınıfta?
+`WorkPlanRules` yalnızca tarih listesi ve takvim bilgisiyle çalışır, veritabanını bilmez. Böylece kuralların her biri küçük bir testle denenir ve belge değişirse tek yerde güncellenir.
+
+### Hafta neden perşembesinin düştüğü aya sayılıyor?
+Ay sınırındaki yarım hafta (örneğin yalnızca 30 Kasım Pazartesi) iki ayın planında birden "en az 1 gün" şartı doğurmasın diye. ISO hafta mantığıyla aynıdır.
+
+### Plan düzenleme süresi neden ayarda?
+Belge "belirlenen süre içinde düzeltme" diyor ama süreyi vermiyor. `WorkPlan:EditDeadlineDay` ile kurum kendi süresini seçer.
+
+### Plan onaylanınca neden öğrenci değiştiremiyor, sekreter değiştirebiliyor?
+Onay, kararın bağlayıcı olması demek. Belge fakülte yönetimine değiştirme yetkisi veriyor; değişen plan yeniden "bekliyor" durumuna düşer ve değişiklik denetim kaydına yazılır.
+
+### Tatiller ve sınav dönemleri neden elle giriliyor?
+Dini bayram tarihleri her yıl değişir ve güvenilir bir otomatik kaynak yok. Fakülte yönetimi yıllık bir kez girer.

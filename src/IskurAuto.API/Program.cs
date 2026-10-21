@@ -1,3 +1,4 @@
+using IskurAuto.Core.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -18,7 +19,9 @@ var connectionString = builder.Configuration.GetConnectionString("IskurAutoDb")
     ?? throw new InvalidOperationException("ConnectionStrings:IskurAutoDb yapılandırması eksik.");
 
 builder.Services.AddDataLayer(connectionString);
-builder.Services.AddServiceLayer();
+var workPlanSettings = builder.Configuration.GetSection(WorkPlanSettings.SectionName).Get<WorkPlanSettings>()
+    ?? new WorkPlanSettings();
+builder.Services.AddServiceLayer(workPlanSettings);
 
 // ─── 2. API katmanına özgü servisler ──────────────────────────────────────
 builder.Services.AddHttpContextAccessor();
