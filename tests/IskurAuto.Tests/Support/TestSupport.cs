@@ -18,7 +18,10 @@ public sealed class FakeClock : IClock
 {
     public FakeClock(DateTime utcNow) => UtcNow = utcNow;
     public DateTime UtcNow { get; set; }
-    public DateOnly Today => DateOnly.FromDateTime(UtcNow.AddHours(3));
+    public DateTime LocalNow => UtcNow.AddHours(3);
+    public DateOnly Today => DateOnly.FromDateTime(LocalNow);
+    public void AdvanceMinutes(int minutes) => UtcNow = UtcNow.AddMinutes(minutes);
+    public void AdvanceSeconds(int seconds) => UtcNow = UtcNow.AddSeconds(seconds);
     public void AdvanceDays(int days) => UtcNow = UtcNow.AddDays(days);
 }
 
@@ -127,6 +130,7 @@ public sealed class TestScope : IDisposable
     public ILeaveService Leaves { get; }
     public IAbsenceService Absences { get; }
     public ILeaveSettingsService LeaveSettings { get; }
+    public IAttendanceService Attendance { get; }
 
     public TestScope(TestDb db, IskurAutoDbContext context)
     {
@@ -160,6 +164,8 @@ public sealed class TestScope : IDisposable
         Leaves = new LeaveService(leaveRepository, absenceRepository, students, holidays, new WorkPlanRepository(context),
             db.Documents, policy, context, db.Clock, audit, db.Current, db.WorkPlanSettings);
         Absences = new AbsenceService(absenceRepository, students, context, db.Clock, audit, db.Current);
+        Attendance = new AttendanceService(new AttendanceSessionRepository(context), new AttendanceRecordRepository(context),
+            students, new WorkPlanRepository(context), leaveRepository, absenceRepository, context, db.Clock, audit, db.Current);
     }
 
     public void Dispose() => Context.Dispose();
