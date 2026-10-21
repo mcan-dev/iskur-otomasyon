@@ -46,4 +46,11 @@ public static class AuditActions
     public const string AbsenceRecorded      = "Absence.Recorded";
     public const string AbsenceRevoked       = "Absence.Revoked";
     public const string LeavePolicyChanged   = "Settings.LeavePolicyChanged";
+
+    public const string SessionCreated       = "Attendance.SessionCreated";
+    public const string SessionClosed        = "Attendance.SessionClosed";
+    public const string CheckInSucceeded     = "Attendance.CheckedIn";
+    public const string CheckInRejected      = "Attendance.CheckInRejected";
+    public const string AttendanceAddedManually = "Attendance.AddedManually";
+    public const string AttendanceVoided     = "Attendance.Voided";
 }

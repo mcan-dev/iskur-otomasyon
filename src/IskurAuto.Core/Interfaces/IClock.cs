@@ -10,4 +10,7 @@ public interface IClock
 
     /// <summary>Türkiye saatine göre bugünün tarihi (UTC+3, yıl boyu sabit).</summary>
     DateOnly Today { get; }
+
+    /// <summary>Türkiye saatine göre şu an (UTC+3).</summary>
+    DateTime LocalNow { get; }
 }

@@ -100,14 +100,25 @@ Hesaplamalar `LeaveDayCounter` ve `LeaveBalanceCalculator` sınıflarında, veri
 - Sınırlar (`LeaveDayLimit`, uyarı eşikleri, devamsızlık sınırı) `SystemSettings` tablosunda durur; kod değişmeden güncellenir.
 - Belgeler `IDocumentStore` arkasında saklanır (şimdilik yerel klasör). Personel belgeyi açtığında denetim kaydı düşer.
 
-## 8. Aşamalar
+## 8. Karekodla devam (Aşama 4)
+
+- Fakülte yönetimi (tüm fakülte) veya bölüm başkanı (kendi bölümü) bir gün ve saat aralığı için **oturum** açar. Aynı kapsamda açık oturumlar çakışamaz.
+- Karekodun içindeki metin `{oturum}.{30 sn'lik pencere no}.{imza}` biçimindedir (`QrToken`). İmza, oturuma özel gizli anahtarla HMAC-SHA256'dır; sunucu jeton saklamaz. Ekran `refreshAtUtc` geçince yenisini ister.
+- Okutma gecikmesi için bir önceki pencere de kabul edilir; jeton en fazla yaklaşık 60 saniye geçerlidir.
+- Okutmada sırayla: jeton imzası ve süresi, oturumun açık ve saat aralığında olması, öğrencinin aktif katılımı, bölüm kapsamı, tekrar kayıt, o gün için **onaylı** plan, o gün için onaylı günlük izin. Reddedilen her okutma denetim kaydına yazılır.
+- Kayıt, o günün plan gününe bağlanır. Aynı öğrenci aynı oturumda tek geçerli kayda sahip olur (filtreli unique index).
+- Hatalı kayıt silinmez: fakülte yönetimi gerekçeyle iptal eder; okutamayan öğrenci için gerekçeyle elle kayıt ekler. İkisinde de işlemi yapan kullanıcı saklanır.
+- `AttendanceComparer` planlı günleri sonuçlarına ayırır: devam var, izinli, devamsızlık girilmiş, kayıt yok, bugün, gelecek. Yalnızca onaylı plan karşılaştırılır.
+- Günlük, aylık ve yıllık liste aynı sorgudan gelir (`date` / `year+month` / `year`); kapsam diğer modüllerle aynıdır.
+
+## 9. Aşamalar
 
 | Aşama | İçerik | Durum |
 |---|---|---|
 | 1 | Veri modeli, kimlik doğrulama, roller, öğrenci kaydı/profili, geçmiş, denetim | **Tamamlandı** |
 | 2 | Aylık çalışma planı (takvim, 1–3 gün/hafta, tatil/ders kuralları, yarım gün) | **Tamamlandı** |
 | 3 | İzin / devamsızlık (parametrik 10 gün limiti, uyarı) | **Tamamlandı** |
-| 4 | 30 sn dinamik QR ile devam | |
+| 4 | 30 sn dinamik QR ile devam | **Tamamlandı** |
 | 5 | Görev ve danışman değerlendirme, raporlar (Excel/CSV) | |
 | 6 | Test senaryoları, kurulum ve teknik dokümantasyon | |
 | Sonra | İŞKUR botu (Playwright, Maker-Checker) – `parked/` klasöründe bekliyor | |

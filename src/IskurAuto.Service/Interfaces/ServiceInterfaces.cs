@@ -119,6 +119,26 @@ public interface IAbsenceService
     Task<IReadOnlyList<AbsenceDto>> ListMineAsync(int? year, CancellationToken ct = default);
 }
 
+public interface IAttendanceService
+{
+    // Oturum ve karekod (yetkili kullanıcı)
+    Task<SessionDto> CreateSessionAsync(CreateSessionRequest request, CancellationToken ct = default);
+    Task<SessionDto> CloseSessionAsync(int sessionId, CancellationToken ct = default);
+    Task<IReadOnlyList<SessionDto>> ListSessionsAsync(DateOnly? from, DateOnly? to, CancellationToken ct = default);
+    Task<QrCodeDto> GetCurrentQrAsync(int sessionId, CancellationToken ct = default);
+
+    // Öğrenci
+    Task<AttendanceDto> CheckInAsync(CheckInRequest request, CancellationToken ct = default);
+    Task<IReadOnlyList<AttendanceDto>> ListMineAsync(int? year, int? month, CancellationToken ct = default);
+    Task<AttendanceComparisonDto> GetMyComparisonAsync(int year, int month, CancellationToken ct = default);
+
+    // Yetkili kullanıcılar
+    Task<IReadOnlyList<AttendanceDto>> SearchAsync(AttendanceQuery query, CancellationToken ct = default);
+    Task<AttendanceComparisonDto> GetComparisonAsync(int studentId, int year, int month, CancellationToken ct = default);
+    Task<AttendanceDto> AddManuallyAsync(ManualAttendanceRequest request, CancellationToken ct = default);
+    Task<AttendanceDto> VoidAsync(int attendanceId, VoidAttendanceRequest request, CancellationToken ct = default);
+}
+
 public interface ILeavePolicyProvider
 {
     Task<LeavePolicy> GetAsync(CancellationToken ct = default);
