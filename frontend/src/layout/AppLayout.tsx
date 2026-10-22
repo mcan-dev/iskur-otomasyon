@@ -24,8 +24,8 @@ export default function AppLayout() {
         <div className="brand">
           <div className="brand-mark">İ</div>
           <div className="brand-text">
-            <strong>TEKNOLOJİ FAKÜLTESİ</strong>
-            <span>İŞKUR Öğrenci Otomasyonu</span>
+            <strong>SELÇUK ÜNİVERSİTESİ</strong>
+            <span>Teknoloji Fakültesi · İŞKUR</span>
           </div>
         </div>
         <nav>

@@ -1,13 +1,13 @@
 # Test senaryoları
 
-Belgenin 9. maddesindeki test başlıkları ve bunları karşılayan otomatik testler. Toplam 263 test yöntemi vardır; `[Theory]` testlerinin her veri satırı ayrı çalıştığı için `dotnet test` çıktısındaki sayı daha yüksektir.
+Belgenin 9. maddesindeki test başlıkları ve bunları karşılayan otomatik testler. Toplam 267 test yöntemi vardır; `[Theory]` testlerinin her veri satırı ayrı çalıştığı için `dotnet test` çıktısındaki sayı daha yüksektir.
 
 ```bash
 dotnet test                                         # hepsi
 dotnet test --filter "FullyQualifiedName~Attendance" # bir modül
 ```
 
-Veritabanını kullanan testler her test için ayrı, bellek içi bir SQLite veritabanı kurar. Saat sabittir (21 Ekim 2026, 12:00), bu yüzden sonuçlar günden bağımsızdır.
+Veritabanını kullanan testler her test için ayrı, bellek içi bir SQLite veritabanı kurar (testlerin hızlı ve kurulumsuz çalışması için; model ve sorgular sağlayıcıdan bağımsızdır, uygulama SQL Server kullanır). Saat sabittir (21 Ekim 2026, 12:00), bu yüzden sonuçlar günden bağımsızdır.
 
 ## Belgedeki başlıklara göre
 
@@ -16,10 +16,10 @@ T.C. kimlik no ve IBAN algoritması, telefon ve ad normalleştirme, parola kural
 
 | Test sınıfı | Test sayısı | Dosya |
 |---|---|---|
-| `NationalIdValidatorTests` | 2 | `Unit/ValidationTests.cs` |
-| `IbanValidatorTests` | 2 | `Unit/ValidationTests.cs` |
-| `PasswordPolicyTests` | 1 | `Unit/ValidationTests.cs` |
-| `InputNormalizerTests` | 3 | `Unit/ValidationTests.cs` |
+| `NationalIdValidatorTests` | 3 | `Unit/ValidationTests.cs` |
+| `IbanValidatorTests` | 3 | `Unit/ValidationTests.cs` |
+| `PasswordPolicyTests` | 2 | `Unit/ValidationTests.cs` |
+| `InputNormalizerTests` | 4 | `Unit/ValidationTests.cs` |
 | `AuthServiceTests` | 11 | `Services/AuthServiceTests.cs` |
 | `PasswordResetServiceTests` | 7 | `Services/PasswordResetServiceTests.cs` |
 | `DatabaseConstraintTests` | 8 | `Services/AdminAndDatabaseTests.cs` |
@@ -38,18 +38,18 @@ Rol kontrolü ve kapsam: bölüm başkanı yalnızca kendi bölümünü, danış
 Rol ve kapsam senaryoları diğer sınıflarda da modül bazında vardır: `*_IsForbidden`, `*_FollowTheRoleScope`, `*_OutsideTheScope_LooksLikeNotFound`, `OnlyStudentsCanCheckIn`, `OnlyTheFacultyOfficeRecordsDecisions`, `MonthlyStatement_IsOnlyForTheFacultyOffice`.
 
 ### Çalışma günü sınırları
-Haftada 1-3 gün, haftanın perşembesinin düştüğü aya sayılması, hafta sonu/tatil/program dışı günün seçilememesi, dersli günde açıklama zorunluluğu, sınav haftasında alt sınırın aranmaması, yarım gün, düzeltme süresi, onaylı planın kilitlenmesi.
+Haftada 1-3 gün, haftanın perşembesinin düştüğü aya sayılması, hafta sonu/tatil/program dışı günün seçilememesi, dersli günde açıklama zorunluluğu, sınav haftasında alt sınırın aranmaması, her günün 8 saat sayılması, düzeltme süresi, onaylı planın kilitlenmesi.
 
 | Test sınıfı | Test sayısı | Dosya |
 |---|---|---|
-| `WorkPlanRulesTests` | 15 | `Unit/WorkPlanRulesTests.cs` |
+| `WorkPlanRulesTests` | 14 | `Unit/WorkPlanRulesTests.cs` |
 | `WorkPlanSettingsTests` | 1 | `Unit/WorkPlanRulesTests.cs` |
 | `WorkPlanCalendarTests` | 4 | `Unit/WorkPlanRulesTests.cs` |
 | `WorkPlanServiceTests` | 17 | `Services/WorkPlanServiceTests.cs` |
 | `CourseDayAndCalendarServiceTests` | 4 | `Services/WorkPlanServiceTests.cs` |
 
 ### İzin hesaplamaları
-Plan varsa planlı günlerin, yoksa hafta içi günlerin sayılması, tatillerin düşülmesi, yarım gün ve saatlik izin, yıl sınırı, çakışan talep, sınır uyarıları (yaklaşma, aşma, bekleyen talepler), sağlık izni ve mazeretsiz devamsızlık ayrımı, geri alınan kaydın bakiyeye etkisi.
+Plan varsa planlı günlerin, yoksa hafta içi günlerin sayılması, tatillerin düşülmesi, saatlik izin, yıl sınırı, çakışan talep, sınır uyarıları (yaklaşma, aşma, bekleyen talepler), sağlık izni ve mazeretsiz devamsızlık ayrımı, geri alınan kaydın bakiyeye etkisi.
 
 | Test sınıfı | Test sayısı | Dosya |
 |---|---|---|
@@ -63,7 +63,7 @@ Jetonun 30 saniyede değişmesi, tolerans penceresinin dışında geçersizleşm
 
 | Test sınıfı | Test sayısı | Dosya |
 |---|---|---|
-| `QrTokenTests` | 9 | `Unit/QrTokenTests.cs` |
+| `QrTokenTests` | 10 | `Unit/QrTokenTests.cs` |
 | `AttendanceServiceTests` | 32 | `Services/AttendanceServiceTests.cs` |
 | `AttendanceComparerTests` | 6 | `Unit/AttendanceComparerTests.cs` |
 

@@ -1,4 +1,4 @@
-# Veritabanı (SQLite + EF Core Code-First)
+# Veritabanı (SQL Server + EF Core Code-First)
 
 ## Tablolar
 
@@ -46,7 +46,7 @@ erDiagram
     ExamPeriod { int Id string Name date StartDate date EndDate }
     StudentCourseDay { int Id int StudentProfileId int DayOfWeek }
     MonthlyWorkPlan { int Id int StudentProfileId int Year int Month enum Status string StudentNote datetime LastSavedAt int ReviewedByUserId datetime ReviewedAt string ReviewNote }
-    WorkPlanDay { int Id int MonthlyWorkPlanId date Date enum Shift bool IsLessonDay string Note }
+    WorkPlanDay { int Id int MonthlyWorkPlanId date Date bool IsLessonDay string Note }
     LeaveRequest { int Id int StudentProfileId enum Type enum Status date StartDate date EndDate decimal Hours decimal DaysCounted string Reason date AppliedOn int ReviewedByUserId datetime ReviewedAt string ReviewNote string DocumentStoredName }
     Absence { int Id int StudentProfileId date Date enum Type string Note int RecordedByUserId datetime RevokedAt string RevokeReason }
     AttendanceSession { int Id date Date time StartTime time EndTime string Title int DepartmentId string SecretKey int CreatedByUserId datetime ClosedAt }
@@ -65,14 +65,14 @@ erDiagram
 | Kural | Mekanizma |
 |---|---|
 | E-posta, TC, öğrenci no, bölüm kodu/adı, birim adı benzersiz | Unique index |
-| Öğrencinin aynı anda tek açık katılımı / birimi / danışmanı | Filtreli unique index `WHERE "EndDate" IS NULL` |
+| Öğrencinin aynı anda tek açık katılımı / birimi / danışmanı | Filtreli unique index `WHERE [EndDate] IS NULL` |
 | Geçmişi olan kayıt silinemez | Tüm FK'lar `Restrict` |
 | Rol okunabilir | `UserRole` metin olarak saklanır |
 | Öğrencinin bir ay için tek planı | Unique index (öğrenci, yıl, ay) |
 | Bir planda aynı gün tek kez | Unique index (plan, tarih) |
 | Aynı tarih iki kez tatil olamaz | Unique index (tarih) |
-| Öğrencinin bir günde tek aktif devamsızlığı | Filtreli unique index `WHERE "RevokedAt" IS NULL` |
-| Aynı öğrencinin aynı oturumda tek geçerli devam kaydı | Filtreli unique index `WHERE "VoidedAt" IS NULL` |
+| Öğrencinin bir günde tek aktif devamsızlığı | Filtreli unique index `WHERE [RevokedAt] IS NULL` |
+| Aynı öğrencinin aynı oturumda tek geçerli devam kaydı | Filtreli unique index `WHERE [VoidedAt] IS NULL` |
 | Aynı danışman aynı öğrenci ve gün için tek devamsızlık bildirimi | Unique index (danışman, öğrenci, tarih) |
 | Değerlendirmesi olan görev silinemez | FK `Restrict` |
 | İlişik kesme kararı silinemez, öğrenci kaydına bağlıdır | FK `Restrict` |
@@ -83,13 +83,24 @@ erDiagram
 
 Raporlar için ayrı tablo yoktur; hepsi yukarıdaki kayıtlardan istek anında hesaplanır.
 
+## SQL Server notları
+
+- Varsayılan bağlantı: `Server=(localdb)\MSSQLLocalDB;Database=IskurAuto;Trusted_Connection=True;TrustServerCertificate=True` (Visual Studio ile gelen LocalDB). Kurumsal sunucuda `ConnectionStrings:IskurAutoDb` ile değiştirilir.
+- Hiçbir ilişkide cascade delete yoktur; kayıtlar silinmez, tarihçe tutulur.
+- "Açık dönem tek olsun" (`EndDate IS NULL`), "iptal edilmemiş kayıt tek olsun" (`VoidedAt IS NULL`, `RevokedAt IS NULL`) kuralları filtreli benzersiz indekslerle veritabanında da güvence altındadır.
+- Ondalık alanlar (`Hours`, `DaysCounted`, `LeaveDaysUsed`) `decimal(5,2)` tutulur.
+- Tüm şema T-SQL olarak `teslim/3_Veritabani/` klasöründeki betikte de verilmiştir.
+
 ## Migration
 
-Her aşamada model değişince yeni bir migration eklenir:
+Depoda hazır migration yoktur. Uygulama ilk açılışta veritabanını ve tabloları kendisi oluşturur (`EnsureCreated`).
+Migration ile ilerlemek isteyen geliştirici ilk migration'ı üretir ve dosyaları depoya ekler:
 
 ```
 dotnet tool install --global dotnet-ef
-dotnet ef migrations add <Ad> --project src/IskurAuto.Data --startup-project src/IskurAuto.API
+dotnet ef migrations add InitialCreate --project src/IskurAuto.Data --startup-project src/IskurAuto.API
 ```
 
-Uygulama açılırken migration varsa `Migrate()`, yoksa `EnsureCreated()` çalışır.
+Bundan sonra model değiştikçe `dotnet ef migrations add <Ad>` ile yeni migration eklenir. Uygulama açılırken
+migration varsa `Migrate()` çalışır. Önemli: veritabanı daha önce `EnsureCreated` ile oluştuysa, ilk migration'ı
+uygulamadan önce veritabanı silinmelidir (`dotnet ef database drop --project src/IskurAuto.Data --startup-project src/IskurAuto.API`).

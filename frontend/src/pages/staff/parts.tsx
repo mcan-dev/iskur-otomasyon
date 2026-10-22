@@ -3,7 +3,7 @@ import { api, ApiError } from '../../api/client';
 import type { Absence, Leave, WorkPlan } from '../../api/types';
 import { Alert, Badge, Empty, Field, Modal } from '../../components/ui';
 import {
-  absenceTypeLabels, fmtDate, fmtDateTime, leaveStatusLabels, leaveTone, leaveTypeLabels, monthYear, planStatusLabels, planTone, shiftLabels,
+  absenceTypeLabels, fmtDate, fmtDateTime, leaveStatusLabels, leaveTone, leaveTypeLabels, monthYear, planStatusLabels, planTone,
 } from '../../format';
 
 const msg = (err: unknown, fallback: string) => (err instanceof ApiError ? err.message : fallback);
@@ -62,7 +62,7 @@ export function PlanItem({ plan, canReview, onChanged, showStudent = true }: { p
         {plan.plannedDays} gün · {plan.plannedHours} saat · Son kayıt {fmtDateTime(plan.lastSavedAt)}
       </p>
       <p>
-        {plan.days.map((d) => `${fmtDate(d.date).slice(0, 5)}${d.shift !== 'FullDay' ? ` (${shiftLabels[d.shift]})` : ''}`).join(', ')}
+        {plan.days.map((d) => fmtDate(d.date).slice(0, 5)).join(', ')}
       </p>
       {plan.studentNote && <p className="muted small">Öğrenci notu: {plan.studentNote}</p>}
       {plan.reviewedByName && (

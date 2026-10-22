@@ -103,7 +103,6 @@ public class AttendanceQuery
 public class PlannedDayDto
 {
     public DateOnly Date { get; set; }
-    public WorkShift Shift { get; set; }
     public PlannedDayOutcome Outcome { get; set; }
 }
 

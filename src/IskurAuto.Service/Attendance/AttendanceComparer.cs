@@ -24,19 +24,17 @@ public enum PlannedDayOutcome
     Upcoming = 6
 }
 
-public sealed record PlannedDayResult(DateOnly Date, WorkShift Shift, PlannedDayOutcome Outcome);
+public sealed record PlannedDayResult(DateOnly Date, PlannedDayOutcome Outcome);
 
 public sealed record AttendanceComparison(IReadOnlyList<PlannedDayResult> Days)
 {
-    public decimal PlannedDays => Days.Sum(d => Weight(d));
+    public decimal PlannedDays => Days.Count;
     public decimal AttendedDays => Sum(PlannedDayOutcome.Attended);
     public decimal LeaveDays => Sum(PlannedDayOutcome.OnLeave);
     public decimal RecordedAbsenceDays => Sum(PlannedDayOutcome.RecordedAbsence);
     public decimal MissingDays => Sum(PlannedDayOutcome.Missing);
 
-    private decimal Sum(PlannedDayOutcome outcome) => Days.Where(d => d.Outcome == outcome).Sum(Weight);
-
-    private static decimal Weight(PlannedDayResult day) => day.Shift == WorkShift.FullDay ? 1m : 0.5m;
+    private decimal Sum(PlannedDayOutcome outcome) => Days.Count(d => d.Outcome == outcome);
 }
 
 /// <summary>
@@ -56,7 +54,7 @@ public static class AttendanceComparer
 
         var results = plannedDays
             .OrderBy(d => d.Date)
-            .Select(d => new PlannedDayResult(d.Date, d.Shift,
+            .Select(d => new PlannedDayResult(d.Date,
                 Outcome(d.Date, attendedDates, fullDayLeaves, absenceDates, today)))
             .ToList();
 

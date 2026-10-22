@@ -11,7 +11,7 @@ Teknoloji Fakültesi kısmi zamanlı öğrenci (İŞKUR) takip sistemi. Gereksin
         └──┬────────┬──┘
            │        │
    ┌───────▼──┐  ┌──▼───────┐
-   │ Service  │  │   Data   │  EF Core + SQLite, repository'ler, DbContext
+   │ Service  │  │   Data   │  EF Core + SQL Server, repository'ler, DbContext
    └───────┬──┘  └──┬───────┘
            │        │
         ┌──▼────────▼──┐
@@ -78,7 +78,7 @@ veriyi yükleyip bu sınıfa verir. Kurallar:
 - Hafta sonu, resmî tatil ve programa katılım dışındaki günler seçilemez.
 - Dersli gün (öğrencinin beyan ettiği haftanın günleri) açıklama notuyla seçilebilir.
 - Sınav dönemiyle kesişen haftalarda en az 1 gün şartı aranmaz.
-- Yarım gün (öğleden önce / sonra) bir gün sayılır, saati tam günün yarısıdır.
+- Çalışılan her gün tam gündür; günlük çalışma süresi 8 saattir, yarım gün yoktur.
 - Öğrenci planı ilgili ayın bir önceki ayının başından, ayın `EditDeadlineDay`. gününe kadar düzenler.
   Reddedilen plan süre bitse de düzeltilebilir, onaylanan plan öğrenci tarafından değiştirilemez.
 - Fakülte yönetimi her zaman öğrenci adına düzeltme yapabilir; düzeltilen plan yeniden onaya düşer.
@@ -90,8 +90,8 @@ Her günde renkle birlikte metin etiketi de döner.
 
 Hesaplamalar `LeaveDayCounter` ve `LeaveBalanceCalculator` sınıflarında, veritabanından bağımsız saf fonksiyonlardır.
 
-- İzin hakkından düşen gün: ay için çalışma planı varsa yalnızca planlı günler (yarım gün 0,5), plan yoksa hafta içi ve tatil olmayan her gün.
-  Saatlik izin tek gün için alınır ve saat / tam gün saati olarak hesaplanır.
+- İzin hakkından düşen gün: ay için çalışma planı varsa yalnızca planlı günler (her biri 1 gün), plan yoksa hafta içi ve tatil olmayan her gün.
+  Saatlik izin tek gün için alınır ve saat / günlük çalışma saati olarak hesaplanır.
 - İzin takvim yılına aittir, iki yıla yayılamaz. Çakışan (bekleyen veya onaylı) izin alınamaz.
 - Sınırı aşan talep engellenmez; bakiye yanıtında uyarı olarak döner, karar fakülte yönetimindedir.
 - Onay ve ret yalnızca fakülte yönetiminde, ret için gerekçe zorunlu. Onaylanan gün sayısı talep anında sabitlenir.
@@ -124,7 +124,7 @@ Hesaplamalar `LeaveDayCounter` ve `LeaveBalanceCalculator` sınıflarında, veri
 
 - Tüm raporlar aynı biçimde (`ReportTable`: başlık, sütunlar, satırlar) döner. Ekran bu tabloyu çizer; CSV ve Excel dosyası aynı tablodan üretilir. Böylece ekranda görünen ile dışa aktarılan her zaman aynıdır ve filtreler ikisinde de aynı çalışır.
 - Rapor türleri: aylık çalışma (öğrenci/bölüm/fakülte filtresiyle, planlanan-gerçekleşen karşılaştırması ve toplam saat), yıllık çalışma saati, izin ve devamsızlık, danışman bazında öğrenci ve görev, aktif/pasif öğrenci listesi, izin sınırına yaklaşanlar, ilişik kesme değerlendirmesi gerektirenler, aylık öğrenci dökümü.
-- Çalışma saati: onaylı plandaki günlerden devam kaydı olanların toplamı, yarım gün 0,5 (`WorkFigures`, saf sınıf). Tam gün saati ayardadır (`WorkPlan:FullDayHours`).
+- Çalışma saati: onaylı plandaki günlerden devam kaydı olanların toplamı, her gün 8 saat (`WorkFigures`, saf sınıf). Günlük saat ayardadır (`WorkPlan:DailyHours`).
 - Kapsam: bölüm başkanı kendi bölümünü, danışman kendi öğrencilerini görür; kullanıcının gönderdiği bölüm/danışman filtresi bu kapsamı genişletemez.
 - Aylık döküm (T.C. kimlik no ve IBAN içerir) yalnızca fakülte yönetimine açıktır; görüntülenmesi ve her dışa aktarma denetim kaydına yazılır.
 - `TerminationReview` listesi yalnızca inceleme içindir. İlişik kesme **kararını** fakülte yönetimi `POST /api/terminations` ile gerekçeyle kaydeder; bu işlem tek işlemde karar kaydını yazar ve öğrencinin katılımını sonlandırır. Karar anındaki izin ve devamsızlık sayıları kayda alınır, kayıt değiştirilmez veya silinmez.
@@ -135,7 +135,7 @@ Hesaplamalar `LeaveDayCounter` ve `LeaveBalanceCalculator` sınıflarında, veri
 | Aşama | İçerik | Durum |
 |---|---|---|
 | 1 | Veri modeli, kimlik doğrulama, roller, öğrenci kaydı/profili, geçmiş, denetim | **Tamamlandı** |
-| 2 | Aylık çalışma planı (takvim, 1–3 gün/hafta, tatil/ders kuralları, yarım gün) | **Tamamlandı** |
+| 2 | Aylık çalışma planı (takvim, 1–3 gün/hafta, tatil/ders kuralları) | **Tamamlandı** |
 | 3 | İzin / devamsızlık (parametrik 10 gün limiti, uyarı) | **Tamamlandı** |
 | 4 | 30 sn dinamik QR ile devam | **Tamamlandı** |
 | 5a | Görev ve danışman değerlendirme, devamsızlık bildirimi | **Tamamlandı** |

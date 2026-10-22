@@ -17,7 +17,7 @@ public class LeaveRequest : BaseEntity
     /// <summary>Saatlik izinde (tek gün) izin süresi; günlük izinde null.</summary>
     public decimal? Hours { get; set; }
 
-    /// <summary>İzin hakkından düşülecek gün sayısı (yarım gün = 0,5).</summary>
+    /// <summary>İzin hakkından düşülecek gün sayısı (saatlik izinde saat / günlük çalışma süresi).</summary>
     public decimal DaysCounted { get; set; }
 
     public string Reason { get; set; } = string.Empty;
