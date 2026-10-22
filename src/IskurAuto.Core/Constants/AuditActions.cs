@@ -53,4 +53,9 @@ public static class AuditActions
     public const string CheckInRejected      = "Attendance.CheckInRejected";
     public const string AttendanceAddedManually = "Attendance.AddedManually";
     public const string AttendanceVoided     = "Attendance.Voided";
+
+    public const string TaskAssigned         = "Task.Assigned";
+    public const string TaskEvaluated        = "Task.Evaluated";
+    public const string AbsenceNoticeSent    = "AbsenceNotice.Sent";
+    public const string AbsenceNoticeRead    = "AbsenceNotice.Read";
 }
