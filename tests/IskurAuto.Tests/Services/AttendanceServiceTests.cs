@@ -12,7 +12,8 @@ namespace IskurAuto.Tests.Services;
 
 /// <summary>
 /// Saat sabit: yerel saat 12:00, tarih 21 Ekim 2026 (Çarşamba).
-/// Mehmet'in Ekim planı 6, 14, 21 ve 28. günlerdir ve onaylıdır.
+/// Mehmet'in Ekim planı 1, 6, 14, 21 ve 28. günlerdir ve onaylıdır
+/// (her haftada en az bir gün şartı yüzünden ayın ilk haftası da dahil).
 /// </summary>
 public class AttendanceServiceTests
 {
@@ -36,7 +37,7 @@ public class AttendanceServiceTests
         {
             Year = 2026,
             Month = 10,
-            Days = new[] { 6, 14, 21, 28 }.Select(d => new WorkPlanDayInput { Date = new DateOnly(2026, 10, d) }).ToList()
+            Days = new[] { 1, 6, 14, 21, 28 }.Select(d => new WorkPlanDayInput { Date = new DateOnly(2026, 10, d) }).ToList()
         });
         if (approvePlan)
             await scope.WorkPlans.ReviewAsync(plan.Id, new ReviewWorkPlanRequest { Approve = true });
@@ -545,10 +546,10 @@ public class AttendanceServiceTests
         var comparison = await mine.Attendance.GetMyComparisonAsync(2026, 10);
 
         Assert.True(comparison.HasApprovedPlan);
-        Assert.Equal(4m, comparison.PlannedDays);
+        Assert.Equal(5m, comparison.PlannedDays);
         Assert.Equal(1m, comparison.AttendedDays);          // 21 Ekim
         Assert.Equal(1m, comparison.RecordedAbsenceDays);   // 6 Ekim
-        Assert.Equal(1m, comparison.MissingDays);           // 14 Ekim: kayıt da izin de yok
+        Assert.Equal(2m, comparison.MissingDays);           // 1 ve 14 Ekim: kayıt da izin de yok
         Assert.Equal(PlannedDayOutcome.Upcoming, comparison.Days.Single(d => d.Date.Day == 28).Outcome);
     }
 
