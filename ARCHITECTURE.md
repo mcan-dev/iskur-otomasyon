@@ -120,7 +120,17 @@ Hesaplamalar `LeaveDayCounter` ve `LeaveBalanceCalculator` sınıflarında, veri
 - Gecikmiş görev: hâlâ açık ve hedef tarihi geçmiş.
 - Danışman, öğrencinin bir günkü devamsızlığını bölüm başkanına **bildirim** olarak iletir; başkan okundu işaretler. Aynı danışman aynı öğrenci ve gün için tek bildirim gönderebilir. Bildirim devamsızlık kaydı değildir; kaydı fakülte yönetimi girer.
 
-## 10. Aşamalar
+## 10. Raporlar ve ilişik kesme (Aşama 5b)
+
+- Tüm raporlar aynı biçimde (`ReportTable`: başlık, sütunlar, satırlar) döner. Ekran bu tabloyu çizer; CSV ve Excel dosyası aynı tablodan üretilir. Böylece ekranda görünen ile dışa aktarılan her zaman aynıdır ve filtreler ikisinde de aynı çalışır.
+- Rapor türleri: aylık çalışma (öğrenci/bölüm/fakülte filtresiyle, planlanan-gerçekleşen karşılaştırması ve toplam saat), yıllık çalışma saati, izin ve devamsızlık, danışman bazında öğrenci ve görev, aktif/pasif öğrenci listesi, izin sınırına yaklaşanlar, ilişik kesme değerlendirmesi gerektirenler, aylık öğrenci dökümü.
+- Çalışma saati: onaylı plandaki günlerden devam kaydı olanların toplamı, yarım gün 0,5 (`WorkFigures`, saf sınıf). Tam gün saati ayardadır (`WorkPlan:FullDayHours`).
+- Kapsam: bölüm başkanı kendi bölümünü, danışman kendi öğrencilerini görür; kullanıcının gönderdiği bölüm/danışman filtresi bu kapsamı genişletemez.
+- Aylık döküm (T.C. kimlik no ve IBAN içerir) yalnızca fakülte yönetimine açıktır; görüntülenmesi ve her dışa aktarma denetim kaydına yazılır.
+- `TerminationReview` listesi yalnızca inceleme içindir. İlişik kesme **kararını** fakülte yönetimi `POST /api/terminations` ile gerekçeyle kaydeder; bu işlem tek işlemde karar kaydını yazar ve öğrencinin katılımını sonlandırır. Karar anındaki izin ve devamsızlık sayıları kayda alınır, kayıt değiştirilmez veya silinmez.
+- Excel dosyası (.xlsx) dış kütüphane olmadan, bir zip içindeki küçük XML parçalarıyla yazılır; CSV'de formül enjeksiyonuna karşı `= + - @` ile başlayan metinlerin başına `'` konur.
+
+## 11. Aşamalar
 
 | Aşama | İçerik | Durum |
 |---|---|---|
@@ -129,6 +139,6 @@ Hesaplamalar `LeaveDayCounter` ve `LeaveBalanceCalculator` sınıflarında, veri
 | 3 | İzin / devamsızlık (parametrik 10 gün limiti, uyarı) | **Tamamlandı** |
 | 4 | 30 sn dinamik QR ile devam | **Tamamlandı** |
 | 5a | Görev ve danışman değerlendirme, devamsızlık bildirimi | **Tamamlandı** |
-| 5b | Raporlar (Excel/CSV), aylık döküm, ilişik kesme kararı | |
+| 5b | Raporlar (Excel/CSV), aylık döküm, ilişik kesme kararı | **Tamamlandı** |
 | 6 | Test senaryoları, kurulum ve teknik dokümantasyon | |
 | Sonra | İŞKUR botu (Playwright, Maker-Checker) – `parked/` klasöründe bekliyor | |

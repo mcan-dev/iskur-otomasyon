@@ -19,3 +19,10 @@ public interface IAbsenceNoticeRepository : IRepository<AbsenceNotice>
 
     Task<bool> ExistsAsync(int advisorUserId, int studentId, DateOnly date, CancellationToken ct = default);
 }
+
+public interface ITerminationRepository : IRepository<TerminationDecision>
+{
+    Task<TerminationDecision?> GetDetailAsync(int id, CancellationToken ct = default);
+
+    Task<IReadOnlyList<TerminationDecision>> SearchAsync(TerminationSearchCriteria criteria, CancellationToken ct = default);
+}
