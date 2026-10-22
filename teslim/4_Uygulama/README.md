@@ -45,7 +45,7 @@ Visual Studio'dan çalıştırırken başlangıç projesi olarak `IskurAuto.API`
 
 ## Demo hesaplar
 
-Parola hepsi için `Demo1234!` (yalnızca Development ortamı):
+Parola hepsi için `Demo1234!` (yalnızca Development ortamı, boş veritabanında):
 
 | E-posta | Rol |
 |---|---|
@@ -55,4 +55,5 @@ Parola hepsi için `Demo1234!` (yalnızca Development ortamı):
 | ogrenci@teknoloji.edu.tr | Öğrenci |
 | ogrenci2@teknoloji.edu.tr | Öğrenci (Yazılım Müh.) |
 
-Daha zengin örnek veri (çok aylı planlar, izin, devam, görev) için `teslim/3_Veritabani/03_ornek_veri.sql`.
+Örnek veri (çok aylı planlar, izin, devam, görev, ilişik kesme) uygulama ilk açıldığında kendiliğinden yüklenir; ayrıntı [3_Veritabani/README.md](../3_Veritabani/README.md).
+Daha fazla demo hesap: burak.sahin@, selin.celik@ (öğrenci), danisman.ym@, danisman2.bm@ (danışman) – hepsi `@teknoloji.edu.tr`.

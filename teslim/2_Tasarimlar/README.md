@@ -30,4 +30,4 @@ Ekran taslakları ve çalışan uygulamadan alınmış ekran görüntüleri.
 | 30, 31 | Bölüm başkanı: ana sayfa, bölüm öğrencileri |
 | 40, 41 | Danışman: ana sayfa, öğrencilerim |
 
-Görüntülerdeki veriler örnek veridir (`3_Veritabani/03_ornek_veri.sql`).
+Görüntülerdeki veriler örnek veridir (`DatabaseSeeder.cs` ile yüklenen örnek veri, bkz. `3_Veritabani/README.md`).
