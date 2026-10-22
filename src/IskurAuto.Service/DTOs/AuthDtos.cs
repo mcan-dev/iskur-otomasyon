@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using IskurAuto.Core.Enums;
 
 namespace IskurAuto.Service.DTOs;
 
@@ -15,6 +16,12 @@ public class LoginRequest
 
     [Required, StringLength(128)]
     public string Password { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Giriş sayfasının türü (öğrenci, danışman, bölüm başkanı, fakülte). Doluysa hesabın rolü bununla
+    /// eşleşmelidir; her rolün kendi giriş sayfası vardır. Boşsa rol denetlenmez.
+    /// </summary>
+    public UserRole? Role { get; set; }
 }
 
 public class LoginResponse

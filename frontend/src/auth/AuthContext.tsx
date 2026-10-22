@@ -1,11 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { api, getToken, setToken, setUnauthorizedHandler } from '../api/client';
-import type { LoginResponse, User } from '../api/types';
+import type { LoginResponse, Role, User } from '../api/types';
 
 interface AuthState {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<User>;
+  login: (email: string, password: string, role?: Role) => Promise<User>;
   logout: () => void;
 }
 
@@ -33,8 +33,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false));
   }, [logout]);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const res = await api.post<LoginResponse>('/api/auth/login', { email, password });
+  const login = useCallback(async (email: string, password: string, role?: Role) => {
+    const res = await api.post<LoginResponse>('/api/auth/login', { email, password, role });
     setToken(res.accessToken);
     setUser(res.user);
     return res.user;

@@ -5,6 +5,7 @@ Uç noktaların listesi için [API.md](API.md) dosyasına bakın.
 
 ## Ortak işlemler
 
+- Dört rolün her birinin kendi giriş sayfası vardır (`/giris` sayfasından seçilir): Öğrenci, Danışman Öğretim Elemanı, Bölüm Başkanı, Fakülte Sekreterliği / Dekanlık. Hesap, yalnızca kendi rolünün giriş sayfasından girebilir.
 - Giriş e-posta ve parola iledir. Parola, giriş yapıldıktan sonra değiştirilebilir; unutulursa e-postayla sıfırlanır.
 - Hiçbir kayıt silinmez. Yanlış girilen kayıt (devamsızlık, devam, karar vb.) gerekçeyle geri alınır veya iptal edilir; geçmiş korunur.
 - Önemli işlemler denetim kaydına yazılır. Kayıtlarda kişisel veri tutulmaz.

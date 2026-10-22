@@ -11,6 +11,12 @@ adıyla tek hesap türüdür. Dekanlıktan ayrı bir izleme hesabı istenirse ay
 | Bölüm Başkanı | Kendi bölümündeki öğrenciler |
 | Fakülte Sekreterliği / Dekanlık | Fakültenin tamamı |
 
+## Giriş
+
+Her rolün kendi giriş sayfası vardır: `/giris/ogrenci`, `/giris/danisman`, `/giris/bolum-baskani`, `/giris/fakulte`.
+Hesap yalnızca kendi rolünün sayfasından girebilir; parola doğru olsa bile başka rolün sayfasından giriş reddedilir.
+Kontrol sunucuda yapılır, yalnızca arayüzde değildir.
+
 ## İşlem matrisi
 
 (● yapabilir, ○ yalnızca görüntüler, – yetkisi yok)

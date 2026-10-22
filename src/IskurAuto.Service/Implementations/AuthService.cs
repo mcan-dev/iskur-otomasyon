@@ -60,6 +60,15 @@ public class AuthService : IAuthService
             throw new AuthenticationFailedException();
         }
 
+        // Parola doğru ama hesap bu giriş sayfasının rolünde değil: jeton verilmez.
+        if (request.Role is { } expected && user.Role != expected)
+        {
+            await _audit.RecordAsync(AuditActions.LoginFailed, nameof(User), user.Id,
+                "Hesap, giriş sayfasının rolüyle eşleşmiyor.", actorUserId: user.Id, actorEmail: email, ct: ct);
+            await _uow.SaveChangesAsync(ct);
+            throw new ForbiddenException("Bu hesap bu giriş türü için yetkili değil. Lütfen kendi rolünüzün giriş sayfasını kullanın.");
+        }
+
         user.LastLoginAt = _clock.UtcNow;
         await _audit.RecordAsync(AuditActions.LoginSucceeded, nameof(User), user.Id,
             actorUserId: user.Id, actorEmail: user.Email, ct: ct);

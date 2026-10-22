@@ -1,10 +1,49 @@
 import { useState, type FormEvent } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { ApiError } from '../api/client';
+import type { Role } from '../api/types';
 import { Alert, Field } from '../components/ui';
 
+/** Her rolün kendi giriş sayfası vardır; hesap rolü sayfayla eşleşmezse giriş yapılamaz. */
+export const loginTypes: { slug: string; role: Role; title: string; text: string; icon: string }[] = [
+  { slug: 'ogrenci', role: 'Student', title: 'Öğrenci', text: 'Çalışma planı, izin, karekodla devam ve görevleriniz', icon: 'Ö' },
+  { slug: 'danisman', role: 'Advisor', title: 'Danışman Öğretim Elemanı', text: 'Öğrencilerinizin devam, izin ve görev takibi', icon: 'D' },
+  { slug: 'bolum-baskani', role: 'DepartmentHead', title: 'Bölüm Başkanı', text: 'Bölümünüzdeki öğrenciler, danışman atama ve raporlar', icon: 'B' },
+  { slug: 'fakulte', role: 'FacultyAdmin', title: 'Fakülte Sekreterliği / Dekanlık', text: 'Fakülte geneli yönetim, onaylar, raporlar ve tanımlar', icon: 'F' },
+];
+
+/** Giriş türü seçim sayfası. */
+export function LoginChooser() {
+  const { user } = useAuth();
+  if (user) return <Navigate to="/" replace />;
+
+  return (
+    <div className="auth-page">
+      <div className="auth-card chooser">
+        <div className="brand-mark big">İ</div>
+        <h1>İŞKUR Otomasyonu</h1>
+        <p className="muted">Selçuk Üniversitesi Teknoloji Fakültesi. Lütfen giriş türünüzü seçin.</p>
+        <div className="chooser-grid">
+          {loginTypes.map((t) => (
+            <Link key={t.slug} to={`/giris/${t.slug}`} className="chooser-item">
+              <span className="chooser-icon">{t.icon}</span>
+              <span className="chooser-text">
+                <strong>{t.title}</strong>
+                <span className="muted small">{t.text}</span>
+              </span>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Seçilen role ait giriş formu. */
 export default function Login() {
+  const { tur } = useParams();
+  const type = loginTypes.find((t) => t.slug === tur);
   const { user, login } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -13,13 +52,14 @@ export default function Login() {
   const [busy, setBusy] = useState(false);
 
   if (user) return <Navigate to="/" replace />;
+  if (!type) return <Navigate to="/giris" replace />;
 
   async function submit(e: FormEvent) {
     e.preventDefault();
     setError('');
     setBusy(true);
     try {
-      await login(email.trim(), password);
+      await login(email.trim(), password, type!.role);
       navigate('/', { replace: true });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Giriş yapılamadı.');
@@ -31,9 +71,9 @@ export default function Login() {
   return (
     <div className="auth-page">
       <form className="auth-card" onSubmit={submit}>
-        <div className="brand-mark big">İ</div>
-        <h1>İŞKUR Otomasyonu</h1>
-        <p className="muted">Selçuk Üniversitesi Teknoloji Fakültesi öğrenci programı girişi</p>
+        <div className="brand-mark big">{type.icon}</div>
+        <h1>{type.title} Girişi</h1>
+        <p className="muted">Selçuk Üniversitesi Teknoloji Fakültesi İŞKUR Otomasyonu</p>
         {error && <Alert>{error}</Alert>}
         <Field label="E-posta">
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" required />
@@ -47,8 +87,13 @@ export default function Login() {
         <button className="btn primary wide" disabled={busy}>
           {busy ? 'Giriş yapılıyor…' : 'Giriş Yap'}
         </button>
-        <p className="muted center">
-          Öğrenci misiniz? <Link to="/kayit">Kayıt olun</Link>
+        {type.role === 'Student' && (
+          <p className="muted center">
+            Henüz kaydınız yok mu? <Link to="/kayit">Kayıt olun</Link>
+          </p>
+        )}
+        <p className="muted center small">
+          <Link to="/giris">‹ Başka bir giriş türü seç</Link>
         </p>
       </form>
     </div>
