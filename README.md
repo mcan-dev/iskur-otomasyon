@@ -12,6 +12,7 @@ Ayrıntılar:
 - [docs/KULLANIM.md](docs/KULLANIM.md) – rol bazlı kullanım
 - [docs/TEST-SENARYOLARI.md](docs/TEST-SENARYOLARI.md) – testler ve elle kabul senaryoları
 - [docs/GEREKSINIMLER.md](docs/GEREKSINIMLER.md) – gereksinim – modül – test eşleşmesi
+- [frontend/README.md](frontend/README.md) – arayüz kurulumu ve yapısı
 - [docs/NEDEN-BOYLE.md](docs/NEDEN-BOYLE.md) – tasarım kararlarının gerekçeleri
 
 ## Kurulum
@@ -65,7 +66,8 @@ dotnet test
 | 5a | Görev, danışman değerlendirmesi, devamsızlık bildirimi | Bitti |
 | 5b | Raporlar, Excel/CSV, aylık döküm, ilişik kesme kararı | Bitti |
 | 6 | Test senaryoları, kurulum/kullanım dokümanı, yedekleme | Bitti |
-| 7 | Arayüz | Sırada |
+| 7a | Arayüz iskeleti: giriş, öğrenci kaydı, rol bazlı menü, ana sayfalar | Bitti |
+| 7b-7e | Öğrenci, fakülte, bölüm başkanı/danışman ekranları, raporlar | Sırada |
 
 ## Bilinen sınırlar
 
