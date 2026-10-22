@@ -20,4 +20,7 @@ public interface IStudentRepository : IRepository<StudentProfile>
     /// <summary>Filtreli ve sayfalı öğrenci listesi (salt okunur; izlenmez).</summary>
     Task<PagedResult<StudentProfile>> SearchAsync(
         StudentSearchCriteria criteria, PageRequest page, CancellationToken ct = default);
+
+    /// <summary>Sayfalamadan, rapor için tüm eşleşen öğrenciler (salt okunur).</summary>
+    Task<IReadOnlyList<StudentProfile>> ListAsync(StudentSearchCriteria criteria, CancellationToken ct = default);
 }

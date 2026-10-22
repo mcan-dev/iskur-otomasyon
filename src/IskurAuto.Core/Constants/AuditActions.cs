@@ -58,4 +58,8 @@ public static class AuditActions
     public const string TaskEvaluated        = "Task.Evaluated";
     public const string AbsenceNoticeSent    = "AbsenceNotice.Sent";
     public const string AbsenceNoticeRead    = "AbsenceNotice.Read";
+
+    public const string ReportViewed         = "Report.Viewed";
+    public const string ReportExported       = "Report.Exported";
+    public const string TerminationRecorded  = "Termination.Recorded";
 }

@@ -41,6 +41,7 @@ erDiagram
     StudentTask { int Id int StudentProfileId string Title string Description date AssignedDate date DueDate int AssignedByUserId enum Status datetime StatusChangedAt }
     TaskEvaluation { int Id int StudentTaskId int AuthorUserId string Note enum NewStatus datetime CreatedAt }
     AbsenceNotice { int Id int StudentProfileId date Date string Message int AdvisorUserId datetime CreatedAt datetime ReadAt int ReadByUserId }
+    TerminationDecision { int Id int StudentProfileId enum Basis date DecisionDate string Note decimal LeaveDaysUsed int UnexcusedAbsenceDays int DecidedByUserId datetime CreatedAt }
     SystemSetting { int Id string Key string Value }
     AuditLog { long Id datetime OccurredAt string Action string EntityName int EntityId }
 ```
@@ -60,11 +61,12 @@ erDiagram
 | Aynı öğrencinin aynı oturumda tek geçerli devam kaydı | Filtreli unique index `WHERE "VoidedAt" IS NULL` |
 | Aynı danışman aynı öğrenci ve gün için tek devamsızlık bildirimi | Unique index (danışman, öğrenci, tarih) |
 | Değerlendirmesi olan görev silinemez | FK `Restrict` |
+| İlişik kesme kararı silinemez, öğrenci kaydına bağlıdır | FK `Restrict` |
 | Ayar anahtarı tektir | Unique index (Key) |
 
 ## Sonraki aşamalarda eklenecek tablolar
 
-İlişik kesme kararları.
+Raporlar için ayrı tablo yoktur; hepsi mevcut kayıtlardan hesaplanır.
 
 ## Migration
 

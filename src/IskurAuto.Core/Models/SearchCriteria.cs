@@ -9,6 +9,7 @@ namespace IskurAuto.Core.Models;
 /// </summary>
 public class StudentSearchCriteria
 {
+    public int? StudentId { get; set; }
     public int? DepartmentId { get; set; }
     public int? AdvisorUserId { get; set; }
     public int? WorkUnitId { get; set; }
@@ -99,4 +100,11 @@ public class AbsenceNoticeSearchCriteria
     public bool UnreadOnly { get; set; }
     public int? Year { get; set; }
     public int? Month { get; set; }
+}
+
+public class TerminationSearchCriteria
+{
+    public int? StudentId { get; set; }
+    public int? DepartmentId { get; set; }
+    public int? Year { get; set; }
 }

@@ -27,6 +27,48 @@ public class StudentRepository : GenericRepository<StudentProfile>, IStudentRepo
     {
         var query = Context.StudentProfiles.AsNoTracking().AsQueryable();
 
+        query = ApplyFilters(query, criteria);
+
+        var total = await query.CountAsync(ct);
+
+        // AsSplitQuery: birden çok koleksiyon Include edilince tek dev JOIN yerine
+        // ayrı küçük sorgular çalıştırır (kartezyen patlamasını önler).
+        var items = await query
+            .Include(s => s.User)
+            .Include(s => s.Department)
+            .Include(s => s.Participations)
+            .Include(s => s.UnitAssignments).ThenInclude(a => a.WorkUnit)
+            .Include(s => s.AdvisorAssignments).ThenInclude(a => a.AdvisorUser)
+            .AsSplitQuery()
+            .OrderBy(s => s.User.FullName).ThenBy(s => s.Id)
+            .Skip(page.Skip).Take(page.PageSize)
+            .ToListAsync(ct);
+
+        return new PagedResult<StudentProfile>
+        {
+            Items = items,
+            TotalCount = total,
+            Page = page.Page,
+            PageSize = page.PageSize
+        };
+    }
+
+    public async Task<IReadOnlyList<StudentProfile>> ListAsync(StudentSearchCriteria criteria, CancellationToken ct = default)
+        => await ApplyFilters(Context.StudentProfiles.AsNoTracking(), criteria)
+            .Include(s => s.User)
+            .Include(s => s.Department)
+            .Include(s => s.Participations)
+            .Include(s => s.UnitAssignments).ThenInclude(a => a.WorkUnit)
+            .Include(s => s.AdvisorAssignments).ThenInclude(a => a.AdvisorUser)
+            .AsSplitQuery()
+            .OrderBy(s => s.User.FullName).ThenBy(s => s.Id)
+            .ToListAsync(ct);
+
+    private static IQueryable<StudentProfile> ApplyFilters(IQueryable<StudentProfile> query, StudentSearchCriteria criteria)
+    {
+        if (criteria.StudentId.HasValue)
+            query = query.Where(s => s.Id == criteria.StudentId.Value);
+
         if (criteria.DepartmentId.HasValue)
             query = query.Where(s => s.DepartmentId == criteria.DepartmentId.Value);
 
@@ -58,28 +100,7 @@ public class StudentRepository : GenericRepository<StudentProfile>, IStudentRepo
                 EF.Functions.Like(s.User.Email, pattern, "\\"));
         }
 
-        var total = await query.CountAsync(ct);
-
-        // AsSplitQuery: birden çok koleksiyon Include edilince tek dev JOIN yerine
-        // ayrı küçük sorgular çalıştırır (kartezyen patlamasını önler).
-        var items = await query
-            .Include(s => s.User)
-            .Include(s => s.Department)
-            .Include(s => s.Participations)
-            .Include(s => s.UnitAssignments).ThenInclude(a => a.WorkUnit)
-            .Include(s => s.AdvisorAssignments).ThenInclude(a => a.AdvisorUser)
-            .AsSplitQuery()
-            .OrderBy(s => s.User.FullName).ThenBy(s => s.Id)
-            .Skip(page.Skip).Take(page.PageSize)
-            .ToListAsync(ct);
-
-        return new PagedResult<StudentProfile>
-        {
-            Items = items,
-            TotalCount = total,
-            Page = page.Page,
-            PageSize = page.PageSize
-        };
+        return query;
     }
 
     private static IQueryable<StudentProfile> WithDetails(IQueryable<StudentProfile> source)

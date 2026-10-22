@@ -813,6 +813,53 @@ namespace IskurAuto.Data.Migrations
                     b.ToTable("TaskEvaluations", (string)null);
                 });
 
+            modelBuilder.Entity("IskurAuto.Core.Entities.TerminationDecision", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Basis")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DecidedByUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateOnly>("DecisionDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("LeaveDaysUsed")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Note")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("StudentProfileId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("UnexcusedAbsenceDays")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DecidedByUserId");
+
+                    b.HasIndex("StudentProfileId", "DecisionDate");
+
+                    b.ToTable("TerminationDecisions", (string)null);
+                });
+
             modelBuilder.Entity("IskurAuto.Core.Entities.User", b =>
                 {
                     b.Property<int>("Id")
@@ -1215,6 +1262,25 @@ namespace IskurAuto.Data.Migrations
                     b.Navigation("AuthorUser");
 
                     b.Navigation("StudentTask");
+                });
+
+            modelBuilder.Entity("IskurAuto.Core.Entities.TerminationDecision", b =>
+                {
+                    b.HasOne("IskurAuto.Core.Entities.User", "DecidedByUser")
+                        .WithMany()
+                        .HasForeignKey("DecidedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IskurAuto.Core.Entities.StudentProfile", "StudentProfile")
+                        .WithMany()
+                        .HasForeignKey("StudentProfileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DecidedByUser");
+
+                    b.Navigation("StudentProfile");
                 });
 
             modelBuilder.Entity("IskurAuto.Core.Entities.User", b =>
