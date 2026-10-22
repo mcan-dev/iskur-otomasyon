@@ -55,8 +55,8 @@ dotnet test
 | 2 | Aylık çalışma planı, takvim, tatil ve sınav dönemi | Bitti |
 | 3 | İzin, devamsızlık, izin hakkı takibi ve uyarılar | Bitti |
 | 4 | 30 saniyede yenilenen QR ile devam takibi | Bitti (migration üretilecek) |
-| 5a | Görev, danışman değerlendirmesi, devamsızlık bildirimi | Bitti (migration üretilecek) |
-| 5b | Raporlar, Excel/CSV, aylık döküm, ilişik kesme kararı | |
+| 5a | Görev, danışman değerlendirmesi, devamsızlık bildirimi | Bitti |
+| 5b | Raporlar, Excel/CSV, aylık döküm, ilişik kesme kararı | Bitti (migration üretilecek) |
 | 6 | Test senaryoları, teknik dokümantasyon | |
 
 ## Bilinen sınırlar
@@ -72,4 +72,7 @@ dotnet test
 - QR oturumunun gizli anahtarı veritabanında düz saklanır (imza doğrulaması için gerekli); yanıtlarda hiçbir zaman dönmez.
 - Karekod bir öğrenciden diğerine fotoğrafla iletilebilir; jeton yaklaşık 60 saniye geçerli olduğu ve her öğrenci oturum başına tek kayıt oluşturabildiği için etkisi sınırlıdır. Konum doğrulaması yok.
 - Planlı ama devamı olmayan gün otomatik devamsızlık sayılmaz; karşılaştırmada "kayıt yok" olarak görünür, devamsızlığı fakülte yönetimi girer.
+- Çalışma saati yalnızca onaylı plandaki günlerde, devam kaydı olan günler için hesaplanır; plan dışı güne yazılan kayıt saate eklenmez. Yarım gün, tam günün yarısı kadar sayılır.
+- Raporlar tek istekte tüm eşleşen öğrenciyi okur; birkaç yüz öğrenci için uygundur, çok büyük hacimde sayfalama gerekir.
+- Excel dosyası basit bir tablodur (biçimlendirme, formül yok). CSV dosyası Türkçe Excel için noktalı virgülle ayrılır.
 - SQLite'ta Türkçe karakterli aramalar büyük/küçük harfe duyarlıdır.

@@ -1,6 +1,7 @@
 using IskurAuto.Core.Enums;
 using IskurAuto.Core.Models;
 using IskurAuto.Service.DTOs;
+using IskurAuto.Service.Reports;
 
 namespace IskurAuto.Service.Interfaces;
 
@@ -154,6 +155,18 @@ public interface IAbsenceNoticeService
     Task<AbsenceNoticeDto> SendAsync(SendAbsenceNoticeRequest request, CancellationToken ct = default);
     Task<AbsenceNoticeDto> MarkReadAsync(int noticeId, CancellationToken ct = default);
     Task<IReadOnlyList<AbsenceNoticeDto>> SearchAsync(AbsenceNoticeQuery query, CancellationToken ct = default);
+}
+
+public interface IReportService
+{
+    Task<ReportTable> GetAsync(ReportKind kind, ReportQuery query, CancellationToken ct = default);
+    Task<ReportFile> ExportAsync(ReportKind kind, ReportQuery query, ReportFormat format, CancellationToken ct = default);
+}
+
+public interface ITerminationService
+{
+    Task<TerminationDto> RecordAsync(RecordTerminationRequest request, CancellationToken ct = default);
+    Task<IReadOnlyList<TerminationDto>> SearchAsync(TerminationQuery query, CancellationToken ct = default);
 }
 
 public interface ILeavePolicyProvider

@@ -56,3 +56,21 @@ public class AbsenceNoticeConfiguration : IEntityTypeConfiguration<AbsenceNotice
             .HasForeignKey(x => x.ReadByUserId).OnDelete(DeleteBehavior.Restrict);
     }
 }
+
+public class TerminationDecisionConfiguration : IEntityTypeConfiguration<TerminationDecision>
+{
+    public void Configure(EntityTypeBuilder<TerminationDecision> b)
+    {
+        b.ToTable("TerminationDecisions");
+        b.Property(x => x.Basis).HasConversion<string>().HasMaxLength(30);
+        b.Property(x => x.Note).IsRequired().HasMaxLength(1000);
+        b.Property(x => x.LeaveDaysUsed).HasPrecision(5, 2);
+
+        b.HasIndex(x => new { x.StudentProfileId, x.DecisionDate });
+
+        b.HasOne(x => x.StudentProfile).WithMany()
+            .HasForeignKey(x => x.StudentProfileId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne(x => x.DecidedByUser).WithMany()
+            .HasForeignKey(x => x.DecidedByUserId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
