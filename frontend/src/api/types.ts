@@ -81,7 +81,7 @@ export interface RegistrationRequest {
   password: string;
   phoneNumber: string;
   nationalId: string;
-  iban: string;
+  iban?: string;
   studentNumber: string;
   departmentId: number;
   registrationYear: number;

@@ -6,8 +6,8 @@ Aşağıdaki adımlar bunu sırayla gösterir. Hazırlık: API ve arayüz çalı
 ## 1. Öğrenci kaydı (ekleme)
 
 1. `/giris` sayfasında "Öğrenci" girişini seçin, ardından "Kayıt olun" bağlantısına tıklayın.
-2. Formu doldurun: ad, geçerli T.C. kimlik numarası, IBAN, bölüm, öğrenci numarası, e-posta, telefon, kayıt yılı, parola.
-3. Kayıttan sonra giriş yapın. Profil ekranında bilgiler görünür; birim ve danışman "atanmadı" yazar.
+2. Formu doldurun: ad, geçerli T.C. kimlik numarası, bölüm, öğrenci numarası, e-posta, telefon, kayıt yılı, parola.
+3. Kayıttan sonra giriş yapın. Profil ekranında bilgiler görünür (IBAN sonradan profilden girilir); birim ve danışman "atanmadı" yazar.
 4. **Veritabanında gösterim:** `SELECT * FROM Users WHERE Email = '...'` ve `SELECT * FROM StudentProfiles`, `ProgramParticipations`.
 
 ## 2. Aylık çalışma planı (ekleme, tekrar görüntüleme)
