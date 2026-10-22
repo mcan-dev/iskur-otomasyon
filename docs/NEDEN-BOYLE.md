@@ -111,3 +111,30 @@ Evet. Görevin ne durumda olduğunu ve nedenini bilmesi gerekir. Notları öğre
 
 ### Devamsızlık bildirimi neden devamsızlık kaydından ayrı?
 Danışmanın bildirimi bir ihbar, devamsızlık kaydı ise izin hakkını etkileyen idari karardır. Bildirim bölüm başkanını bilgilendirir; kaydı fakülte yönetimi kendi incelemesiyle girer.
+
+### Raporlar neden hep aynı tablo biçiminde?
+Belge her raporun hem ekranda hem Excel/CSV olarak, aynı filtrelerle alınmasını istiyor. Her rapora ayrı sınıf yazmak yerine hepsi başlık, sütun ve satırdan oluşan tek bir biçimde döner; ekran bunu çizer, dosya yazıcısı aynı tablodan dosya üretir. İki çıktı birbirinden ayrılamaz.
+
+### Raporlar neden veritabanında saklanmıyor?
+Plan, devam, izin ve devamsızlık kayıtları zaten saklı ve silinmiyor. Rapor bunlardan her seferinde hesaplandığı için geçmiş bir ay sorgulandığında da o günkü kayıtlarla doğru sonuç verir ve ayrı bir tabloyla senkron tutma derdi olmaz.
+
+### Çalışma saati nasıl hesaplanıyor?
+Öğrencinin onaylı planındaki günlerden devam kaydı olanlar sayılır, yarım gün 0,5. Sonuç tam gün saatiyle çarpılır (ayarda, varsayılan 8). Plan dışı bir güne elle yazılan kayıt saate eklenmez: belge planlanan ile gerçekleşenin karşılaştırılmasını istiyor ve plansız çalışma bu karşılaştırmayı bozardı.
+
+### Excel dosyası neden kütüphanesiz yazılıyor?
+Yalnızca başlıklı bir tablo gerekiyor. Dış kütüphane eklemek bağımlılık, lisans ve sürüm yükü getirirdi. .xlsx zaten bir zip içindeki küçük XML dosyalarıdır; yazıcı kısa ve testle doğrulanıyor. Biçimlendirme veya formül gerekirse o noktada kütüphaneye geçilebilir.
+
+### CSV neden noktalı virgülle ayrılıyor?
+Türkçe bölgesel ayarlı Excel, virgülü ondalık ayırıcı kabul eder ve alanları noktalı virgülden ayırır. Dosya BOM'lu UTF-8 olduğu için Türkçe karakterler bozulmaz.
+
+### Dışa aktarılan dosyada formül enjeksiyonu
+Bir ad "=..." ile başlarsa Excel bunu formül sayabilir. `= + - @` ile başlayan metinlerin başına `'` konur; negatif sayılar bundan etkilenmez.
+
+### Aylık döküm neden yalnızca fakülte yönetimine açık?
+Belge dökümde T.C. kimlik numarası ve IBAN istiyor. Bu iki bilgi maskesiz yalnızca fakülte yönetimine verilir. Dökümün görüntülenmesi ve her dışa aktarma denetim kaydına yazılır.
+
+### İlişik kesme listesi kararı vermiyor
+Belge nihai kararın otomatik verilmemesini istiyor. Liste, izin ya da devamsızlık sınırını aşan aktif öğrencileri inceleme için gösterir. Kararı fakülte yönetimi gerekçesiyle kaydeder; kayıt o günkü izin ve devamsızlık sayılarını içerir ve silinmez.
+
+### Karar kaydı neden öğrenciyi de pasif yapıyor?
+Karar ile durumun ayrı ayrı güncellenmesi tutarsızlık yaratırdı (karar var ama öğrenci aktif görünür). Kayıt ve katılımın sonlandırılması tek işlemde yapılır; biri başarısız olursa ikisi de geri alınır. Öğrencinin geçmişi silinmez, yanlış karar için öğrenci mevcut "programa yeniden al" işlemiyle geri alınır.

@@ -89,3 +89,31 @@ public class AbsenceNoticeRepository : GenericRepository<AbsenceNotice>, IAbsenc
             .Include(n => n.StudentProfile).ThenInclude(s => s.User)
             .Include(n => n.StudentProfile).ThenInclude(s => s.Department);
 }
+
+public class TerminationRepository : GenericRepository<TerminationDecision>, ITerminationRepository
+{
+    public TerminationRepository(IskurAutoDbContext context) : base(context) { }
+
+    public Task<TerminationDecision?> GetDetailAsync(int id, CancellationToken ct = default)
+        => WithDetails().FirstOrDefaultAsync(d => d.Id == id, ct);
+
+    public async Task<IReadOnlyList<TerminationDecision>> SearchAsync(TerminationSearchCriteria criteria, CancellationToken ct = default)
+    {
+        var query = WithDetails().AsNoTracking().AsQueryable();
+
+        if (criteria.StudentId is int studentId)
+            query = query.Where(d => d.StudentProfileId == studentId);
+        if (criteria.DepartmentId is int departmentId)
+            query = query.Where(d => d.StudentProfile.DepartmentId == departmentId);
+        if (criteria.Year is int year)
+            query = query.Where(d => d.DecisionDate >= new DateOnly(year, 1, 1) && d.DecisionDate <= new DateOnly(year, 12, 31));
+
+        return await query.OrderByDescending(d => d.DecisionDate).ThenByDescending(d => d.Id).ToListAsync(ct);
+    }
+
+    private IQueryable<TerminationDecision> WithDetails()
+        => Context.TerminationDecisions
+            .Include(d => d.DecidedByUser)
+            .Include(d => d.StudentProfile).ThenInclude(s => s.User)
+            .Include(d => d.StudentProfile).ThenInclude(s => s.Department);
+}
