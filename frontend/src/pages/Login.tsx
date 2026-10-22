@@ -3,14 +3,16 @@ import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { ApiError } from '../api/client';
 import type { Role } from '../api/types';
+import { Icon } from '../components/Icon';
 import { Alert, Field } from '../components/ui';
+import AuthShell from '../layout/AuthShell';
 
 /** Her rolün kendi giriş sayfası vardır; hesap rolü sayfayla eşleşmezse giriş yapılamaz. */
-export const loginTypes: { slug: string; role: Role; title: string; text: string; icon: string }[] = [
-  { slug: 'ogrenci', role: 'Student', title: 'Öğrenci', text: 'Çalışma planı, izin, karekodla devam ve görevleriniz', icon: 'Ö' },
-  { slug: 'danisman', role: 'Advisor', title: 'Danışman Öğretim Elemanı', text: 'Öğrencilerinizin devam, izin ve görev takibi', icon: 'D' },
-  { slug: 'bolum-baskani', role: 'DepartmentHead', title: 'Bölüm Başkanı', text: 'Bölümünüzdeki öğrenciler, danışman atama ve raporlar', icon: 'B' },
-  { slug: 'fakulte', role: 'FacultyAdmin', title: 'Fakülte Sekreterliği / Dekanlık', text: 'Fakülte geneli yönetim, onaylar, raporlar ve tanımlar', icon: 'F' },
+export const loginTypes: { slug: string; role: Role; title: string; text: string; glyph: string }[] = [
+  { slug: 'ogrenci', role: 'Student', title: 'Öğrenci', text: 'Çalışma planı, izin, karekodla devam ve görevleriniz', glyph: 'user' },
+  { slug: 'danisman', role: 'Advisor', title: 'Danışman Öğretim Elemanı', text: 'Öğrencilerinizin devam, izin ve görev takibi', glyph: 'users' },
+  { slug: 'bolum-baskani', role: 'DepartmentHead', title: 'Bölüm Başkanı', text: 'Bölümünüzdeki öğrenciler, danışman atama ve raporlar', glyph: 'building' },
+  { slug: 'fakulte', role: 'FacultyAdmin', title: 'Fakülte Sekreterliği / Dekanlık', text: 'Fakülte geneli yönetim, onaylar, raporlar ve tanımlar', glyph: 'settings' },
 ];
 
 /** Giriş türü seçim sayfası. */
@@ -19,15 +21,16 @@ export function LoginChooser() {
   if (user) return <Navigate to="/" replace />;
 
   return (
-    <div className="auth-page">
+    <AuthShell side={false} wide>
       <div className="auth-card chooser">
-        <div className="brand-mark big">İ</div>
-        <h1>İŞKUR Otomasyonu</h1>
-        <p className="muted">Selçuk Üniversitesi Teknoloji Fakültesi. Lütfen giriş türünüzü seçin.</p>
+        <h1>Giriş Türünüzü Seçin</h1>
+        <p className="muted">İŞKUR Otomasyonu, Selçuk Üniversitesi Teknoloji Fakültesi. Hesabınızın türüne uygun girişi kullanın.</p>
         <div className="chooser-grid">
           {loginTypes.map((t) => (
             <Link key={t.slug} to={`/giris/${t.slug}`} className="chooser-item">
-              <span className="chooser-icon">{t.icon}</span>
+              <span className="chooser-icon">
+                <Icon name={t.glyph} size={24} />
+              </span>
               <span className="chooser-text">
                 <strong>{t.title}</strong>
                 <span className="muted small">{t.text}</span>
@@ -36,7 +39,7 @@ export function LoginChooser() {
           ))}
         </div>
       </div>
-    </div>
+    </AuthShell>
   );
 }
 
@@ -69,9 +72,8 @@ export default function Login() {
   }
 
   return (
-    <div className="auth-page">
+    <AuthShell>
       <form className="auth-card" onSubmit={submit}>
-        <div className="brand-mark big">{type.icon}</div>
         <h1>{type.title} Girişi</h1>
         <p className="muted">Selçuk Üniversitesi Teknoloji Fakültesi İŞKUR Otomasyonu</p>
         {error && <Alert>{error}</Alert>}
@@ -96,6 +98,6 @@ export default function Login() {
           <Link to="/giris">‹ Başka bir giriş türü seç</Link>
         </p>
       </form>
-    </div>
+    </AuthShell>
   );
 }
