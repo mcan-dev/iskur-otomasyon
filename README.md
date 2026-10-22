@@ -3,7 +3,16 @@
 Teknoloji Fakültesi İŞKUR öğrenci programı için kayıt, aylık çalışma planı, izin ve devam takip sistemi.
 .NET 8, EF Core (SQLite), JWT.
 
-Ayrıntılar: [ARCHITECTURE.md](ARCHITECTURE.md), [docs/DATABASE.md](docs/DATABASE.md), [docs/NEDEN-BOYLE.md](docs/NEDEN-BOYLE.md)
+Ayrıntılar:
+
+- [ARCHITECTURE.md](ARCHITECTURE.md) – katmanlar
+- [docs/DATABASE.md](docs/DATABASE.md) – tablolar ve bütünlük kuralları
+- [docs/API.md](docs/API.md) – uç noktalar ve roller
+- [docs/KURULUM.md](docs/KURULUM.md) – kurulum, ayarlar, yedekleme ve geri yükleme
+- [docs/KULLANIM.md](docs/KULLANIM.md) – rol bazlı kullanım
+- [docs/TEST-SENARYOLARI.md](docs/TEST-SENARYOLARI.md) – testler ve elle kabul senaryoları
+- [docs/GEREKSINIMLER.md](docs/GEREKSINIMLER.md) – gereksinim – modül – test eşleşmesi
+- [docs/NEDEN-BOYLE.md](docs/NEDEN-BOYLE.md) – tasarım kararlarının gerekçeleri
 
 ## Kurulum
 
@@ -11,12 +20,10 @@ Ayrıntılar: [ARCHITECTURE.md](ARCHITECTURE.md), [docs/DATABASE.md](docs/DATABA
 
 ```bash
 dotnet restore
-dotnet tool install --global dotnet-ef
-dotnet ef migrations add AddLeaves --project src/IskurAuto.Data --startup-project src/IskurAuto.API
 dotnet run --project src/IskurAuto.API
 ```
 
-Veritabanı (`iskurauto.db`) ilk çalıştırmada oluşur. Development ortamında Swagger ana sayfada açılır.
+Veritabanı (`iskurauto.db`) ilk çalıştırmada oluşur, migration'lar kendiliğinden uygulanır. Development ortamında Swagger ana sayfada açılır.
 
 Üretimde en az bir ayar şart:
 
@@ -54,10 +61,11 @@ dotnet test
 | 1 | Kayıt, giriş, roller, öğrenci profili, katılım/birim/danışman geçmişi, denetim | Bitti |
 | 2 | Aylık çalışma planı, takvim, tatil ve sınav dönemi | Bitti |
 | 3 | İzin, devamsızlık, izin hakkı takibi ve uyarılar | Bitti |
-| 4 | 30 saniyede yenilenen QR ile devam takibi | Bitti (migration üretilecek) |
+| 4 | 30 saniyede yenilenen QR ile devam takibi | Bitti |
 | 5a | Görev, danışman değerlendirmesi, devamsızlık bildirimi | Bitti |
-| 5b | Raporlar, Excel/CSV, aylık döküm, ilişik kesme kararı | Bitti (migration üretilecek) |
-| 6 | Test senaryoları, teknik dokümantasyon | |
+| 5b | Raporlar, Excel/CSV, aylık döküm, ilişik kesme kararı | Bitti |
+| 6 | Test senaryoları, kurulum/kullanım dokümanı, yedekleme | Bitti |
+| 7 | Arayüz | Sırada |
 
 ## Bilinen sınırlar
 
