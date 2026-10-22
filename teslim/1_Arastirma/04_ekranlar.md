@@ -6,7 +6,11 @@ Her ekranın gerçek görüntüsü [2_Tasarimlar/ekranlar](../2_Tasarimlar/ekran
 
 | Ekran | Adres | Görüntü |
 |---|---|---|
-| Giriş | `/giris` | 00-giris.png |
+| Giriş türü seçimi (dört rol) | `/giris` | 00-giris.png |
+| Öğrenci girişi | `/giris/ogrenci` | 03-giris-ogrenci.png |
+| Danışman girişi | `/giris/danisman` | 04-giris-danisman.png |
+| Bölüm başkanı girişi | `/giris/bolum-baskani` | 05-giris-bolum-baskani.png |
+| Fakülte sekreterliği / dekanlık girişi | `/giris/fakulte` | 06-giris-fakulte.png |
 | Öğrenci kaydı | `/kayit` | 01-ogrenci-kayit.png |
 | Parolamı unuttum, parola sıfırlama | `/parolami-unuttum`, `/sifre-sifirla` | 02-parola-sifirlama.png |
 

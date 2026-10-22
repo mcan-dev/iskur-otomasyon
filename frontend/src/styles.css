@@ -190,3 +190,9 @@ textarea { font: inherit; }
 .qr-bar i { display: block; height: 100%; background: var(--blue); transition: width .25s linear; }
 .scroll-x { overflow-x: auto; }
 .right-cell { text-align: right; white-space: nowrap; }
+.auth-card.chooser { max-width: 560px; }
+.chooser-grid { display: grid; gap: 10px; margin-top: 6px; }
+.chooser-item { display: flex; gap: 14px; align-items: center; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; color: var(--text); background: #fff; }
+.chooser-item:hover { border-color: var(--blue); box-shadow: inset 4px 0 0 var(--gold); text-decoration: none; }
+.chooser-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--navy); color: var(--gold); display: grid; place-items: center; font-weight: 700; flex: none; }
+.chooser-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }

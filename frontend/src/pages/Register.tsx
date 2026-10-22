@@ -50,7 +50,7 @@ export default function Register() {
         <div className="auth-card">
           <h1>Kaydınız alındı</h1>
           <p className="muted">Hesabınız oluşturuldu. E-posta ve parolanızla giriş yapabilirsiniz.</p>
-          <Link className="btn primary wide" to="/giris">
+          <Link className="btn primary wide" to="/giris/ogrenci">
             Giriş sayfasına git
           </Link>
         </div>
@@ -106,7 +106,7 @@ export default function Register() {
           {busy ? 'Kaydediliyor…' : 'Kaydol'}
         </button>
         <p className="muted center">
-          Zaten hesabınız var mı? <Link to="/giris">Giriş yapın</Link>
+          Zaten hesabınız var mı? <Link to="/giris/ogrenci">Giriş yapın</Link>
         </p>
       </form>
     </div>
