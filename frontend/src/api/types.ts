@@ -129,6 +129,9 @@ export interface WorkPlanDay {
 
 export interface WorkPlan {
   id: number;
+  studentId?: number;
+  studentName?: string;
+  departmentName?: string;
   year: number;
   month: number;
   status: PlanStatus;
@@ -147,6 +150,9 @@ export type LeaveStatus = 'Pending' | 'Approved' | 'Rejected' | 'Cancelled';
 
 export interface Leave {
   id: number;
+  studentId?: number;
+  studentName?: string;
+  departmentName?: string;
   type: LeaveType;
   status: LeaveStatus;
   startDate: string;
@@ -172,6 +178,11 @@ export type AbsenceType = 'Unexcused' | 'HealthReport' | 'Excused';
 
 export interface Absence {
   id: number;
+  studentId?: number;
+  studentName?: string;
+  departmentName?: string;
+  recordedByName?: string;
+  revokeReason?: string | null;
   date: string;
   type: AbsenceType;
   note?: string | null;
@@ -180,6 +191,10 @@ export interface Absence {
 
 export interface Attendance {
   id: number;
+  studentId?: number;
+  studentName?: string;
+  departmentName?: string;
+  voidReason?: string | null;
   sessionId: number;
   date: string;
   sessionStart: string;
@@ -216,6 +231,9 @@ export interface TaskEvaluation {
 
 export interface StudentTask {
   id: number;
+  studentId?: number;
+  studentName?: string;
+  departmentName?: string;
   title: string;
   description?: string | null;
   assignedDate: string;
@@ -234,4 +252,51 @@ export interface StudentProfileFull extends StudentDetail {
   participations: { id: number; startDate: string; endDate?: string | null; endReason?: string | null; isOpen: boolean }[];
   unitHistory: { id: number; workUnitName: string; startDate: string; endDate?: string | null }[];
   advisorHistory: { id: number; advisorName: string; startDate: string; endDate?: string | null }[];
+}
+
+export interface WorkUnit {
+  id: number;
+  name: string;
+  description?: string | null;
+  isActive: boolean;
+}
+
+export interface Session {
+  id: number;
+  date: string;
+  startTime: string;
+  endTime: string;
+  title?: string | null;
+  departmentId?: number | null;
+  departmentName?: string | null;
+  createdByName: string;
+  isClosed: boolean;
+  isActiveNow: boolean;
+}
+
+export interface QrCode {
+  sessionId: number;
+  token: string;
+  refreshAtUtc: string;
+  windowSeconds: number;
+}
+
+export interface AbsenceNotice {
+  id: number;
+  studentId: number;
+  studentName: string;
+  departmentName: string;
+  date: string;
+  message: string;
+  advisorName: string;
+  createdAt: string;
+  isRead: boolean;
+  readAt?: string | null;
+  readByName?: string | null;
+}
+
+export interface StudentDetailStaff extends StudentProfileFull {
+  departmentId: number;
+  currentUnit?: { workUnitId: number; workUnitName: string } | null;
+  currentAdvisor?: { advisorUserId: number; advisorName: string } | null;
 }
