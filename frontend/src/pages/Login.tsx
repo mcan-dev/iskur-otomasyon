@@ -33,7 +33,7 @@ export default function Login() {
       <form className="auth-card" onSubmit={submit}>
         <div className="brand-mark big">İ</div>
         <h1>İŞKUR Otomasyonu</h1>
-        <p className="muted">Teknoloji Fakültesi öğrenci programı girişi</p>
+        <p className="muted">Selçuk Üniversitesi Teknoloji Fakültesi öğrenci programı girişi</p>
         {error && <Alert>{error}</Alert>}
         <Field label="E-posta">
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" required />
