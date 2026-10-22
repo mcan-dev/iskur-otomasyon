@@ -21,6 +21,18 @@ erDiagram
     User ||--o{ LeaveRequest : "onaylayan"
     User ||--o{ Absence : "kaydeden / geri alan"
     User ||--o{ MonthlyWorkPlan : "onaylayan"
+    StudentProfile ||--o{ AttendanceRecord : "devam kayıtları"
+    AttendanceSession ||--o{ AttendanceRecord : "oturum"
+    Department ||--o{ AttendanceSession : "bölüm oturumu (boşsa fakülte geneli)"
+    User ||--o{ AttendanceSession : "açan"
+    StudentProfile ||--o{ StudentTask : "görevler"
+    StudentTask ||--o{ TaskEvaluation : "değerlendirmeler"
+    User ||--o{ StudentTask : "atayan"
+    User ||--o{ TaskEvaluation : "yazan danışman"
+    StudentProfile ||--o{ AbsenceNotice : "devamsızlık bildirimleri"
+    User ||--o{ AbsenceNotice : "bildiren danışman"
+    StudentProfile ||--o{ TerminationDecision : "ilişik kesme kararı"
+    User ||--o{ TerminationDecision : "kararı veren"
 
     Department { int Id string Name string Code bool IsActive }
     WorkUnit { int Id string Name string Description bool IsActive }
@@ -64,9 +76,9 @@ erDiagram
 | İlişik kesme kararı silinemez, öğrenci kaydına bağlıdır | FK `Restrict` |
 | Ayar anahtarı tektir | Unique index (Key) |
 
-## Sonraki aşamalarda eklenecek tablolar
+## Raporlar
 
-Raporlar için ayrı tablo yoktur; hepsi mevcut kayıtlardan hesaplanır.
+Raporlar için ayrı tablo yoktur; hepsi yukarıdaki kayıtlardan istek anında hesaplanır.
 
 ## Migration
 
