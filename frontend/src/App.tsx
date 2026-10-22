@@ -6,6 +6,15 @@ import Dashboard from './pages/Dashboard';
 import ForgotPassword from './pages/ForgotPassword';
 import Login from './pages/Login';
 import Placeholder from './pages/Placeholder';
+import AbsencesPage from './pages/staff/AbsencesPage';
+import AttendancePage from './pages/staff/AttendancePage';
+import LeavesStaffPage from './pages/staff/LeavesStaffPage';
+import NoticesPage from './pages/staff/NoticesPage';
+import PlansReviewPage from './pages/staff/PlansReviewPage';
+import SessionsPage from './pages/staff/SessionsPage';
+import StudentDetailPage from './pages/staff/StudentDetailPage';
+import StudentsPage from './pages/staff/StudentsPage';
+import TasksStaffPage from './pages/staff/TasksStaffPage';
 import CheckInPage from './pages/student/CheckInPage';
 import HistoryPage from './pages/student/HistoryPage';
 import LeavesPage from './pages/student/LeavesPage';
@@ -27,6 +36,14 @@ export default function App() {
     '/gorevlerim': <TasksPage />,
     '/gecmis': <HistoryPage />,
     '/profil': <ProfilePage />,
+    '/ogrenciler': <StudentsPage />,
+    '/plan-onaylari': <PlansReviewPage />,
+    '/izinler': <LeavesStaffPage />,
+    '/devamsizlik': <AbsencesPage />,
+    '/devam-oturumlari': <SessionsPage />,
+    '/devam': <AttendancePage />,
+    '/gorevler': <TasksStaffPage />,
+    '/bildirimler': <NoticesPage />,
   };
 
   // Menüdeki yollar yalnızca ilgili rol için tanımlanır; başka rolün adresi ana sayfaya döner.
@@ -41,8 +58,9 @@ export default function App() {
       <Route element={user ? <AppLayout /> : <Navigate to="/giris" replace />}>
         <Route index element={<Dashboard />} />
         {paths.map((p) => (
-          <Route key={p} path={p} element={(user?.role === 'Student' && screens[p]) || <Placeholder />} />
+          <Route key={p} path={p} element={screens[p] ?? <Placeholder />} />
         ))}
+        {user && user.role !== 'Student' && <Route path="/ogrenciler/:id" element={<StudentDetailPage />} />}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
