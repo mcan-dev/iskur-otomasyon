@@ -94,7 +94,6 @@ export interface LeaveAlert {
   balance: LeaveBalance;
 }
 
-export type WorkShift = 'FullDay' | 'Morning' | 'Afternoon';
 export type PlanStatus = 'Pending' | 'Approved' | 'Rejected';
 export type CalendarColor = 'Green' | 'Red' | 'Yellow' | 'Gray';
 
@@ -106,7 +105,6 @@ export interface CalendarDay {
   isSelected: boolean;
   isLessonDay: boolean;
   isExamPeriod: boolean;
-  shift?: WorkShift | null;
   note?: string | null;
 }
 
@@ -121,7 +119,6 @@ export interface PlanCalendar {
 
 export interface WorkPlanDay {
   date: string;
-  shift: WorkShift;
   isLessonDay: boolean;
   note?: string | null;
   hours: number;
@@ -216,7 +213,7 @@ export interface AttendanceComparison {
   leaveDays: number;
   recordedAbsenceDays: number;
   missingDays: number;
-  days: { date: string; shift: WorkShift; outcome: PlannedDayOutcome }[];
+  days: { date: string; outcome: PlannedDayOutcome }[];
 }
 
 export type TaskStatus = 'Open' | 'Completed' | 'NotCompleted';

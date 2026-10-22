@@ -33,7 +33,7 @@ public class AttendanceRecordConfiguration : IEntityTypeConfiguration<Attendance
 
         // Aynı öğrenci aynı oturumda yalnızca bir geçerli kayda sahip olabilir.
         b.HasIndex(x => new { x.StudentProfileId, x.AttendanceSessionId }).IsUnique()
-            .HasFilter("\"VoidedAt\" IS NULL")
+            .HasFilter("[VoidedAt] IS NULL")
             .HasDatabaseName("UX_Attendance_OneActivePerStudentSession");
         b.HasIndex(x => new { x.StudentProfileId, x.Date });
 

@@ -7,7 +7,7 @@ dotnet test                                         # hepsi
 dotnet test --filter "FullyQualifiedName~Attendance" # bir modül
 ```
 
-Veritabanını kullanan testler her test için ayrı, bellek içi bir SQLite veritabanı kurar. Saat sabittir (21 Ekim 2026, 12:00), bu yüzden sonuçlar günden bağımsızdır.
+Veritabanını kullanan testler her test için ayrı, bellek içi bir SQLite veritabanı kurar (testlerin hızlı ve kurulumsuz çalışması için; model ve sorgular sağlayıcıdan bağımsızdır, uygulama SQL Server kullanır). Saat sabittir (21 Ekim 2026, 12:00), bu yüzden sonuçlar günden bağımsızdır.
 
 ## Belgedeki başlıklara göre
 
@@ -38,7 +38,7 @@ Rol kontrolü ve kapsam: bölüm başkanı yalnızca kendi bölümünü, danış
 Rol ve kapsam senaryoları diğer sınıflarda da modül bazında vardır: `*_IsForbidden`, `*_FollowTheRoleScope`, `*_OutsideTheScope_LooksLikeNotFound`, `OnlyStudentsCanCheckIn`, `OnlyTheFacultyOfficeRecordsDecisions`, `MonthlyStatement_IsOnlyForTheFacultyOffice`.
 
 ### Çalışma günü sınırları
-Haftada 1-3 gün, haftanın perşembesinin düştüğü aya sayılması, hafta sonu/tatil/program dışı günün seçilememesi, dersli günde açıklama zorunluluğu, sınav haftasında alt sınırın aranmaması, yarım gün, düzeltme süresi, onaylı planın kilitlenmesi.
+Haftada 1-3 gün, haftanın perşembesinin düştüğü aya sayılması, hafta sonu/tatil/program dışı günün seçilememesi, dersli günde açıklama zorunluluğu, sınav haftasında alt sınırın aranmaması, her günün 8 saat sayılması, düzeltme süresi, onaylı planın kilitlenmesi.
 
 | Test sınıfı | Test sayısı | Dosya |
 |---|---|---|
@@ -49,7 +49,7 @@ Haftada 1-3 gün, haftanın perşembesinin düştüğü aya sayılması, hafta s
 | `CourseDayAndCalendarServiceTests` | 4 | `Services/WorkPlanServiceTests.cs` |
 
 ### İzin hesaplamaları
-Plan varsa planlı günlerin, yoksa hafta içi günlerin sayılması, tatillerin düşülmesi, yarım gün ve saatlik izin, yıl sınırı, çakışan talep, sınır uyarıları (yaklaşma, aşma, bekleyen talepler), sağlık izni ve mazeretsiz devamsızlık ayrımı, geri alınan kaydın bakiyeye etkisi.
+Plan varsa planlı günlerin, yoksa hafta içi günlerin sayılması, tatillerin düşülmesi, saatlik izin, yıl sınırı, çakışan talep, sınır uyarıları (yaklaşma, aşma, bekleyen talepler), sağlık izni ve mazeretsiz devamsızlık ayrımı, geri alınan kaydın bakiyeye etkisi.
 
 | Test sınıfı | Test sayısı | Dosya |
 |---|---|---|

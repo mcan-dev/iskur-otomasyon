@@ -30,13 +30,13 @@ public static class LeaveDayCounter
 {
     /// <summary>
     /// İzin hakkından düşülecek gün sayısı. Ay için çalışma planı varsa yalnızca planlı günler sayılır
-    /// (yarım gün 0,5); plan yoksa hafta sonu ve tatil olmayan her gün 1 sayılır.
+    /// ; plan yoksa hafta sonu ve tatil olmayan her gün 1 sayılır.
     /// </summary>
     public static decimal Count(DateOnly start, DateOnly end, decimal? hours, IReadOnlySet<DateOnly> holidays,
         IReadOnlyList<MonthlyWorkPlan> plans, WorkPlanSettings settings)
     {
         if (hours is not null)
-            return Math.Round(hours.Value / settings.FullDayHours, 2);
+            return Math.Round(hours.Value / settings.DailyHours, 2);
 
         var total = 0m;
         for (var day = start; day <= end; day = day.AddDays(1))
@@ -53,7 +53,7 @@ public static class LeaveDayCounter
 
             var planned = plan.Days.FirstOrDefault(d => d.Date == day);
             if (planned is not null)
-                total += planned.Shift == WorkShift.FullDay ? 1 : 0.5m;
+                total += 1;
         }
 
         return total;

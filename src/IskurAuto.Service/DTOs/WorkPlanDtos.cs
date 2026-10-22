@@ -15,8 +15,6 @@ public class WorkPlanDayInput
 {
     public DateOnly Date { get; set; }
 
-    public WorkShift Shift { get; set; } = WorkShift.FullDay;
-
     [StringLength(500)]
     public string? Note { get; set; }
 }
@@ -47,7 +45,6 @@ public class ReviewWorkPlanRequest
 public class WorkPlanDayDto
 {
     public DateOnly Date { get; set; }
-    public WorkShift Shift { get; set; }
     public bool IsLessonDay { get; set; }
     public string? Note { get; set; }
     public decimal Hours { get; set; }
@@ -95,7 +92,6 @@ public class CalendarDayDto
     public bool IsSelected { get; set; }
     public bool IsLessonDay { get; set; }
     public bool IsExamPeriod { get; set; }
-    public WorkShift? Shift { get; set; }
     public string? Note { get; set; }
 }
 

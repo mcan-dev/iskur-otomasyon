@@ -301,7 +301,7 @@ public class LeaveService : ILeaveService
         {
             if (request.StartDate != request.EndDate)
                 errors.Add(nameof(request.Hours), "Saatlik izin yalnızca tek gün için alınabilir.");
-            if (request.Hours >= _workSettings.FullDayHours)
+            if (request.Hours >= _workSettings.DailyHours)
                 errors.Add(nameof(request.Hours), "Saatlik izin tam gün süresinden kısa olmalıdır; tam gün için saat girmeyin.");
         }
 

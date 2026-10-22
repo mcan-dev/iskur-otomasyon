@@ -1,4 +1,4 @@
-import type { AbsenceType, LeaveStatus, LeaveType, PlanStatus, PlannedDayOutcome, TaskStatus, WorkShift } from './api/types';
+import type { AbsenceType, LeaveStatus, LeaveType, PlanStatus, PlannedDayOutcome, TaskStatus } from './api/types';
 
 const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
 export const monthName = (m: number) => months[m - 1] ?? '';
@@ -28,7 +28,6 @@ export function isoDate(d: Date): string {
 
 export const todayIso = () => isoDate(new Date());
 
-export const shiftLabels: Record<WorkShift, string> = { FullDay: 'Tam gün', Morning: 'Sabah', Afternoon: 'Öğleden sonra' };
 export const planStatusLabels: Record<PlanStatus, string> = { Pending: 'Onay bekliyor', Approved: 'Onaylandı', Rejected: 'Reddedildi' };
 export const leaveTypeLabels: Record<LeaveType, string> = { Excuse: 'Mazeret', Health: 'Sağlık', Other: 'Diğer' };
 export const leaveStatusLabels: Record<LeaveStatus, string> = { Pending: 'Onay bekliyor', Approved: 'Onaylandı', Rejected: 'Reddedildi', Cancelled: 'İptal edildi' };

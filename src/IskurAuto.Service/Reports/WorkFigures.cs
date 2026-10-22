@@ -24,7 +24,7 @@ public sealed record WorkFigures(
         IEnumerable<LeaveRequest> approvedLeaves,
         IReadOnlySet<DateOnly> absenceDates,
         DateOnly today,
-        decimal fullDayHours)
+        decimal dailyHours)
     {
         if (plan is not { Status: WorkPlanStatus.Approved })
             return Empty;
@@ -37,6 +37,6 @@ public sealed record WorkFigures(
             comparison.LeaveDays,
             comparison.RecordedAbsenceDays,
             comparison.MissingDays,
-            comparison.AttendedDays * fullDayHours);
+            comparison.AttendedDays * dailyHours);
     }
 }
