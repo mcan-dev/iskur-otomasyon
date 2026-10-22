@@ -96,3 +96,18 @@ Devamsızlık idari bir karardır ve izin hakkını etkiler. Planlı günde kay�
 
 ### Hatalı kayıt neden silinmiyor?
 Belge düzeltme nedeni ve işlemi yapanın saklanmasını istiyor. Kayıt iptal edilir (`VoidedAt`, kim, neden), satır kalır. İptalden sonra aynı oturum için yeni kayıt oluşabilir.
+
+### Değerlendirmeler neden ayrı bir tabloda?
+Belge önceki değerlendirmelerin ve değişikliklerin korunmasını istiyor. Görev satırına tek bir "not" alanı koysaydık her güncelleme öncekini ezerdi. Her not ve durum değişikliği ayrı, eklenen bir satırdır; mevcut durum görevde, geçmiş değerlendirmelerde durur.
+
+### Görev başlığı ve tarihleri neden değişmiyor?
+Değerlendirme geçmişi o görevin belirli bir tanımına bağlı. Tanım sonradan değişirse eski notlar yanlış bağlama kalırdı. Yanlış atanan görev için yeni görev açılır.
+
+### Kim değerlendirebiliyor?
+Belge danışman öğretim elemanını söylüyor. Bu yüzden yalnızca öğrencinin şu anki danışmanı not ekler ve durum değiştirir. Bölüm başkanı ve fakülte yönetimi görüntüler. Danışman değişirse eski notlar kalır.
+
+### Öğrenci danışman notlarını görüyor mu?
+Evet. Görevin ne durumda olduğunu ve nedenini bilmesi gerekir. Notları öğrenciden gizli tutmak istenirse tek bir alanla ayrılabilir; belge bunu belirtmiyor.
+
+### Devamsızlık bildirimi neden devamsızlık kaydından ayrı?
+Danışmanın bildirimi bir ihbar, devamsızlık kaydı ise izin hakkını etkileyen idari karardır. Bildirim bölüm başkanını bilgilendirir; kaydı fakülte yönetimi kendi incelemesiyle girer.

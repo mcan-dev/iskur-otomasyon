@@ -76,3 +76,27 @@ public class AttendanceSearchCriteria
     public int? AdvisorUserId { get; set; }
     public bool IncludeVoided { get; set; }
 }
+
+public class StudentTaskSearchCriteria
+{
+    public int? StudentId { get; set; }
+    public int? DepartmentId { get; set; }
+    public int? AdvisorUserId { get; set; }
+    public StudentTaskStatus? Status { get; set; }
+
+    /// <summary>Atanma yılı.</summary>
+    public int? Year { get; set; }
+
+    /// <summary>Doluysa yalnızca bu tarihten önce bitmesi gerekirken hâlâ açık olan görevler.</summary>
+    public DateOnly? OverdueBefore { get; set; }
+}
+
+public class AbsenceNoticeSearchCriteria
+{
+    public int? StudentId { get; set; }
+    public int? DepartmentId { get; set; }
+    public int? AdvisorUserId { get; set; }
+    public bool UnreadOnly { get; set; }
+    public int? Year { get; set; }
+    public int? Month { get; set; }
+}
