@@ -13,8 +13,13 @@ public class AuthController : ControllerBase
 {
     // Controller bilerek "ince": girdiyi alır, servise verir, sonucu HTTP'ye çevirir. İş kuralı yok.
     private readonly IAuthService _auth;
+    private readonly IPasswordResetService _passwordReset;
 
-    public AuthController(IAuthService auth) => _auth = auth;
+    public AuthController(IAuthService auth, IPasswordResetService passwordReset)
+    {
+        _auth = auth;
+        _passwordReset = passwordReset;
+    }
 
     /// <summary>E-posta ve parola ile giriş yapar, JWT erişim jetonu döner.</summary>
     /// <response code="401">E-posta veya parola hatalı ya da hesap pasif.</response>
@@ -57,6 +62,28 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request, CancellationToken ct)
     {
         await _auth.ChangePasswordAsync(request, ct);
+        return NoContent();
+    }
+
+    /// <summary>Parola sıfırlama bağlantısını e-postayla gönderir. E-posta kayıtlı olmasa da aynı yanıt döner.</summary>
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken ct)
+    {
+        await _passwordReset.RequestAsync(request, ct);
+        return NoContent();
+    }
+
+    /// <summary>E-postadaki bağlantıdaki jetonla yeni parola belirler.</summary>
+    /// <response code="400">Parola kuralına uymuyor ya da bağlantı geçersiz/süresi dolmuş.</response>
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request, CancellationToken ct)
+    {
+        await _passwordReset.ResetAsync(request, ct);
         return NoContent();
     }
 }

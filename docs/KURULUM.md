@@ -33,6 +33,9 @@ Ayarlar `src/IskurAuto.API/appsettings.json` içindedir. Gizli değerler dosyaya
 | `JwtSettings:Issuer` / `Audience` | `IskurAutoAPI` / `IskurAutoClients` | Token doğrulaması için. |
 | `JwtSettings:ExpirationMinutes` | 120 | Token süresi. |
 | `Cors:AllowedOrigins` | `localhost:3000`, `localhost:5173` | Arayüzün yayınlandığı adres(ler). |
+| `PasswordReset:FrontendBaseUrl` | `http://localhost:5173` | Sıfırlama e-postasındaki bağlantının adresi (arayüzün yayınlandığı adres). |
+| `PasswordReset:TokenMinutes` | 30 | Sıfırlama bağlantısının geçerlilik süresi. |
+| `Smtp:Host`, `Port`, `UseSsl`, `User`, `Password`, `From` | boş | Parola sıfırlama e-postası için posta sunucusu. `Host` boşsa e-posta gönderilmez; Development'ta içeriği (bağlantı dahil) konsola yazılır. |
 | `Storage:DocumentsPath` | `App_Data/documents` | İzin belgelerinin saklandığı klasör. Yoksa oluşturulur; dosyalar rastgele adla yazılır. |
 | `WorkPlan:MinDaysPerWeek` / `MaxDaysPerWeek` | 1 / 3 | Haftalık çalışma günü sınırı. |
 | `WorkPlan:EditDeadlineDay` | 5 | Plan düzeltmesi için ayın son günü. |
@@ -60,6 +63,11 @@ Ayarlar `src/IskurAuto.API/appsettings.json` içindedir. Gizli değerler dosyaya
    export ConnectionStrings__IskurAutoDb="Data Source=/srv/iskur/data/iskurauto.db"
    export Storage__DocumentsPath="/srv/iskur/data/documents"
    export Cors__AllowedOrigins__0="https://iskur.ornek.edu.tr"
+   export PasswordReset__FrontendBaseUrl="https://iskur.ornek.edu.tr"
+   export Smtp__Host="smtp.ornek.edu.tr"
+   export Smtp__User="iskur@ornek.edu.tr"
+   export Smtp__Password="<posta parolası>"
+   export Smtp__From="iskur@ornek.edu.tr"
    ```
 
    Geliştirme makinesinde aynı değerler `dotnet user-secrets set "JwtSettings:SecretKey" "..." --project src/IskurAuto.API` ile verilir.

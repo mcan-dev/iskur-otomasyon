@@ -50,3 +50,12 @@ public interface ITokenService
 }
 
 public sealed record TokenResult(string AccessToken, DateTime ExpiresAtUtc);
+
+/// <summary>
+/// E-posta gönderimi. Uygulamalar hata fırlatmaz (hata kaydedilir); aksi halde "parolamı unuttum"
+/// isteğinin cevabı, e-postanın kayıtlı olup olmadığını belli ederdi.
+/// </summary>
+public interface IEmailSender
+{
+    Task SendAsync(string to, string subject, string body, CancellationToken ct = default);
+}

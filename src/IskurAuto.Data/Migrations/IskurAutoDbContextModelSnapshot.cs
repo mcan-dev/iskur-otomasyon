@@ -543,6 +543,42 @@ namespace IskurAuto.Data.Migrations
                     b.ToTable("MonthlyWorkPlans", (string)null);
                 });
 
+            modelBuilder.Entity("IskurAuto.Core.Entities.PasswordResetToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PasswordResetTokens", (string)null);
+                });
+
             modelBuilder.Entity("IskurAuto.Core.Entities.ProgramParticipation", b =>
                 {
                     b.Property<int>("Id")
@@ -1156,6 +1192,17 @@ namespace IskurAuto.Data.Migrations
                     b.Navigation("ReviewedByUser");
 
                     b.Navigation("StudentProfile");
+                });
+
+            modelBuilder.Entity("IskurAuto.Core.Entities.PasswordResetToken", b =>
+                {
+                    b.HasOne("IskurAuto.Core.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("IskurAuto.Core.Entities.ProgramParticipation", b =>

@@ -10,6 +10,8 @@ public static class AuditActions
     public const string LoginSucceeded       = "Login.Succeeded";
     public const string LoginFailed          = "Login.Failed";
     public const string PasswordChanged      = "Password.Changed";
+    public const string PasswordResetRequested = "Password.ResetRequested";
+    public const string PasswordResetCompleted = "Password.ResetCompleted";
 
     public const string StudentRegistered    = "Student.Registered";
     public const string StudentProfileUpdated = "Student.ProfileUpdated";
