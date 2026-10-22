@@ -67,7 +67,8 @@ dotnet test
 | 5b | Raporlar, Excel/CSV, aylık döküm, ilişik kesme kararı | Bitti |
 | 6 | Test senaryoları, kurulum/kullanım dokümanı, yedekleme | Bitti |
 | 7a | Arayüz iskeleti: giriş, öğrenci kaydı, rol bazlı menü, ana sayfalar | Bitti |
-| 7b-7e | Öğrenci, fakülte, bölüm başkanı/danışman ekranları, raporlar | Sırada |
+| 7b | Öğrenci ekranları: plan takvimi, izin, karekod okutma, görevler, geçmiş, profil | Bitti |
+| 7c-7e | Fakülte, bölüm başkanı ve danışman ekranları, raporlar | Sırada |
 
 ## Bilinen sınırlar
 
