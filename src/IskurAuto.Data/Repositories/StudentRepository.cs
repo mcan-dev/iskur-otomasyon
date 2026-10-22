@@ -113,5 +113,5 @@ public class StudentRepository : GenericRepository<StudentProfile>, IStudentRepo
             .AsSplitQuery();
 
     private static string EscapeLike(string input)
-        => input.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
+        => input.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_").Replace("[", "\\[");
 }

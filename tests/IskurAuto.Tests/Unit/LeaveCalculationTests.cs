@@ -13,11 +13,11 @@ public class LeaveDayCounterTests
 
     private static DateOnly Nov(int day) => new(2026, 11, day);
 
-    private static MonthlyWorkPlan Plan(params (int Day, WorkShift Shift)[] days)
+    private static MonthlyWorkPlan Plan(params int[] days)
     {
         var plan = new MonthlyWorkPlan { Year = 2026, Month = 11 };
-        foreach (var (day, shift) in days)
-            plan.Days.Add(new WorkPlanDay { Date = Nov(day), Shift = shift });
+        foreach (var day in days)
+            plan.Days.Add(new WorkPlanDay { Date = Nov(day) });
         return plan;
     }
 
@@ -36,15 +36,15 @@ public class LeaveDayCounterTests
     [Fact]
     public void Count_WithPlan_CountsOnlyPlannedDays()
     {
-        var plans = new[] { Plan((3, WorkShift.FullDay), (5, WorkShift.Morning)) };
+        var plans = new[] { Plan(3, 5) };
 
-        Assert.Equal(1.5m, LeaveDayCounter.Count(Nov(2), Nov(6), null, NoHolidays, plans, Settings));
+        Assert.Equal(2m, LeaveDayCounter.Count(Nov(2), Nov(6), null, NoHolidays, plans, Settings));
     }
 
     [Fact]
     public void Count_WithPlanButNoPlannedDayInRange_IsZero()
     {
-        var plans = new[] { Plan((10, WorkShift.FullDay)) };
+        var plans = new[] { Plan(10) };
 
         Assert.Equal(0m, LeaveDayCounter.Count(Nov(2), Nov(6), null, NoHolidays, plans, Settings));
     }
@@ -52,7 +52,7 @@ public class LeaveDayCounterTests
     [Fact]
     public void Count_MonthWithoutPlan_StillCountsWeekdays()
     {
-        var plans = new[] { Plan((3, WorkShift.FullDay)) };
+        var plans = new[] { Plan(3) };
 
         Assert.Equal(2m, LeaveDayCounter.Count(new DateOnly(2026, 12, 1), new DateOnly(2026, 12, 2), null, NoHolidays, plans, Settings));
     }

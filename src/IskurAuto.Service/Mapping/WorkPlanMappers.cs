@@ -27,14 +27,13 @@ public static class WorkPlanMappers
             ReviewedAt = plan.ReviewedAt,
             ReviewNote = plan.ReviewNote,
             PlannedDays = days.Count,
-            PlannedHours = days.Sum(d => settings.HoursOf(d.Shift)),
+            PlannedHours = days.Count * settings.DailyHours,
             Days = days.Select(d => new WorkPlanDayDto
             {
                 Date = d.Date,
-                Shift = d.Shift,
                 IsLessonDay = d.IsLessonDay,
                 Note = d.Note,
-                Hours = settings.HoursOf(d.Shift)
+                Hours = settings.DailyHours
             }).ToList()
         };
     }
@@ -59,8 +58,8 @@ public static class WorkPlanMappers
                 DayBlock.Weekend => (CalendarColor.Red, "Hafta sonu"),
                 DayBlock.Holiday => (CalendarColor.Red, "Resmî tatil"),
                 DayBlock.OutsideProgram => (CalendarColor.Red, "Program dışı"),
-                _ when chosen is not null && lesson => (CalendarColor.Yellow, $"Seçildi, dersli gün ({ShiftLabel(chosen.Shift)})"),
-                _ when chosen is not null => (CalendarColor.Green, $"Seçildi ({ShiftLabel(chosen.Shift)})"),
+                _ when chosen is not null && lesson => (CalendarColor.Yellow, "Seçildi, dersli gün"),
+                _ when chosen is not null => (CalendarColor.Green, "Seçildi"),
                 _ when lesson => (CalendarColor.Yellow, "Dersli gün, seçilirse açıklama gerekir"),
                 _ => (CalendarColor.Gray, "Boş gün, henüz seçilmedi")
             };
@@ -74,16 +73,9 @@ public static class WorkPlanMappers
                 IsSelected = chosen is not null,
                 IsLessonDay = lesson,
                 IsExamPeriod = month.IsExamDay(date),
-                Shift = chosen?.Shift,
                 Note = chosen?.Note
             };
         }).ToList();
     }
 
-    private static string ShiftLabel(WorkShift shift) => shift switch
-    {
-        WorkShift.Morning => "öğleden önce",
-        WorkShift.Afternoon => "öğleden sonra",
-        _ => "tam gün"
-    };
 }

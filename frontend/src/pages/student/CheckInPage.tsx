@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { api, ApiError } from '../../api/client';
 import type { Attendance, AttendanceComparison } from '../../api/types';
 import { Alert, Badge, Card, Empty, MonthPicker, Stat } from '../../components/ui';
-import { fmtDate, fmtDateTime, fmtTime, outcomeLabels, outcomeTone, shiftLabels } from '../../format';
+import { fmtDate, fmtDateTime, fmtTime, outcomeLabels, outcomeTone } from '../../format';
 import { useLoad } from '../../useLoad';
 
 // Tarayıcının yerleşik karekod okuyucusu (Chrome/Edge, Android). Yoksa elle giriş kullanılır.
@@ -59,12 +59,11 @@ export default function CheckInPage() {
               <Stat label="Kayıt yok" value={c.missingDays} tone="amber" />
             </div>
             <table className="table" style={{ marginTop: 14 }}>
-              <thead><tr><th>Tarih</th><th>Vardiya</th><th>Durum</th></tr></thead>
+              <thead><tr><th>Tarih</th><th>Durum</th></tr></thead>
               <tbody>
                 {c.days.map((d) => (
                   <tr key={d.date}>
                     <td>{fmtDate(d.date)}</td>
-                    <td>{shiftLabels[d.shift]}</td>
                     <td><Badge tone={outcomeTone[d.outcome]}>{outcomeLabels[d.outcome]}</Badge></td>
                   </tr>
                 ))}

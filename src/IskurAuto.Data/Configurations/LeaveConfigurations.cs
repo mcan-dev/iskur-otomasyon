@@ -40,7 +40,7 @@ public class AbsenceConfiguration : IEntityTypeConfiguration<Absence>
         b.Property(x => x.RevokeReason).HasMaxLength(500);
         b.Ignore(x => x.IsRevoked);
 
-        b.HasIndex(x => new { x.StudentProfileId, x.Date }).IsUnique().HasFilter("\"RevokedAt\" IS NULL")
+        b.HasIndex(x => new { x.StudentProfileId, x.Date }).IsUnique().HasFilter("[RevokedAt] IS NULL")
             .HasDatabaseName("UX_Absences_OneActivePerStudentDay");
 
         b.HasOne(x => x.StudentProfile).WithMany()

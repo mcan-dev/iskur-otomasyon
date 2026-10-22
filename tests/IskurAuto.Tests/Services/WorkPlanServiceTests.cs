@@ -43,17 +43,16 @@ public class WorkPlanServiceTests
     }
 
     [Fact]
-    public async Task SaveMyPlan_HalfDaysCountHalfTheHours()
+    public async Task SaveMyPlan_EveryPlannedDayIsAnEightHourDay()
     {
         var (db, _) = StudentSession();
         using var _ = db;
-        var request = ValidPlan();
-        request.Days[0].Shift = WorkShift.Morning;
         using var scope = db.NewScope();
 
-        var plan = await scope.WorkPlans.SaveMyPlanAsync(request);
+        var plan = await scope.WorkPlans.SaveMyPlanAsync(ValidPlan());
 
-        Assert.Equal(28m, plan.PlannedHours);
+        Assert.All(plan.Days, d => Assert.Equal(8m, d.Hours));
+        Assert.Equal(plan.PlannedDays * 8m, plan.PlannedHours);
     }
 
     [Fact]

@@ -57,6 +57,6 @@ public static class AttendanceMappers
         LeaveDays = c.LeaveDays,
         RecordedAbsenceDays = c.RecordedAbsenceDays,
         MissingDays = c.MissingDays,
-        Days = c.Days.Select(d => new PlannedDayDto { Date = d.Date, Shift = d.Shift, Outcome = d.Outcome }).ToList()
+        Days = c.Days.Select(d => new PlannedDayDto { Date = d.Date, Outcome = d.Outcome }).ToList()
     };
 }

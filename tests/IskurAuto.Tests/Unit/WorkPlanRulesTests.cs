@@ -21,8 +21,8 @@ public class WorkPlanRulesTests
         => new(2026, 11, holidays ?? [], exams ?? [], lessonDays ?? [],
             [period ?? new ProgramPeriod(new DateOnly(2026, 9, 1), null)]);
 
-    private static PlannedDay Day(int day, string? note = null, WorkShift shift = WorkShift.FullDay)
-        => new(new DateOnly(2026, 11, day), shift, note);
+    private static PlannedDay Day(int day, string? note = null)
+        => new(new DateOnly(2026, 11, day), note);
 
     private static PlannedDay[] OnePerWeek() => [Day(3), Day(10), Day(17), Day(24)];
 
@@ -150,7 +150,7 @@ public class WorkPlanRulesTests
     [Fact]
     public void Validate_DuplicateAndOutOfMonthDates_AreRejected()
     {
-        var days = OnePerWeek().Append(Day(3)).Append(new PlannedDay(new DateOnly(2026, 12, 1), WorkShift.FullDay, null)).ToArray();
+        var days = OnePerWeek().Append(Day(3)).Append(new PlannedDay(new DateOnly(2026, 12, 1), null)).ToArray();
 
         var errors = WorkPlanRules.Validate(November(), days, Settings);
 
@@ -158,23 +158,13 @@ public class WorkPlanRulesTests
         Assert.Contains(errors, e => e.Contains("bu ayın içinde değil"));
     }
 
-    [Fact]
-    public void Validate_HalfDayCountsAsOneDay()
-    {
-        var days = new[] { Day(3, shift: WorkShift.Morning), Day(10, shift: WorkShift.Afternoon), Day(17), Day(24) };
-
-        Assert.Empty(WorkPlanRules.Validate(November(), days, Settings));
-    }
 }
 
 public class WorkPlanSettingsTests
 {
-    [Theory]
-    [InlineData(WorkShift.FullDay, 8)]
-    [InlineData(WorkShift.Morning, 4)]
-    [InlineData(WorkShift.Afternoon, 4)]
-    public void HoursOf_HalfDayIsHalfOfFullDay(WorkShift shift, int expected)
-        => Assert.Equal((decimal)expected, new WorkPlanSettings().HoursOf(shift));
+    [Fact]
+    public void DailyHours_DefaultsToEight()
+        => Assert.Equal(8m, new WorkPlanSettings().DailyHours);
 }
 
 public class WorkPlanCalendarTests
@@ -203,7 +193,7 @@ public class WorkPlanCalendarTests
     public void ToCalendar_FreeDayIsGray_SelectedDayIsGreen()
     {
         var plan = new MonthlyWorkPlan();
-        plan.Days.Add(new WorkPlanDay { Date = new DateOnly(2026, 11, 3), Shift = WorkShift.Morning });
+        plan.Days.Add(new WorkPlanDay { Date = new DateOnly(2026, 11, 3) });
 
         var calendar = November().ToCalendar(plan);
 
@@ -211,14 +201,14 @@ public class WorkPlanCalendarTests
         var selected = Find(calendar, 3);
         Assert.Equal(CalendarColor.Green, selected.Color);
         Assert.True(selected.IsSelected);
-        Assert.Contains("öğleden önce", selected.Label);
+        Assert.Equal("Seçildi", selected.Label);
     }
 
     [Fact]
     public void ToCalendar_LessonDayIsYellow_EvenWhenSelected()
     {
         var plan = new MonthlyWorkPlan();
-        plan.Days.Add(new WorkPlanDay { Date = new DateOnly(2026, 11, 3), Shift = WorkShift.FullDay, IsLessonDay = true });
+        plan.Days.Add(new WorkPlanDay { Date = new DateOnly(2026, 11, 3), IsLessonDay = true });
 
         var calendar = November(lessonDays: [DayOfWeek.Tuesday]).ToCalendar(plan);
 

@@ -14,7 +14,7 @@ public enum DayBlock
 
 public sealed record ProgramPeriod(DateOnly Start, DateOnly? End);
 
-public sealed record PlannedDay(DateOnly Date, WorkShift Shift, string? Note);
+public sealed record PlannedDay(DateOnly Date, string? Note);
 
 /// <summary>Bir ayın takvim bilgisi: tatiller, sınav dönemleri, öğrencinin ders günleri ve program dönemleri.</summary>
 public sealed class PlanMonth

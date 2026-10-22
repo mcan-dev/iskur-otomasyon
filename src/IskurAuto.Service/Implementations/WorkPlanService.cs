@@ -177,7 +177,7 @@ public class WorkPlanService : IWorkPlanService
         var month = await LoadMonthAsync(student, request.Year, request.Month, ct);
 
         var days = request.Days
-            .Select(d => new PlannedDay(d.Date, d.Shift, d.Note?.Trim()))
+            .Select(d => new PlannedDay(d.Date, d.Note?.Trim()))
             .ToList();
 
         var errors = WorkPlanRules.Validate(month, days, _settings);
@@ -224,7 +224,6 @@ public class WorkPlanService : IWorkPlanService
                 plan.Days.Add(entity);
             }
 
-            entity.Shift = day.Shift;
             entity.Note = day.Note;
             entity.IsLessonDay = month.IsLessonDay(day.Date);
         }

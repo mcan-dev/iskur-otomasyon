@@ -1,12 +1,15 @@
 <#
-  Veritabanı dosyasını ve belgeler klasörünü tarihli bir klasöre kopyalar.
-  Tutarlı yedek için uygulama durdurulmuş olmalı ya da sqlite3 ile VACUUM INTO kullanılmalı.
+  SQL Server veritabanının yedeğini (.bak) ve belgeler klasörünün kopyasını tarihli bir klasöre alır.
+  sqlcmd aracı gerekir (SQL Server ile birlikte ya da ayrıca kurulur).
+  Yedek dosyasını SQL Server hizmetinin yazabildiği bir klasöre almak gerekir; Hedef klasörün
+  hizmet hesabı için yazma izni olmalıdır.
 
   Örnek:
-    .\yedekle.ps1 -Veritabani C:\iskur\data\iskurauto.db -Belgeler C:\iskur\data\documents -Hedef D:\yedekler
+    .\yedekle.ps1 -Sunucu "(localdb)\MSSQLLocalDB" -Veritabani IskurAuto -Belgeler C:\iskur\data\documents -Hedef D:\yedekler
 #>
 param(
-    [Parameter(Mandatory = $true)] [string] $Veritabani,
+    [string] $Sunucu = '(localdb)\MSSQLLocalDB',
+    [string] $Veritabani = 'IskurAuto',
     [Parameter(Mandatory = $true)] [string] $Belgeler,
     [Parameter(Mandatory = $true)] [string] $Hedef,
     [int] $SaklanacakGun = 30
@@ -14,21 +17,15 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-if (-not (Test-Path $Veritabani)) { throw "Veritabanı bulunamadı: $Veritabani" }
+if (-not (Get-Command sqlcmd -ErrorAction SilentlyContinue)) { throw 'sqlcmd bulunamadı.' }
 
 $klasor = Join-Path $Hedef (Get-Date -Format 'yyyy-MM-dd_HHmm')
 New-Item -ItemType Directory -Path $klasor -Force | Out-Null
 
-$sqlite = Get-Command sqlite3 -ErrorAction SilentlyContinue
-$dbHedef = Join-Path $klasor 'iskurauto.db'
-if ($sqlite) {
-    & sqlite3 $Veritabani "VACUUM INTO '$dbHedef'"
-    if ($LASTEXITCODE -ne 0) { throw 'sqlite3 yedeği alınamadı.' }
-}
-else {
-    Copy-Item $Veritabani $dbHedef
-    Write-Warning 'sqlite3 bulunamadı, dosya düz kopyalandı. Uygulama çalışıyorsa yedek tutarsız olabilir.'
-}
+$bak = Join-Path $klasor "$Veritabani.bak"
+$sorgu = "BACKUP DATABASE [$Veritabani] TO DISK = N'$bak' WITH INIT, CHECKSUM"
+& sqlcmd -S $Sunucu -E -b -Q $sorgu
+if ($LASTEXITCODE -ne 0) { throw 'Veritabanı yedeği alınamadı.' }
 
 if (Test-Path $Belgeler) {
     Copy-Item $Belgeler (Join-Path $klasor 'documents') -Recurse

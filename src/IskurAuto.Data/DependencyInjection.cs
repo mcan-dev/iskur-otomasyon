@@ -14,7 +14,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddDataLayer(this IServiceCollection services, string connectionString)
     {
-        services.AddDbContext<IskurAutoDbContext>(options => options.UseSqlite(connectionString));
+        services.AddDbContext<IskurAutoDbContext>(options => options.UseSqlServer(connectionString));
 
         // DbContext aynı zamanda IUnitOfWork'tür; aynı scoped örnek paylaşılır.
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<IskurAutoDbContext>());
@@ -42,8 +42,8 @@ public static class DependencyInjection
     }
 
     /// <summary>
-    /// Veritabanını hazırlar. Migration dosyaları varsa onları uygular; henüz üretilmemişse
-    /// şemayı doğrudan oluşturur (ilk geliştirme aşaması için kolaylık).
+    /// Veritabanını hazırlar. Migration dosyaları varsa onları uygular; yoksa şemayı SQL Server'da
+    /// doğrudan oluşturur (veritabanı yoksa o da oluşturulur).
     /// </summary>
     public static async Task InitializeDatabaseAsync(this IServiceProvider services, CancellationToken ct = default)
     {
