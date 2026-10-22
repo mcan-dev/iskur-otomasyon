@@ -68,7 +68,8 @@ dotnet test
 | 6 | Test senaryoları, kurulum/kullanım dokümanı, yedekleme | Bitti |
 | 7a | Arayüz iskeleti: giriş, öğrenci kaydı, rol bazlı menü, ana sayfalar | Bitti |
 | 7b | Öğrenci ekranları: plan takvimi, izin, karekod okutma, görevler, geçmiş, profil | Bitti |
-| 7c-7e | Fakülte, bölüm başkanı ve danışman ekranları, raporlar | Sırada |
+| 7c | Personel ekranları: öğrenci listesi ve detayı, plan ve izin onayı, devamsızlık, karekod oturumu, görev, bildirim | Bitti |
+| 7d | Raporlar, ilişik kesme, tanımlar ve hesaplar, denetim kayıtları | Sırada |
 
 ## Bilinen sınırlar
 

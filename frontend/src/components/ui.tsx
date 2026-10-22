@@ -63,3 +63,28 @@ export function MonthPicker({ year, month, onChange }: { year: number; month: nu
     </div>
   );
 }
+
+export function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+  return (
+    <div className="modal-back" onMouseDown={onClose}>
+      <div className="modal" onMouseDown={(e) => e.stopPropagation()} role="dialog" aria-label={title}>
+        <div className="row between">
+          <h2>{title}</h2>
+          <button type="button" className="btn ghost small" onClick={onClose}>Kapat</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+export function Pager({ page, totalPages, onChange }: { page: number; totalPages: number; onChange: (p: number) => void }) {
+  if (totalPages <= 1) return null;
+  return (
+    <div className="row" style={{ marginTop: 12, justifyContent: 'center' }}>
+      <button className="btn small" disabled={page <= 1} onClick={() => onChange(page - 1)}>Önceki</button>
+      <span className="muted">{page} / {totalPages}</span>
+      <button className="btn small" disabled={page >= totalPages} onClick={() => onChange(page + 1)}>Sonraki</button>
+    </div>
+  );
+}
