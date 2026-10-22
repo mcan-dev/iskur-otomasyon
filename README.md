@@ -72,6 +72,8 @@ dotnet test
 ## Bilinen sınırlar
 
 - Hesap kilitleme yok.
+- Parola sıfırlama isteği için istek sınırı (rate limit) yok; bağlantı tek kullanımlıktır ve 30 dakika geçerlidir.
+- E-posta alan adı kısıtı yoktur (gereksinim dokümanında zorunlu değil); kuruma ait adresle sınırlamak istenirse kayıt doğrulamasına eklenir.
 - Token süresi dolana kadar eski rol geçerli kalır (varsayılan 120 dk).
 - TC ve IBAN veritabanında düz saklanıyor, yalnızca gösterimde maskeleniyor. TC için NVİ doğrulaması yok.
 - Öğrenci kaydı onaysız.

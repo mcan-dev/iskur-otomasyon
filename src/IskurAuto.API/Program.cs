@@ -30,6 +30,16 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddSingleton<ITokenService, JwtTokenService>();
 
+// Parola sıfırlama e-postası: SMTP ayarı varsa gerçekten gönderilir, yoksa kayda yazılır.
+var smtp = builder.Configuration.GetSection(SmtpOptions.SectionName).Get<SmtpOptions>() ?? new SmtpOptions();
+builder.Services.AddSingleton(smtp);
+if (string.IsNullOrWhiteSpace(smtp.Host))
+    builder.Services.AddSingleton<IEmailSender, LogEmailSender>();
+else
+    builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
+builder.Services.AddSingleton(
+    builder.Configuration.GetSection(PasswordResetSettings.SectionName).Get<PasswordResetSettings>() ?? new PasswordResetSettings());
+
 // ─── 3. JWT kimlik doğrulama ──────────────────────────────────────────────
 var jwt = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
 

@@ -33,6 +33,21 @@ public class ChangePasswordRequest
     public string NewPassword { get; set; } = string.Empty;
 }
 
+public class ForgotPasswordRequest
+{
+    [Required, StringLength(254)]
+    public string Email { get; set; } = string.Empty;
+}
+
+public class ResetPasswordRequest
+{
+    [Required, StringLength(200)]
+    public string Token { get; set; } = string.Empty;
+
+    [Required, StringLength(128)]
+    public string NewPassword { get; set; } = string.Empty;
+}
+
 /// <summary>Öğrenci ilk kayıt formu (belge madde 3).</summary>
 public class StudentRegistrationRequest
 {

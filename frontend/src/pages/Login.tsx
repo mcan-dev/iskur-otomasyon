@@ -41,6 +41,9 @@ export default function Login() {
         <Field label="Parola">
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
         </Field>
+        <p className="small right">
+          <Link to="/parolami-unuttum">Parolamı unuttum</Link>
+        </p>
         <button className="btn primary wide" disabled={busy}>
           {busy ? 'Giriş yapılıyor…' : 'Giriş Yap'}
         </button>

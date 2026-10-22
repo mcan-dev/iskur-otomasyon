@@ -35,6 +35,7 @@ public class IskurAutoDbContext : DbContext, IUnitOfWork
     public DbSet<TaskEvaluation> TaskEvaluations => Set<TaskEvaluation>();
     public DbSet<AbsenceNotice> AbsenceNotices => Set<AbsenceNotice>();
     public DbSet<TerminationDecision> TerminationDecisions => Set<TerminationDecision>();
+    public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

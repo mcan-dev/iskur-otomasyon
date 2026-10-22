@@ -3,9 +3,11 @@ import { useAuth } from './auth/AuthContext';
 import AppLayout from './layout/AppLayout';
 import { menus } from './layout/menu';
 import Dashboard from './pages/Dashboard';
+import ForgotPassword from './pages/ForgotPassword';
 import Login from './pages/Login';
 import Placeholder from './pages/Placeholder';
 import Register from './pages/Register';
+import ResetPassword from './pages/ResetPassword';
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -18,6 +20,8 @@ export default function App() {
     <Routes>
       <Route path="/giris" element={<Login />} />
       <Route path="/kayit" element={<Register />} />
+      <Route path="/parolami-unuttum" element={<ForgotPassword />} />
+      <Route path="/sifre-sifirla" element={<ResetPassword />} />
       <Route element={user ? <AppLayout /> : <Navigate to="/giris" replace />}>
         <Route index element={<Dashboard />} />
         {paths.map((p) => (
