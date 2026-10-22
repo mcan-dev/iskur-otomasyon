@@ -65,14 +65,14 @@ erDiagram
 | Kural | Mekanizma |
 |---|---|
 | E-posta, TC, öğrenci no, bölüm kodu/adı, birim adı benzersiz | Unique index |
-| Öğrencinin aynı anda tek açık katılımı / birimi / danışmanı | Filtreli unique index `WHERE "EndDate" IS NULL` |
+| Öğrencinin aynı anda tek açık katılımı / birimi / danışmanı | Filtreli unique index `WHERE [EndDate] IS NULL` |
 | Geçmişi olan kayıt silinemez | Tüm FK'lar `Restrict` |
 | Rol okunabilir | `UserRole` metin olarak saklanır |
 | Öğrencinin bir ay için tek planı | Unique index (öğrenci, yıl, ay) |
 | Bir planda aynı gün tek kez | Unique index (plan, tarih) |
 | Aynı tarih iki kez tatil olamaz | Unique index (tarih) |
-| Öğrencinin bir günde tek aktif devamsızlığı | Filtreli unique index `WHERE "RevokedAt" IS NULL` |
-| Aynı öğrencinin aynı oturumda tek geçerli devam kaydı | Filtreli unique index `WHERE "VoidedAt" IS NULL` |
+| Öğrencinin bir günde tek aktif devamsızlığı | Filtreli unique index `WHERE [RevokedAt] IS NULL` |
+| Aynı öğrencinin aynı oturumda tek geçerli devam kaydı | Filtreli unique index `WHERE [VoidedAt] IS NULL` |
 | Aynı danışman aynı öğrenci ve gün için tek devamsızlık bildirimi | Unique index (danışman, öğrenci, tarih) |
 | Değerlendirmesi olan görev silinemez | FK `Restrict` |
 | İlişik kesme kararı silinemez, öğrenci kaydına bağlıdır | FK `Restrict` |

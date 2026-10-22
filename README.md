@@ -3,6 +3,8 @@
 Teknoloji Fakültesi İŞKUR öğrenci programı için kayıt, aylık çalışma planı, izin ve devam takip sistemi.
 .NET 8, EF Core (SQL Server), JWT.
 
+Vize ve final teslim dosyaları (yönerge, araştırma, tasarım, veritabanı, uygulama, test ve dokümantasyon) [teslim](teslim) klasöründedir.
+
 Ayrıntılar:
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) – katmanlar

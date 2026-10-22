@@ -24,7 +24,7 @@ Uç nokta ayrıntıları [API.md](API.md), test sınıfları [TEST-SENARYOLARI.m
 |---|---|---|---|
 | 1 | Gereksinim analizi | Hazır | Bu dosya, [ARCHITECTURE.md](../ARCHITECTURE.md), [NEDEN-BOYLE.md](NEDEN-BOYLE.md) |
 | 2 | Veritabanı tasarımı | Hazır | [DATABASE.md](DATABASE.md) |
-| 3 | Kullanıcı arayüzü | Sırada | Arka yüz tamamlandıktan sonra |
+| 3 | Kullanıcı arayüzü | Hazır | `frontend/` (React); dört rolün tüm ekranları, [teslim/2_Tasarimlar](../teslim/2_Tasarimlar) |
 | 4 | Çalışma planı modülü | Hazır | Aşama 2 |
 | 5 | İzin ve devam modülü | Hazır | Aşama 3 ve 4 |
 | 6 | Görev ve değerlendirme modülü | Hazır | Aşama 5 |

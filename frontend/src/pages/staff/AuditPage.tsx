@@ -25,7 +25,7 @@ export default function AuditPage() {
   return (
     <Card title="Denetim kayıtları" subtitle="Kim, ne zaman, hangi kaydı değiştirdi. Kayıtlar silinemez.">
       <Filters>
-        <Field label="İşlem"><input value={action} onChange={(e) => reset(setAction)(e.target.value)} placeholder="örn. LeaveApproved" /></Field>
+        <Field label="İşlem"><input value={action} onChange={(e) => reset(setAction)(e.target.value)} placeholder="örn. Leave.Approved" /></Field>
         <Field label="Kayıt türü"><input value={entity} onChange={(e) => reset(setEntity)(e.target.value)} placeholder="örn. LeaveRequest" /></Field>
         <Field label="Başlangıç"><input type="date" value={from} onChange={(e) => reset(setFrom)(e.target.value)} /></Field>
         <Field label="Bitiş"><input type="date" value={to} onChange={(e) => reset(setTo)(e.target.value)} /></Field>
