@@ -5,7 +5,6 @@ import { menus } from './layout/menu';
 import Dashboard from './pages/Dashboard';
 import ForgotPassword from './pages/ForgotPassword';
 import Login from './pages/Login';
-import Placeholder from './pages/Placeholder';
 import AbsencesPage from './pages/staff/AbsencesPage';
 import AuditPage from './pages/staff/AuditPage';
 import AttendancePage from './pages/staff/AttendancePage';
@@ -32,7 +31,7 @@ export default function App() {
   const { user, loading } = useAuth();
   if (loading) return <div className="splash">Yükleniyor…</div>;
 
-  // Gerçek ekranı yazılmış adresler; geri kalanlar yer tutucu sayfaya gider.
+  // Menüdeki her adresin ekranı burada tanımlıdır.
   const screens: Record<string, JSX.Element> = {
     '/plan': <PlanPage />,
     '/izinlerim': <LeavesPage />,
@@ -66,7 +65,7 @@ export default function App() {
       <Route element={user ? <AppLayout /> : <Navigate to="/giris" replace />}>
         <Route index element={<Dashboard />} />
         {paths.map((p) => (
-          <Route key={p} path={p} element={screens[p] ?? <Placeholder />} />
+          <Route key={p} path={p} element={screens[p] ?? <Navigate to="/" replace />} />
         ))}
         {user && user.role !== 'Student' && <Route path="/ogrenciler/:id" element={<StudentDetailPage />} />}
         <Route path="*" element={<Navigate to="/" replace />} />

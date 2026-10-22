@@ -16,7 +16,7 @@ Projenin dayandığı iki belge bu klasördedir:
 | Vize sonrası geliştirilecekler | [1_Arastirma/06_vize_sonrasi.md](../1_Arastirma/06_vize_sonrasi.md) |
 | Tablolar, alanlar, ilişkiler, anahtarlar | [3_Veritabani/01_er_diyagrami.md](../3_Veritabani/01_er_diyagrami.md), [3_Veritabani/04_tablo_sozlugu.md](../3_Veritabani/04_tablo_sozlugu.md) |
 | ER diyagramı | [3_Veritabani/01_er_diyagrami.md](../3_Veritabani/01_er_diyagrami.md) |
-| Örnek test verisi | [3_Veritabani/03_ornek_veri.sql](../3_Veritabani/03_ornek_veri.sql) |
+| Örnek test verisi | [3_Veritabani/README.md](../3_Veritabani/README.md) (uygulama ilk açılışta yükler) |
 | Giriş ekranı ve rol bazlı erişim | Çalışıyor – [4_Uygulama](../4_Uygulama) |
 | Öğrenci profili, aylık plan, kayıt ekleme/görüntüleme/güncelleme | Çalışıyor |
 | Öğrenci listesi, bölüm ve danışman filtreleri | Çalışıyor |
