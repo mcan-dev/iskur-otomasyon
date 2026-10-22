@@ -5,7 +5,7 @@ Uç noktaların listesi için [API.md](API.md) dosyasına bakın.
 
 ## Ortak işlemler
 
-- Giriş e-posta ve parola iledir. Parola, giriş yapıldıktan sonra değiştirilebilir.
+- Giriş e-posta ve parola iledir. Parola, giriş yapıldıktan sonra değiştirilebilir; unutulursa e-postayla sıfırlanır.
 - Hiçbir kayıt silinmez. Yanlış girilen kayıt (devamsızlık, devam, karar vb.) gerekçeyle geri alınır veya iptal edilir; geçmiş korunur.
 - Önemli işlemler denetim kaydına yazılır. Kayıtlarda kişisel veri tutulmaz.
 
@@ -73,4 +73,4 @@ Fakültedeki tüm kayıtları görür ve yönetir.
 | Karekod reddedildi | Mesajdaki sebebe bakın. Okutma sırasında ekrandaki kod güncel olmalı; öğrenci o gün için onaylı planda olmalı. |
 | Yanlış devamsızlık girildi | Fakülte Sekreterliği kaydı gerekçeyle geri alır. |
 | Öğrenci danışman değiştirdi | Bölüm başkanı veya Fakülte Sekreterliği yeni danışmanı atar; eski görevler eski danışmanın kaydı olarak kalır. |
-| Parola unutuldu | Otomatik sıfırlama yoktur (bilinen sınırlar). Kullanıcı giriş yapabiliyorsa parolasını kendisi değiştirir. |
+| Parola unutuldu | Giriş ekranındaki "Parolamı unuttum" bağlantısıyla e-posta adresi girilir; gelen bağlantıyla 30 dakika içinde yeni parola belirlenir. |

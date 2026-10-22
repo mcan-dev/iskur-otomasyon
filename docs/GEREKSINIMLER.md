@@ -15,7 +15,7 @@ Uç nokta ayrıntıları [API.md](API.md), test sınıfları [TEST-SENARYOLARI.m
 | 8. Görev ve değerlendirme | Görev atama, not, durum, devamsızlık bildirimi | `tasks/*`, `absence-notices/*` | `TaskServiceTests`, `AbsenceNoticeServiceTests` |
 | 9. Veritabanı tasarımı ve geçmiş | Code-First şema, filtreli benzersiz indeksler, silme yok | - | `DatabaseConstraintTests` ve servis testlerindeki geçmiş senaryoları |
 | 10. Sorgulama ve filtreleme | Öğrenci, devam, izin, devamsızlık ve rapor filtreleri | `students`, `attendance`, `leaves`, `absences`, `reports/*` | ilgili servis testleri |
-| 11. Güvenlik ve kişisel veri | JWT, rol/kapsam denetimi, TC/IBAN maskeleme, denetim kaydı, hata gizleme | `audit-logs` | `AuthServiceTests`, `PersonalDataMaskerTests`, `StudentVisibilityTests` |
+| 11. Güvenlik ve kişisel veri | JWT, rol/kapsam denetimi, TC/IBAN maskeleme, denetim kaydı, hata gizleme | `audit-logs` | `AuthServiceTests`, `PasswordResetServiceTests`, `PersonalDataMaskerTests`, `StudentVisibilityTests` |
 | 12. Beklenen çıktılar | Aşağıdaki tablo | | |
 
 ## Beklenen çıktılar (belge bölüm 12)

@@ -33,6 +33,7 @@ erDiagram
     User ||--o{ AbsenceNotice : "bildiren danışman"
     StudentProfile ||--o{ TerminationDecision : "ilişik kesme kararı"
     User ||--o{ TerminationDecision : "kararı veren"
+    User ||--o{ PasswordResetToken : "parola sıfırlama bağlantıları"
 
     Department { int Id string Name string Code bool IsActive }
     WorkUnit { int Id string Name string Description bool IsActive }
@@ -54,6 +55,7 @@ erDiagram
     TaskEvaluation { int Id int StudentTaskId int AuthorUserId string Note enum NewStatus datetime CreatedAt }
     AbsenceNotice { int Id int StudentProfileId date Date string Message int AdvisorUserId datetime CreatedAt datetime ReadAt int ReadByUserId }
     TerminationDecision { int Id int StudentProfileId enum Basis date DecisionDate string Note decimal LeaveDaysUsed int UnexcusedAbsenceDays int DecidedByUserId datetime CreatedAt }
+    PasswordResetToken { int Id int UserId string TokenHash datetime ExpiresAt datetime UsedAt }
     SystemSetting { int Id string Key string Value }
     AuditLog { long Id datetime OccurredAt string Action string EntityName int EntityId }
 ```
@@ -74,6 +76,7 @@ erDiagram
 | Aynı danışman aynı öğrenci ve gün için tek devamsızlık bildirimi | Unique index (danışman, öğrenci, tarih) |
 | Değerlendirmesi olan görev silinemez | FK `Restrict` |
 | İlişik kesme kararı silinemez, öğrenci kaydına bağlıdır | FK `Restrict` |
+| Sıfırlama jetonu tektir; jetonun kendisi değil özeti saklanır | Unique index (TokenHash) |
 | Ayar anahtarı tektir | Unique index (Key) |
 
 ## Raporlar
