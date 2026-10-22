@@ -186,6 +186,41 @@ public class AuthServiceTests
             scope.Auth.LoginAsync(new LoginRequest { Email = "advisor@test.local", Password = TestData.Password }));
     }
 
+    [Fact]
+    public async Task Login_WithMatchingRole_Succeeds()
+    {
+        using var db = new TestDb();
+        TestData.Seed(db);
+        using var scope = db.NewScope();
+
+        var response = await scope.Auth.LoginAsync(new LoginRequest
+        {
+            Email = "advisor@test.local", Password = TestData.Password, Role = UserRole.Advisor
+        });
+
+        Assert.Equal("Advisor", response.User.Role);
+    }
+
+    [Fact]
+    public async Task Login_ThroughAnotherRolesPage_IsRejectedAndNoTokenIsIssued()
+    {
+        using var db = new TestDb();
+        TestData.Seed(db);
+
+        using (var scope = db.NewScope())
+        {
+            // Danışman hesabı, fakülte giriş sayfasından girmeye çalışıyor.
+            await Assert.ThrowsAsync<ForbiddenException>(() => scope.Auth.LoginAsync(new LoginRequest
+            {
+                Email = "advisor@test.local", Password = TestData.Password, Role = UserRole.FacultyAdmin
+            }));
+        }
+
+        using var verify = db.NewContext();
+        Assert.True(await verify.AuditLogs.AnyAsync(a => a.Action == AuditActions.LoginFailed));
+        Assert.Null((await verify.Users.SingleAsync(u => u.Email == "advisor@test.local")).LastLoginAt);
+    }
+
     // ─── Parola değiştirme ────────────────────────────────────────────────────
 
     [Fact]

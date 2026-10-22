@@ -4,7 +4,7 @@ import AppLayout from './layout/AppLayout';
 import { menus } from './layout/menu';
 import Dashboard from './pages/Dashboard';
 import ForgotPassword from './pages/ForgotPassword';
-import Login from './pages/Login';
+import Login, { LoginChooser } from './pages/Login';
 import AbsencesPage from './pages/staff/AbsencesPage';
 import AuditPage from './pages/staff/AuditPage';
 import AttendancePage from './pages/staff/AttendancePage';
@@ -58,7 +58,8 @@ export default function App() {
 
   return (
     <Routes>
-      <Route path="/giris" element={<Login />} />
+      <Route path="/giris" element={<LoginChooser />} />
+      <Route path="/giris/:tur" element={<Login />} />
       <Route path="/kayit" element={<Register />} />
       <Route path="/parolami-unuttum" element={<ForgotPassword />} />
       <Route path="/sifre-sifirla" element={<ResetPassword />} />

@@ -5,7 +5,7 @@ Aşağıdaki adımlar bunu sırayla gösterir. Hazırlık: API ve arayüz çalı
 
 ## 1. Öğrenci kaydı (ekleme)
 
-1. `/giris` sayfasında "Kayıt olun" bağlantısına tıklayın.
+1. `/giris` sayfasında "Öğrenci" girişini seçin, ardından "Kayıt olun" bağlantısına tıklayın.
 2. Formu doldurun: ad, geçerli T.C. kimlik numarası, IBAN, bölüm, öğrenci numarası, e-posta, telefon, kayıt yılı, parola.
 3. Kayıttan sonra giriş yapın. Profil ekranında bilgiler görünür; birim ve danışman "atanmadı" yazar.
 4. **Veritabanında gösterim:** `SELECT * FROM Users WHERE Email = '...'` ve `SELECT * FROM StudentProfiles`, `ProgramParticipations`.
@@ -21,10 +21,12 @@ Aşağıdaki adımlar bunu sırayla gösterir. Hazırlık: API ve arayüz çalı
 
 ## 3. Yetkili ekranda listeleme ve filtreleme
 
-1. `sekreter@teknoloji.edu.tr` ile giriş yapın, "Öğrenciler" ekranını açın.
+Dört rolün giriş sayfası ayrıdır. Danışman hesabıyla fakülte giriş sayfasından girmeyi deneyin: "Bu hesap bu giriş türü için yetkili değil" uyarısı gelir.
+
+1. Fakülte girişinden `sekreter@teknoloji.edu.tr` ile giriş yapın, "Öğrenciler" ekranını açın.
 2. Bölüm, danışman, kayıt yılı ve çalışma durumu filtrelerini sırayla deneyin.
-3. `baskan.bm@teknoloji.edu.tr` ile girin: yalnızca Bilgisayar Mühendisliği öğrencileri görünür (rol kapsamı).
-4. `danisman.bm@teknoloji.edu.tr` ile girin: yalnızca kendi öğrencileri görünür.
+3. Bölüm başkanı girişinden `baskan.bm@teknoloji.edu.tr` ile girin: yalnızca Bilgisayar Mühendisliği öğrencileri görünür (rol kapsamı).
+4. Danışman girişinden `danisman.bm@teknoloji.edu.tr` ile girin: yalnızca kendi öğrencileri görünür.
 
 ## 4. Güncelleme
 
