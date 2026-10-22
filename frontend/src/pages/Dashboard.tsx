@@ -1,108 +1,262 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
-import type { LeaveAlert, LeaveBalance, Paged, StudentDetail, StudentSummary } from '../api/types';
+import type { AbsenceNotice, Leave, LeaveAlert, LeaveBalance, Paged, PlanCalendar, StudentProfileFull, StudentSummary, StudentTask, WorkPlan } from '../api/types';
 import { useAuth } from '../auth/AuthContext';
-import { Alert, Card, Stat } from '../components/ui';
+import { Alert, Badge } from '../components/ui';
+import { Icon } from '../components/Icon';
+import { fmtDate, planStatusLabels } from '../format';
+import { siteLinks } from '../layout/links';
 import { menus, roleLabels } from '../layout/menu';
+import { useLoad } from '../useLoad';
+
+type Tone = 'blue' | 'amber' | 'green' | 'red';
+
+function Tile({ icon, label, value, hint, tone = 'blue' }: { icon: string; label: string; value: React.ReactNode; hint?: string; tone?: Tone }) {
+  return (
+    <div className={`tile-card tone-bg-${tone}`}>
+      <span className="tile-icon">
+        <Icon name={icon} size={24} />
+      </span>
+      <div>
+        <span className="tile-label">{label}</span>
+        <strong className="tile-value">{value}</strong>
+        {hint && <span className="tile-hint">{hint}</span>}
+      </div>
+    </div>
+  );
+}
+
+/** Başlık ve sağ tarafta çerçeveli "tümü" düğmesi olan bölüm. */
+function Section({ title, to, toLabel, children }: { title: string; to?: string; toLabel?: string; children: React.ReactNode }) {
+  return (
+    <section className="panel">
+      <div className="panel-head">
+        <h2>{title}</h2>
+        {to && (
+          <Link to={to} className="outline-btn">
+            {toLabel ?? 'TÜMÜ'} <Icon name="arrow" size={16} />
+          </Link>
+        )}
+      </div>
+      {children}
+    </section>
+  );
+}
 
 export default function Dashboard() {
   const { user } = useAuth();
   if (!user) return null;
+  const now = new Date();
+  const items = menus[user.role].filter((m) => m.path !== '/');
   return (
     <>
       <div className="hero">
-        <span className="tag">{roleLabels[user.role]}</span>
-        <h2>Merhaba, {user.fullName}</h2>
-        <p>Teknoloji Fakültesi İŞKUR öğrenci programı: plan, devam, izin, görev ve raporlar tek yerde.</p>
+        <div>
+          <span className="tag">{roleLabels[user.role]}</span>
+          <h2>Merhaba, {user.fullName}</h2>
+          <p>{user.departmentName ? `${user.departmentName} · ` : ''}Teknoloji Fakültesi İŞKUR öğrenci programı: plan, devam, izin, görev ve raporlar tek yerde.</p>
+        </div>
+        <div className="date-tile" aria-label="Bugünün tarihi">
+          <strong>{now.getDate()}</strong>
+          <span>{now.toLocaleDateString('tr-TR', { month: 'long' })}</span>
+          <small>{now.toLocaleDateString('tr-TR', { weekday: 'long' })}</small>
+        </div>
       </div>
-      {user.role === 'Student' ? <StudentSummary /> : <StaffSummary />}
-      <Card title="Hızlı erişim">
-        <div className="quick">
-          {menus[user.role]
-            .filter((m) => m.path !== '/')
-            .map((m) => (
+
+      {user.role === 'Student' ? <StudentSummary /> : <StaffSummary role={user.role} />}
+
+      <div className="dash-grid">
+        <Section title="Hızlı Erişim">
+          <div className="quick">
+            {items.map((m) => (
               <Link key={m.path} to={m.path} className="quick-item">
-                <span className="nav-icon">{m.icon}</span>
-                {m.label}
+                <span className="tile">
+                  <Icon name={m.icon} size={22} />
+                </span>
+                <span>
+                  <strong>{m.label}</strong>
+                  <small>{m.desc}</small>
+                </span>
               </Link>
             ))}
+          </div>
+        </Section>
+        <div className="side-col">
+          <Section title="Bilgilendirme">
+            <Info role={user.role} />
+          </Section>
+          <Section title="Bağlantılar">
+            <ul className="link-list">
+              {siteLinks.map((l) => (
+                <li key={l.href}>
+                  <a href={l.href} target="_blank" rel="noreferrer">
+                    <Icon name="external" size={16} />
+                    {l.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </Section>
         </div>
-      </Card>
+      </div>
     </>
+  );
+}
+
+const infos: Record<string, { head: string; text: string }[]> = {
+  Student: [
+    { head: '8', text: 'saatlik çalışma günü: plan günleri tam gün olarak seçilir.' },
+    { head: 'QR', text: 'Karekod 30 saniyede bir yenilenir; devam kaydını yalnızca açık oturumda yapabilirsiniz.' },
+    { head: '₺', text: 'Ödeme için IBAN bilginizi Profilim sayfasından ekleyin.' },
+  ],
+  Advisor: [
+    { head: '8', text: 'saatlik çalışma günü esas alınır.' },
+    { head: '!', text: 'Devamsızlık bildirimleriniz bölüm başkanlığına iletilir.' },
+    { head: '✓', text: 'Öğrencilerinize görev verip değerlendirme notu yazabilirsiniz.' },
+  ],
+  DepartmentHead: [
+    { head: '8', text: 'saatlik çalışma günü esas alınır.' },
+    { head: 'QR', text: 'Bölümünüz için karekodlu devam oturumu açabilirsiniz.' },
+    { head: '!', text: 'Danışmanlardan gelen devamsızlık bildirimleri Bildirimler sayfasındadır.' },
+  ],
+  FacultyAdmin: [
+    { head: '8', text: 'saatlik çalışma günü esas alınır.' },
+    { head: '✓', text: 'Çalışma planlarını onaylayın veya gerekçeyle reddedin.' },
+    { head: '⚙', text: 'Bölüm, çalışma birimi, tatil ve personel hesapları Tanımlar sayfasındadır.' },
+  ],
+};
+
+function Info({ role }: { role: string }) {
+  return (
+    <ul className="info-list">
+      {(infos[role] ?? []).map((i) => (
+        <li key={i.text}>
+          <span className="info-head">{i.head}</span>
+          <span>{i.text}</span>
+        </li>
+      ))}
+    </ul>
   );
 }
 
 function StudentSummary() {
-  const [profile, setProfile] = useState<StudentDetail | null>(null);
-  const [balance, setBalance] = useState<LeaveBalance | null>(null);
-  const [failed, setFailed] = useState(false);
+  const now = new Date();
+  const [year, month] = [now.getFullYear(), now.getMonth() + 1];
+  const profile = useLoad(() => api.get<StudentProfileFull>('/api/students/me'), []);
+  const balance = useLoad(() => api.get<LeaveBalance>('/api/leaves/me/balance'), []);
+  const calendar = useLoad(() => api.get<PlanCalendar>(`/api/work-plans/me/calendar?year=${year}&month=${month}`), []);
+  const tasks = useLoad(() => api.get<StudentTask[]>('/api/tasks/me?status=Open'), []);
+  const leaves = useLoad(() => api.get<Leave[]>(`/api/leaves/me?year=${year}`), []);
 
-  useEffect(() => {
-    api.get<StudentDetail>('/api/students/me').then(setProfile).catch(() => setFailed(true));
-    api.get<LeaveBalance>('/api/leaves/me/balance').then(setBalance).catch(() => setFailed(true));
-  }, []);
+  const p = profile.data;
+  const b = balance.data;
+  const pendingLeaves = leaves.data?.filter((l) => l.status === 'Pending').length;
+  const planStatus = calendar.data?.planStatus;
 
   return (
     <>
-      {failed && <Alert kind="warn">Bazı bilgiler yüklenemedi.</Alert>}
-      <div className="stats">
-        <Stat label="Çalıştığı birim" value={profile?.currentUnit?.workUnitName ?? 'Atanmadı'} tone="blue" />
-        <Stat label="Danışman" value={profile?.currentAdvisor?.advisorName ?? 'Atanmadı'} tone="blue" />
-        <Stat label="Kalan izin hakkı" value={balance ? `${balance.remaining} gün` : '–'} hint={balance ? `${balance.year} yılı, ${balance.limit} gün üzerinden` : undefined} tone="green" />
-        <Stat label="Mazeretsiz devamsızlık" value={balance ? `${balance.unexcusedAbsenceDays} gün` : '–'} hint={balance ? `Sınır ${balance.absenceLimit} gün` : undefined} tone="amber" />
-      </div>
-      {balance?.warnings.map((w) => (
+      {(profile.error || balance.error) && <Alert kind="warn">Bazı bilgiler yüklenemedi.</Alert>}
+      {p && !p.iban && <Alert kind="info">IBAN bilginiz kayıtlı değil. Profilim sayfasından ekleyebilirsiniz.</Alert>}
+      {b?.warnings.map((w) => (
         <Alert key={w.code} kind="warn">
           {w.message}
         </Alert>
       ))}
+      <div className="tiles">
+        <Tile icon="building" label="Çalıştığı birim" value={p?.currentUnit?.workUnitName ?? 'Atanmadı'} />
+        <Tile icon="user" label="Danışman" value={p?.currentAdvisor?.advisorName ?? 'Atanmadı'} />
+        <Tile icon="mail" label="Kalan izin hakkı" value={b ? `${b.remaining} gün` : '–'} hint={b ? `${b.year} yılı, ${b.limit} gün üzerinden` : undefined} tone="green" />
+        <Tile icon="alert" label="Mazeretsiz devamsızlık" value={b ? `${b.unexcusedAbsenceDays} gün` : '–'} hint={b ? `Sınır ${b.absenceLimit} gün` : undefined} tone="amber" />
+      </div>
+      <Section title="Sizi Bekleyenler">
+        <ul className="todo">
+          <li>
+            <Icon name="calendar" size={20} />
+            <span>
+              <strong>Bu ayın çalışma planı</strong>
+              {calendar.data && calendar.data.canEdit && <small>Son düzenleme tarihi {fmtDate(calendar.data.editDeadline)}</small>}
+            </span>
+            {planStatus ? <Badge tone={planStatus === 'Approved' ? 'green' : planStatus === 'Rejected' ? 'red' : 'amber'}>{planStatusLabels[planStatus]}</Badge> : <Badge>Gönderilmedi</Badge>}
+            <Link to="/plan" className="outline-btn small">
+              AÇ
+            </Link>
+          </li>
+          <li>
+            <Icon name="tasks" size={20} />
+            <span>
+              <strong>Açık görevler</strong>
+            </span>
+            <Badge tone={tasks.data?.length ? 'amber' : 'gray'}>{tasks.data ? tasks.data.length : '–'}</Badge>
+            <Link to="/gorevlerim" className="outline-btn small">
+              AÇ
+            </Link>
+          </li>
+          <li>
+            <Icon name="mail" size={20} />
+            <span>
+              <strong>Onay bekleyen izin talepleri</strong>
+            </span>
+            <Badge tone={pendingLeaves ? 'amber' : 'gray'}>{pendingLeaves ?? '–'}</Badge>
+            <Link to="/izinlerim" className="outline-btn small">
+              AÇ
+            </Link>
+          </li>
+        </ul>
+      </Section>
     </>
   );
 }
 
-function StaffSummary() {
-  const [total, setTotal] = useState<number | null>(null);
-  const [alerts, setAlerts] = useState<LeaveAlert[] | null>(null);
-  const [failed, setFailed] = useState(false);
+function StaffSummary({ role }: { role: string }) {
+  const now = new Date();
+  const [year, month] = [now.getFullYear(), now.getMonth() + 1];
+  const students = useLoad(() => api.get<Paged<StudentSummary>>('/api/students?page=1&pageSize=1&isActive=true'), []);
+  const alerts = useLoad(() => api.get<LeaveAlert[]>(`/api/leaves/alerts?year=${year}`), []);
+  const leaves = useLoad(() => api.get<Leave[]>(`/api/leaves?year=${year}&status=Pending`), []);
+  const plans = useLoad(() => (role === 'FacultyAdmin' ? api.get<WorkPlan[]>(`/api/work-plans?year=${year}&month=${month}&status=Pending`) : Promise.resolve([] as WorkPlan[])), [role]);
+  const notices = useLoad(() => (role === 'FacultyAdmin' ? Promise.resolve([] as AbsenceNotice[]) : api.get<AbsenceNotice[]>('/api/absence-notices?unreadOnly=true')), [role]);
 
-  useEffect(() => {
-    api.get<Paged<StudentSummary>>('/api/students?page=1&pageSize=1&isActive=true').then((r) => setTotal(r.totalCount)).catch(() => setFailed(true));
-    api.get<LeaveAlert[]>(`/api/leaves/alerts?year=${new Date().getFullYear()}`).then(setAlerts).catch(() => setFailed(true));
-  }, []);
-
+  const a = alerts.data;
   return (
     <>
-      {failed && <Alert kind="warn">Bazı bilgiler yüklenemedi.</Alert>}
-      <div className="stats">
-        <Stat label="Aktif öğrenci" value={total ?? '–'} hint="Yetki alanınızdaki kayıtlar" tone="blue" />
-        <Stat label="Sınıra yaklaşan / aşan" value={alerts ? alerts.length : '–'} hint="İzin veya devamsızlık sınırı" tone="amber" />
+      {(students.error || alerts.error) && <Alert kind="warn">Bazı bilgiler yüklenemedi.</Alert>}
+      <div className="tiles">
+        <Tile icon="users" label="Aktif öğrenci" value={students.data?.totalCount ?? '–'} hint="Yetki alanınızdaki kayıtlar" />
+        <Tile icon="mail" label="Bekleyen izin talebi" value={leaves.data ? leaves.data.length : '–'} hint={`${year} yılı`} tone="amber" />
+        {role === 'FacultyAdmin' ? (
+          <Tile icon="check" label="Onay bekleyen plan" value={plans.data ? plans.data.length : '–'} hint="İçinde bulunulan ay" tone="amber" />
+        ) : (
+          <Tile icon="bell" label="Okunmamış bildirim" value={notices.data ? notices.data.length : '–'} hint="Devamsızlık bildirimleri" tone="amber" />
+        )}
+        <Tile icon="alert" label="Sınıra yaklaşan / aşan" value={a ? a.length : '–'} hint="İzin veya devamsızlık sınırı" tone="red" />
       </div>
-      {alerts && alerts.length > 0 && (
-        <Card title="Sınıra yaklaşan öğrenciler" subtitle="İzin veya devamsızlık uyarısı olanlar">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Öğrenci</th>
-                <th>Bölüm</th>
-                <th>Kalan izin</th>
-                <th>Mazeretsiz devamsızlık</th>
-              </tr>
-            </thead>
-            <tbody>
-              {alerts.slice(0, 8).map((a) => (
-                <tr key={a.studentId}>
-                  <td>{a.studentName}</td>
-                  <td>{a.departmentName}</td>
-                  <td>{a.balance.remaining} gün</td>
-                  <td>
-                    {a.balance.unexcusedAbsenceDays} / {a.balance.absenceLimit}
-                  </td>
+      {a && a.length > 0 && (
+        <Section title="Sınıra Yaklaşan Öğrenciler" to="/izinler" toLabel="TÜM UYARILAR">
+          <div className="scroll-x">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Öğrenci</th>
+                  <th>Bölüm</th>
+                  <th>Kalan izin</th>
+                  <th>Mazeretsiz devamsızlık</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </Card>
+              </thead>
+              <tbody>
+                {a.slice(0, 8).map((x) => (
+                  <tr key={x.studentId}>
+                    <td>{x.studentName}</td>
+                    <td>{x.departmentName}</td>
+                    <td>{x.balance.remaining} gün</td>
+                    <td>
+                      {x.balance.unexcusedAbsenceDays} / {x.balance.absenceLimit}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Section>
       )}
     </>
   );

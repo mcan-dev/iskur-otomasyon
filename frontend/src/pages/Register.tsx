@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api, ApiError, firstError } from '../api/client';
 import type { Department, RegistrationRequest } from '../api/types';
 import { Alert, Field } from '../components/ui';
+import AuthShell from '../layout/AuthShell';
 
 const empty: RegistrationRequest = {
   fullName: '',
@@ -45,7 +46,7 @@ export default function Register() {
 
   if (done) {
     return (
-      <div className="auth-page">
+      <AuthShell side={false} wide>
         <div className="auth-card">
           <h1>Kaydınız alındı</h1>
           <p className="muted">Hesabınız oluşturuldu. E-posta ve parolanızla giriş yapabilirsiniz.</p>
@@ -53,14 +54,14 @@ export default function Register() {
             Giriş sayfasına git
           </Link>
         </div>
-      </div>
+      </AuthShell>
     );
   }
 
   const hasFieldErrors = error && Object.keys(error.fieldErrors).length > 0;
 
   return (
-    <div className="auth-page">
+    <AuthShell side={false} wide>
       <form className="auth-card wide-card" onSubmit={submit}>
         <h1>Öğrenci Kaydı</h1>
         <p className="muted">İŞKUR programı için temel bilgilerinizi girin.</p>
@@ -105,6 +106,6 @@ export default function Register() {
           Zaten hesabınız var mı? <Link to="/giris/ogrenci">Giriş yapın</Link>
         </p>
       </form>
-    </div>
+    </AuthShell>
   );
 }

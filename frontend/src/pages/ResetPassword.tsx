@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { api, ApiError, firstError } from '../api/client';
 import { Alert, Field } from '../components/ui';
+import AuthShell from '../layout/AuthShell';
 
 export default function ResetPassword() {
   const [params] = useSearchParams();
@@ -31,7 +32,7 @@ export default function ResetPassword() {
 
   if (done) {
     return (
-      <div className="auth-page">
+      <AuthShell>
         <div className="auth-card">
           <h1>Parolanız değişti</h1>
           <p className="muted">Yeni parolanızla giriş yapabilirsiniz.</p>
@@ -39,13 +40,13 @@ export default function ResetPassword() {
             Giriş yap
           </Link>
         </div>
-      </div>
+      </AuthShell>
     );
   }
 
   if (!token) {
     return (
-      <div className="auth-page">
+      <AuthShell>
         <div className="auth-card">
           <h1>Bağlantı eksik</h1>
           <p className="muted">Bu sayfa e-postadaki bağlantıyla açılmalıdır.</p>
@@ -53,7 +54,7 @@ export default function ResetPassword() {
             Yeni bağlantı iste
           </Link>
         </div>
-      </div>
+      </AuthShell>
     );
   }
 
@@ -62,7 +63,7 @@ export default function ResetPassword() {
   const generalError = error && !tokenError && !passwordError ? error.message : undefined;
 
   return (
-    <div className="auth-page">
+    <AuthShell>
       <form className="auth-card" onSubmit={submit}>
         <h1>Yeni parola belirle</h1>
         {tokenError && (
@@ -81,6 +82,6 @@ export default function ResetPassword() {
           {busy ? 'Kaydediliyor…' : 'Parolayı Değiştir'}
         </button>
       </form>
-    </div>
+    </AuthShell>
   );
 }

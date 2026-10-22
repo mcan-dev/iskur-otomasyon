@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { api, ApiError } from '../api/client';
 import { Alert, Field } from '../components/ui';
+import AuthShell from '../layout/AuthShell';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -25,7 +26,7 @@ export default function ForgotPassword() {
 
   if (sent) {
     return (
-      <div className="auth-page">
+      <AuthShell>
         <div className="auth-card">
           <h1>E-postanızı kontrol edin</h1>
           <p className="muted">
@@ -35,12 +36,12 @@ export default function ForgotPassword() {
             Giriş sayfasına dön
           </Link>
         </div>
-      </div>
+      </AuthShell>
     );
   }
 
   return (
-    <div className="auth-page">
+    <AuthShell>
       <form className="auth-card" onSubmit={submit}>
         <h1>Parolamı unuttum</h1>
         <p className="muted">Hesabınızın e-posta adresini girin, size bir sıfırlama bağlantısı gönderelim.</p>
@@ -55,6 +56,6 @@ export default function ForgotPassword() {
           <Link to="/giris">Giriş sayfasına dön</Link>
         </p>
       </form>
-    </div>
+    </AuthShell>
   );
 }
