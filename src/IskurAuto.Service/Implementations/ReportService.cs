@@ -280,7 +280,7 @@ public class ReportService : IReportService
             leaves[s.Id],
             absences[s.Id].ToHashSet(),
             today,
-            _settings.FullDayHours));
+            _settings.DailyHours));
     }
 
     // ── İzin, devamsızlık ve ilişik kesme ────────────────────────────────────

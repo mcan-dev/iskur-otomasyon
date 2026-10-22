@@ -9,24 +9,24 @@ public class WorkFiguresTests
 {
     private static readonly DateOnly Today = new(2026, 10, 21);
 
-    private static MonthlyWorkPlan Plan(WorkPlanStatus status, params (int Day, WorkShift Shift)[] days) => new()
+    private static MonthlyWorkPlan Plan(WorkPlanStatus status, params int[] days) => new()
     {
         Status = status,
-        Days = days.Select(d => new WorkPlanDay { Date = new DateOnly(2026, 10, d.Day), Shift = d.Shift }).ToList()
+        Days = days.Select(d => new WorkPlanDay { Date = new DateOnly(2026, 10, d) }).ToList()
     };
 
     private static HashSet<DateOnly> Dates(params int[] days) => days.Select(d => new DateOnly(2026, 10, d)).ToHashSet();
 
     [Fact]
-    public void Hours_AreAttendedDaysTimesFullDayHours_AndHalfDaysCountHalf()
+    public void Hours_AreAttendedDaysTimesDailyHours()
     {
-        var plan = Plan(WorkPlanStatus.Approved, (6, WorkShift.FullDay), (14, WorkShift.Morning), (20, WorkShift.FullDay));
+        var plan = Plan(WorkPlanStatus.Approved, 6, 14, 20);
 
-        var figures = WorkFigures.Compute(plan, Dates(6, 14), Array.Empty<LeaveRequest>(), Dates(), Today, fullDayHours: 8);
+        var figures = WorkFigures.Compute(plan, Dates(6, 14), Array.Empty<LeaveRequest>(), Dates(), Today, dailyHours: 8);
 
-        Assert.Equal(1.5m, figures.AttendedDays);
-        Assert.Equal(12m, figures.Hours);
-        Assert.Equal(2.5m, figures.PlannedDays);
+        Assert.Equal(2m, figures.AttendedDays);
+        Assert.Equal(16m, figures.Hours);
+        Assert.Equal(3m, figures.PlannedDays);
         Assert.Equal(1m, figures.MissingDays);
     }
 
@@ -35,7 +35,7 @@ public class WorkFiguresTests
     [InlineData(WorkPlanStatus.Rejected)]
     public void APlanThatIsNotApproved_CountsForNothing(WorkPlanStatus status)
     {
-        var figures = WorkFigures.Compute(Plan(status, (6, WorkShift.FullDay)), Dates(6), Array.Empty<LeaveRequest>(), Dates(), Today, 8);
+        var figures = WorkFigures.Compute(Plan(status, 6), Dates(6), Array.Empty<LeaveRequest>(), Dates(), Today, 8);
         Assert.Equal(WorkFigures.Empty, figures);
     }
 
@@ -46,7 +46,7 @@ public class WorkFiguresTests
     [Fact]
     public void AttendanceOnAnUnplannedDay_IsNotCountedAsWork()
     {
-        var plan = Plan(WorkPlanStatus.Approved, (6, WorkShift.FullDay));
+        var plan = Plan(WorkPlanStatus.Approved, 6);
 
         var figures = WorkFigures.Compute(plan, Dates(7), Array.Empty<LeaveRequest>(), Dates(), Today, 8);
 

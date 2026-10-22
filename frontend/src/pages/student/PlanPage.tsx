@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { api, ApiError } from '../../api/client';
-import type { PlanCalendar, WorkPlan, WorkShift } from '../../api/types';
+import type { PlanCalendar, WorkPlan } from '../../api/types';
 import { Alert, Badge, Card, MonthPicker } from '../../components/ui';
-import { fmtDate, fmtDateTime, planStatusLabels, planTone, shiftLabels, weekdays } from '../../format';
+import { fmtDate, fmtDateTime, planStatusLabels, planTone, weekdays } from '../../format';
 import { useLoad } from '../../useLoad';
 
 const headers = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
@@ -15,16 +15,16 @@ export default function PlanPage() {
   const calendar = useLoad(() => api.get<PlanCalendar>(`/api/work-plans/me/calendar?year=${year}&month=${month}`), [year, month]);
   const plan = useLoad(() => api.get<WorkPlan>(`/api/work-plans/me?year=${year}&month=${month}`).catch(() => null), [year, month]);
 
-  const [picked, setPicked] = useState<Record<string, WorkShift>>({});
+  const [picked, setPicked] = useState<Set<string>>(new Set());
   const [note, setNote] = useState('');
   const [message, setMessage] = useState<{ kind: 'error' | 'info'; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
   // Takvim yüklenince seçimleri sunucudaki duruma getir.
   useEffect(() => {
-    const next: Record<string, WorkShift> = {};
+    const next = new Set<string>();
     calendar.data?.days.forEach((d) => {
-      if (d.isSelected) next[d.date] = d.shift ?? 'FullDay';
+      if (d.isSelected) next.add(d.date);
     });
     setPicked(next);
     setNote(plan.data?.studentNote ?? '');
@@ -35,9 +35,9 @@ export default function PlanPage() {
 
   function toggle(date: string) {
     setPicked((p) => {
-      const copy = { ...p };
-      if (copy[date]) delete copy[date];
-      else copy[date] = 'FullDay';
+      const copy = new Set(p);
+      if (copy.has(date)) copy.delete(date);
+      else copy.add(date);
       return copy;
     });
   }
@@ -50,7 +50,7 @@ export default function PlanPage() {
         year,
         month,
         studentNote: note.trim() || null,
-        days: Object.entries(picked).map(([date, shift]) => ({ date, shift })),
+        days: [...picked].sort().map((date) => ({ date })),
       });
       calendar.reload();
       plan.reload();
@@ -87,30 +87,19 @@ export default function PlanPage() {
               <div key={`o${i}`} className="cal-cell empty-cell" />
             ))}
             {cal?.days.map((d) => {
-              const shift = picked[d.date];
+              const chosen = picked.has(d.date);
               const selectable = canEdit && d.isSelectable;
               return (
                 <div
                   key={d.date}
-                  className={`cal-cell ${d.color} ${shift ? 'selected' : ''}`}
+                  className={`cal-cell ${d.color} ${chosen ? 'selected' : ''}`}
                   onClick={() => selectable && toggle(d.date)}
                   title={d.label}
                   role={selectable ? 'button' : undefined}
                 >
                   <span className="num">{Number(d.date.slice(8))}</span>
                   <span className="lbl">{d.label}</span>
-                  {shift && (
-                    <select
-                      value={shift}
-                      disabled={!canEdit}
-                      onClick={(e) => e.stopPropagation()}
-                      onChange={(e) => setPicked((p) => ({ ...p, [d.date]: e.target.value as WorkShift }))}
-                    >
-                      {(Object.keys(shiftLabels) as WorkShift[]).map((s) => (
-                        <option key={s} value={s}>{shiftLabels[s]}</option>
-                      ))}
-                    </select>
-                  )}
+                  {chosen && <span className="lbl">8 saat</span>}
                 </div>
               );
             })}
@@ -128,10 +117,10 @@ export default function PlanPage() {
             <textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} disabled={!canEdit} maxLength={1000} />
           </label>
           <div className="row">
-            <button className="btn primary" disabled={!canEdit || busy || Object.keys(picked).length === 0} onClick={save}>
+            <button className="btn primary" disabled={!canEdit || busy || picked.size === 0} onClick={save}>
               {busy ? 'Kaydediliyor…' : 'Planı Kaydet'}
             </button>
-            <span className="muted">{Object.keys(picked).length} gün seçildi</span>
+            <span className="muted">{picked.size} gün seçildi · {picked.size * 8} saat</span>
           </div>
         </Card>
       </div>

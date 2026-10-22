@@ -9,8 +9,8 @@ public class AttendanceComparerTests
 {
     private static readonly DateOnly Today = new(2026, 10, 21);
 
-    private static WorkPlanDay Day(int day, WorkShift shift = WorkShift.FullDay)
-        => new() { Date = new DateOnly(2026, 10, day), Shift = shift };
+    private static WorkPlanDay Day(int day)
+        => new() { Date = new DateOnly(2026, 10, day) };
 
     private static LeaveRequest Leave(int from, int to, decimal? hours = null)
         => new() { StartDate = new DateOnly(2026, 10, from), EndDate = new DateOnly(2026, 10, to), Hours = hours, Status = LeaveStatus.Approved };
@@ -40,15 +40,15 @@ public class AttendanceComparerTests
     }
 
     [Fact]
-    public void HalfDays_CountAsHalf_InTheTotals()
+    public void Totals_CountEveryPlannedDayAsOne()
     {
         var result = AttendanceComparer.Compare(
-            new[] { Day(5), Day(6, WorkShift.Morning), Day(7, WorkShift.Afternoon) },
+            new[] { Day(5), Day(6), Day(7) },
             Dates(5, 6), Array.Empty<LeaveRequest>(), Dates(), Today);
 
-        Assert.Equal(2m, result.PlannedDays);
-        Assert.Equal(1.5m, result.AttendedDays);
-        Assert.Equal(0.5m, result.MissingDays);
+        Assert.Equal(3m, result.PlannedDays);
+        Assert.Equal(2m, result.AttendedDays);
+        Assert.Equal(1m, result.MissingDays);
     }
 
     [Fact]

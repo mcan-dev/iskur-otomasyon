@@ -13,7 +13,7 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<IskurAutoD
     public IskurAutoDbContext CreateDbContext(string[] args)
     {
         var options = new DbContextOptionsBuilder<IskurAutoDbContext>()
-            .UseSqlite("Data Source=iskurauto.design.db")
+            .UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=IskurAuto;Trusted_Connection=True;TrustServerCertificate=True")
             .Options;
         return new IskurAutoDbContext(options);
     }

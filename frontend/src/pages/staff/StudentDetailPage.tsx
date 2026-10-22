@@ -6,7 +6,7 @@ import type {
 } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
 import { Alert, Badge, Card, Empty, Field, Modal, MonthPicker, Stat } from '../../components/ui';
-import { fmtDate, outcomeLabels, outcomeTone, shiftLabels, taskStatusLabels, taskTone, todayIso } from '../../format';
+import { fmtDate, outcomeLabels, outcomeTone, taskStatusLabels, taskTone, todayIso } from '../../format';
 import { useLoad } from '../../useLoad';
 import { AbsenceTable, LeaveTable, PlanItem } from './parts';
 
@@ -286,10 +286,10 @@ function Attendance({ studentId }: { studentId: number }) {
             <Stat label="Kayıt yok" value={c.missingDays} tone="amber" />
           </div>
           <table className="table" style={{ marginTop: 14 }}>
-            <thead><tr><th>Tarih</th><th>Vardiya</th><th>Durum</th></tr></thead>
+            <thead><tr><th>Tarih</th><th>Durum</th></tr></thead>
             <tbody>
               {c.days.map((d) => (
-                <tr key={d.date}><td>{fmtDate(d.date)}</td><td>{shiftLabels[d.shift]}</td><td><Badge tone={outcomeTone[d.outcome]}>{outcomeLabels[d.outcome]}</Badge></td></tr>
+                <tr key={d.date}><td>{fmtDate(d.date)}</td><td><Badge tone={outcomeTone[d.outcome]}>{outcomeLabels[d.outcome]}</Badge></td></tr>
               ))}
             </tbody>
           </table>

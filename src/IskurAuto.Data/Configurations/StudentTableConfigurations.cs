@@ -49,7 +49,7 @@ public class ProgramParticipationConfiguration : IEntityTypeConfiguration<Progra
         // Filtreli benzersiz indeks: bir öğrencinin AYNI ANDA en fazla bir açık (bitişi olmayan)
         // katılım dönemi olabilir; kapalı (geçmiş) dönemlerin sayısında sınır yoktur.
         // Uygulama kodu bunu kontrol eder, ama iki istek aynı anda gelirse son güvenceyi veritabanı verir.
-        b.HasIndex(x => x.StudentProfileId).IsUnique().HasFilter("\"EndDate\" IS NULL")
+        b.HasIndex(x => x.StudentProfileId).IsUnique().HasFilter("[EndDate] IS NULL")
             .HasDatabaseName("UX_ProgramParticipations_OneOpenPerStudent");
     }
 }
@@ -68,7 +68,7 @@ public class StudentUnitAssignmentConfiguration : IEntityTypeConfiguration<Stude
         b.HasOne(x => x.AssignedByUser).WithMany()
             .HasForeignKey(x => x.AssignedByUserId).OnDelete(DeleteBehavior.Restrict);
 
-        b.HasIndex(x => x.StudentProfileId).IsUnique().HasFilter("\"EndDate\" IS NULL")
+        b.HasIndex(x => x.StudentProfileId).IsUnique().HasFilter("[EndDate] IS NULL")
             .HasDatabaseName("UX_StudentUnitAssignments_OneOpenPerStudent");
     }
 }
@@ -89,7 +89,7 @@ public class AdvisorAssignmentConfiguration : IEntityTypeConfiguration<AdvisorAs
         b.HasOne(x => x.AssignedByUser).WithMany()
             .HasForeignKey(x => x.AssignedByUserId).OnDelete(DeleteBehavior.Restrict);
 
-        b.HasIndex(x => x.StudentProfileId).IsUnique().HasFilter("\"EndDate\" IS NULL")
+        b.HasIndex(x => x.StudentProfileId).IsUnique().HasFilter("[EndDate] IS NULL")
             .HasDatabaseName("UX_AdvisorAssignments_OneOpenPerStudent");
 
         // "Bu danışmanın açık öğrencileri" sorgusu için.

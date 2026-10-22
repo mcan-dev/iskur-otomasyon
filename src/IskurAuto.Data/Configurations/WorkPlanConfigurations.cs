@@ -57,7 +57,6 @@ public class WorkPlanDayConfiguration : IEntityTypeConfiguration<WorkPlanDay>
     public void Configure(EntityTypeBuilder<WorkPlanDay> b)
     {
         b.ToTable("WorkPlanDays");
-        b.Property(x => x.Shift).HasConversion<string>().HasMaxLength(20);
         b.Property(x => x.Note).HasMaxLength(500);
 
         b.HasIndex(x => new { x.MonthlyWorkPlanId, x.Date }).IsUnique();
