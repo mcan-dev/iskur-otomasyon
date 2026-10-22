@@ -99,7 +99,7 @@ public class AuthService : IAuthService
         errors.Add(nameof(request.Password), PasswordPolicy.Validate(request.Password));
         if (!NationalIdValidator.IsValid(nationalId))
             errors.Add(nameof(request.NationalId), "T.C. kimlik numarası geçersiz.");
-        if (!IbanValidator.IsValid(iban))
+        if (iban.Length > 0 && !IbanValidator.IsValid(iban))
             errors.Add(nameof(request.Iban), "IBAN geçersiz. TR ile başlayan, 26 haneli geçerli bir IBAN giriniz.");
         if (!InputNormalizer.IsValidMobile(phone))
             errors.Add(nameof(request.PhoneNumber), "Geçerli bir cep telefonu numarası giriniz (örn. 0532 123 45 67).");

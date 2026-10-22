@@ -10,7 +10,6 @@ const empty: RegistrationRequest = {
   password: '',
   phoneNumber: '',
   nationalId: '',
-  iban: '',
   studentNumber: '',
   departmentId: 0,
   registrationYear: new Date().getFullYear(),
@@ -94,9 +93,6 @@ export default function Register() {
           </Field>
           <Field label="Cep Telefonu" error={fieldError('phoneNumber')} hint="Örn: 0532 123 45 67">
             <input value={form.phoneNumber} onChange={(e) => set('phoneNumber', e.target.value)} required />
-          </Field>
-          <Field label="IBAN" error={fieldError('iban')} hint="TR ile başlayan 26 karakter">
-            <input value={form.iban} onChange={(e) => set('iban', e.target.value.toUpperCase())} required />
           </Field>
           <Field label="Parola" error={fieldError('password')}>
             <input type="password" value={form.password} onChange={(e) => set('password', e.target.value)} autoComplete="new-password" required />
