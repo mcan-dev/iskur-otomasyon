@@ -1,3 +1,4 @@
+using IskurAuto.Core.Enums;
 using IskurAuto.Core.Models;
 using IskurAuto.Service.DTOs;
 
@@ -137,6 +138,22 @@ public interface IAttendanceService
     Task<AttendanceComparisonDto> GetComparisonAsync(int studentId, int year, int month, CancellationToken ct = default);
     Task<AttendanceDto> AddManuallyAsync(ManualAttendanceRequest request, CancellationToken ct = default);
     Task<AttendanceDto> VoidAsync(int attendanceId, VoidAttendanceRequest request, CancellationToken ct = default);
+}
+
+public interface ITaskService
+{
+    Task<TaskDto> AssignAsync(AssignTaskRequest request, CancellationToken ct = default);
+    Task<TaskDto> EvaluateAsync(int taskId, EvaluateTaskRequest request, CancellationToken ct = default);
+    Task<TaskDto> GetByIdAsync(int taskId, CancellationToken ct = default);
+    Task<IReadOnlyList<TaskDto>> SearchAsync(TaskQuery query, CancellationToken ct = default);
+    Task<IReadOnlyList<TaskDto>> ListMineAsync(StudentTaskStatus? status, CancellationToken ct = default);
+}
+
+public interface IAbsenceNoticeService
+{
+    Task<AbsenceNoticeDto> SendAsync(SendAbsenceNoticeRequest request, CancellationToken ct = default);
+    Task<AbsenceNoticeDto> MarkReadAsync(int noticeId, CancellationToken ct = default);
+    Task<IReadOnlyList<AbsenceNoticeDto>> SearchAsync(AbsenceNoticeQuery query, CancellationToken ct = default);
 }
 
 public interface ILeavePolicyProvider

@@ -55,7 +55,8 @@ dotnet test
 | 2 | Aylık çalışma planı, takvim, tatil ve sınav dönemi | Bitti |
 | 3 | İzin, devamsızlık, izin hakkı takibi ve uyarılar | Bitti |
 | 4 | 30 saniyede yenilenen QR ile devam takibi | Bitti (migration üretilecek) |
-| 5 | Görev, değerlendirme, raporlar | |
+| 5a | Görev, danışman değerlendirmesi, devamsızlık bildirimi | Bitti (migration üretilecek) |
+| 5b | Raporlar, Excel/CSV, aylık döküm, ilişik kesme kararı | |
 | 6 | Test senaryoları, teknik dokümantasyon | |
 
 ## Bilinen sınırlar

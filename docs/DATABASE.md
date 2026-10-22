@@ -38,6 +38,9 @@ erDiagram
     Absence { int Id int StudentProfileId date Date enum Type string Note int RecordedByUserId datetime RevokedAt string RevokeReason }
     AttendanceSession { int Id date Date time StartTime time EndTime string Title int DepartmentId string SecretKey int CreatedByUserId datetime ClosedAt }
     AttendanceRecord { int Id int StudentProfileId int AttendanceSessionId date Date datetime CheckedInAt int WorkPlanDayId bool IsManual string ManualReason int CreatedByUserId datetime VoidedAt int VoidedByUserId string VoidReason }
+    StudentTask { int Id int StudentProfileId string Title string Description date AssignedDate date DueDate int AssignedByUserId enum Status datetime StatusChangedAt }
+    TaskEvaluation { int Id int StudentTaskId int AuthorUserId string Note enum NewStatus datetime CreatedAt }
+    AbsenceNotice { int Id int StudentProfileId date Date string Message int AdvisorUserId datetime CreatedAt datetime ReadAt int ReadByUserId }
     SystemSetting { int Id string Key string Value }
     AuditLog { long Id datetime OccurredAt string Action string EntityName int EntityId }
 ```
@@ -55,11 +58,13 @@ erDiagram
 | Aynı tarih iki kez tatil olamaz | Unique index (tarih) |
 | Öğrencinin bir günde tek aktif devamsızlığı | Filtreli unique index `WHERE "RevokedAt" IS NULL` |
 | Aynı öğrencinin aynı oturumda tek geçerli devam kaydı | Filtreli unique index `WHERE "VoidedAt" IS NULL` |
+| Aynı danışman aynı öğrenci ve gün için tek devamsızlık bildirimi | Unique index (danışman, öğrenci, tarih) |
+| Değerlendirmesi olan görev silinemez | FK `Restrict` |
 | Ayar anahtarı tektir | Unique index (Key) |
 
 ## Sonraki aşamalarda eklenecek tablolar
 
-Görevler ve danışman değerlendirmeleri, ilişik kesme kararları.
+İlişik kesme kararları.
 
 ## Migration
 

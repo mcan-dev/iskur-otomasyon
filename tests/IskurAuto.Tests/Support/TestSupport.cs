@@ -131,6 +131,8 @@ public sealed class TestScope : IDisposable
     public IAbsenceService Absences { get; }
     public ILeaveSettingsService LeaveSettings { get; }
     public IAttendanceService Attendance { get; }
+    public ITaskService Tasks { get; }
+    public IAbsenceNoticeService AbsenceNotices { get; }
 
     public TestScope(TestDb db, IskurAutoDbContext context)
     {
@@ -166,6 +168,8 @@ public sealed class TestScope : IDisposable
         Absences = new AbsenceService(absenceRepository, students, context, db.Clock, audit, db.Current);
         Attendance = new AttendanceService(new AttendanceSessionRepository(context), new AttendanceRecordRepository(context),
             students, new WorkPlanRepository(context), leaveRepository, absenceRepository, context, db.Clock, audit, db.Current);
+        Tasks = new TaskService(new StudentTaskRepository(context), students, context, db.Clock, audit, db.Current);
+        AbsenceNotices = new AbsenceNoticeService(new AbsenceNoticeRepository(context), students, context, db.Clock, audit, db.Current);
     }
 
     public void Dispose() => Context.Dispose();

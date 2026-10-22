@@ -111,7 +111,16 @@ Hesaplamalar `LeaveDayCounter` ve `LeaveBalanceCalculator` sınıflarında, veri
 - `AttendanceComparer` planlı günleri sonuçlarına ayırır: devam var, izinli, devamsızlık girilmiş, kayıt yok, bugün, gelecek. Yalnızca onaylı plan karşılaştırılır.
 - Günlük, aylık ve yıllık liste aynı sorgudan gelir (`date` / `year+month` / `year`); kapsam diğer modüllerle aynıdır.
 
-## 9. Aşamalar
+## 9. Görev ve değerlendirme (Aşama 5a)
+
+- Görevi danışman (kendi öğrencisine), bölüm başkanı (kendi bölümüne) ve fakülte yönetimi atar. Başlık, açıklama, atanma ve hedef tarihi sonradan değişmez.
+- Danışman not ekler ve/veya durumu `Tamamlandı`, `Tamamlanmadı` ya da `Açık` yapar. Her işlem `TaskEvaluation` satırı olarak eklenir; satırlar değiştirilmez ve silinmez, böylece önceki değerlendirmeler ve durum değişiklikleri korunur.
+- Değerlendirmeyi yalnızca öğrencinin **şu anki** danışmanı yapar. Danışman değişince eski notlar kalır, yeni danışman devam eder.
+- Öğrenci kendi görevlerini ve danışman notlarını görür. Bölüm başkanı kendi bölümünün görev ve değerlendirmelerini görür, danışman yalnızca kendi öğrencilerinin görevlerini filtreler (durum, gecikmiş).
+- Gecikmiş görev: hâlâ açık ve hedef tarihi geçmiş.
+- Danışman, öğrencinin bir günkü devamsızlığını bölüm başkanına **bildirim** olarak iletir; başkan okundu işaretler. Aynı danışman aynı öğrenci ve gün için tek bildirim gönderebilir. Bildirim devamsızlık kaydı değildir; kaydı fakülte yönetimi girer.
+
+## 10. Aşamalar
 
 | Aşama | İçerik | Durum |
 |---|---|---|
@@ -119,6 +128,7 @@ Hesaplamalar `LeaveDayCounter` ve `LeaveBalanceCalculator` sınıflarında, veri
 | 2 | Aylık çalışma planı (takvim, 1–3 gün/hafta, tatil/ders kuralları, yarım gün) | **Tamamlandı** |
 | 3 | İzin / devamsızlık (parametrik 10 gün limiti, uyarı) | **Tamamlandı** |
 | 4 | 30 sn dinamik QR ile devam | **Tamamlandı** |
-| 5 | Görev ve danışman değerlendirme, raporlar (Excel/CSV) | |
+| 5a | Görev ve danışman değerlendirme, devamsızlık bildirimi | **Tamamlandı** |
+| 5b | Raporlar (Excel/CSV), aylık döküm, ilişik kesme kararı | |
 | 6 | Test senaryoları, kurulum ve teknik dokümantasyon | |
 | Sonra | İŞKUR botu (Playwright, Maker-Checker) – `parked/` klasöründe bekliyor | |
