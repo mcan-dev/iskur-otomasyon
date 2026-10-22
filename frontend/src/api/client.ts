@@ -34,18 +34,29 @@ export function setUnauthorizedHandler(handler: () => void) {
   onUnauthorized = handler;
 }
 
-async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+async function send(method: string, path: string, body?: unknown): Promise<Response> {
   const headers: Record<string, string> = {};
   const token = getToken();
   if (token) headers.Authorization = `Bearer ${token}`;
-  if (body !== undefined) headers['Content-Type'] = 'application/json';
 
-  let res: Response;
+  let payload: BodyInit | undefined;
+  if (body instanceof FormData) {
+    payload = body; // tarayıcı sınır (boundary) bilgisini kendisi ekler
+  } else if (body !== undefined) {
+    headers['Content-Type'] = 'application/json';
+    payload = JSON.stringify(body);
+  }
+
   try {
-    res = await fetch(path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+    return await fetch(path, { method, headers, body: payload });
   } catch {
     throw new ApiError(0, 'Sunucuya ulaşılamadı. Bağlantınızı kontrol edin.');
   }
+}
+
+async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+  const token = getToken();
+  const res = await send(method, path, body);
 
   if (res.status === 204) return undefined as T;
 
@@ -68,7 +79,27 @@ function safeParse(text: string): Record<string, unknown> | null {
   }
 }
 
+/** Yetkili isteğle dosya indirir ve kullanıcıya kaydettirir. */
+async function download(path: string, fallbackName: string): Promise<void> {
+  const res = await send('GET', path);
+  if (!res.ok) {
+    const data = safeParse(await res.text());
+    throw new ApiError(res.status, (data?.detail as string) || 'Dosya indirilemedi.');
+  }
+  const disposition = res.headers.get('Content-Disposition') ?? '';
+  const match = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(disposition);
+  const name = match ? decodeURIComponent(match[1]) : fallbackName;
+  const url = URL.createObjectURL(await res.blob());
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = name;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 export const api = {
+  download,
+  upload: <T>(path: string, form: FormData) => request<T>('POST', path, form),
   get: <T>(path: string) => request<T>('GET', path),
   post: <T>(path: string, body?: unknown) => request<T>('POST', path, body ?? {}),
   put: <T>(path: string, body?: unknown) => request<T>('PUT', path, body ?? {}),
