@@ -112,6 +112,123 @@ namespace IskurAuto.Data.Migrations
                     b.ToTable("AdvisorAssignments", (string)null);
                 });
 
+            modelBuilder.Entity("IskurAuto.Core.Entities.AttendanceRecord", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AttendanceSessionId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CheckedInAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("CreatedByUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsManual")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ManualReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("StudentProfileId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("VoidReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("VoidedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("VoidedByUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("WorkPlanDayId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttendanceSessionId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("VoidedByUserId");
+
+                    b.HasIndex("WorkPlanDayId");
+
+                    b.HasIndex("StudentProfileId", "AttendanceSessionId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Attendance_OneActivePerStudentSession")
+                        .HasFilter("\"VoidedAt\" IS NULL");
+
+                    b.HasIndex("StudentProfileId", "Date");
+
+                    b.ToTable("AttendanceRecords", (string)null);
+                });
+
+            modelBuilder.Entity("IskurAuto.Core.Entities.AttendanceSession", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CreatedByUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("DepartmentId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SecretKey")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(150)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("Date");
+
+                    b.HasIndex("DepartmentId");
+
+                    b.ToTable("AttendanceSessions", (string)null);
+                });
+
             modelBuilder.Entity("IskurAuto.Core.Entities.AuditLog", b =>
                 {
                     b.Property<long>("Id")
@@ -743,6 +860,64 @@ namespace IskurAuto.Data.Migrations
                     b.Navigation("AssignedByUser");
 
                     b.Navigation("StudentProfile");
+                });
+
+            modelBuilder.Entity("IskurAuto.Core.Entities.AttendanceRecord", b =>
+                {
+                    b.HasOne("IskurAuto.Core.Entities.AttendanceSession", "AttendanceSession")
+                        .WithMany()
+                        .HasForeignKey("AttendanceSessionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IskurAuto.Core.Entities.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("IskurAuto.Core.Entities.StudentProfile", "StudentProfile")
+                        .WithMany()
+                        .HasForeignKey("StudentProfileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IskurAuto.Core.Entities.User", "VoidedByUser")
+                        .WithMany()
+                        .HasForeignKey("VoidedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("IskurAuto.Core.Entities.WorkPlanDay", "WorkPlanDay")
+                        .WithMany()
+                        .HasForeignKey("WorkPlanDayId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("AttendanceSession");
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("StudentProfile");
+
+                    b.Navigation("VoidedByUser");
+
+                    b.Navigation("WorkPlanDay");
+                });
+
+            modelBuilder.Entity("IskurAuto.Core.Entities.AttendanceSession", b =>
+                {
+                    b.HasOne("IskurAuto.Core.Entities.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IskurAuto.Core.Entities.Department", "Department")
+                        .WithMany()
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("Department");
                 });
 
             modelBuilder.Entity("IskurAuto.Core.Entities.LeaveRequest", b =>
