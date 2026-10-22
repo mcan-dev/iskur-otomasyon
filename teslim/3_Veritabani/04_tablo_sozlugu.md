@@ -1,6 +1,6 @@
 # Tablo sözlüğü
 
-Bu dosya `02_sema.sql` betiğinden üretilmiştir. Veritabanı Microsoft SQL Server'dadır; şema EF Core Code-First ile modellenmiştir.
+Bu dosya EF Core modelinden (SQL Server şeması) üretilmiştir. Veritabanı Microsoft SQL Server'dadır; şema EF Core Code-First ile oluşur.
 Her tabloda `Id` birincil anahtardır (otomatik artan). `CreatedAt` / `UpdatedAt` kayıt zamanını tutar (denetim tablosunda yalnızca `OccurredAt` vardır).
 
 ## Genel kurallar

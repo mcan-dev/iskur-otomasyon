@@ -89,7 +89,7 @@ Raporlar için ayrı tablo yoktur; hepsi yukarıdaki kayıtlardan istek anında 
 - Hiçbir ilişkide cascade delete yoktur; kayıtlar silinmez, tarihçe tutulur.
 - "Açık dönem tek olsun" (`EndDate IS NULL`), "iptal edilmemiş kayıt tek olsun" (`VoidedAt IS NULL`, `RevokedAt IS NULL`) kuralları filtreli benzersiz indekslerle veritabanında da güvence altındadır.
 - Ondalık alanlar (`Hours`, `DaysCounted`, `LeaveDaysUsed`) `decimal(5,2)` tutulur.
-- Tüm şema T-SQL olarak `teslim/3_Veritabani/` klasöründeki betikte de verilmiştir.
+- Tablo alanlarının tam listesi `teslim/3_Veritabani/04_tablo_sozlugu.md` içindedir.
 
 ## Migration
 

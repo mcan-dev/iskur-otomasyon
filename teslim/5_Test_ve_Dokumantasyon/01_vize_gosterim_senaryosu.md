@@ -1,7 +1,7 @@
 # Vize gösterim senaryosu
 
 Asgari ölçüt: veriyi arayüzden eklemek, görüntülemek, bir kaydı güncellemek ve ay/yıl gibi bir ölçütle filtrelemek.
-Aşağıdaki adımlar bunu sırayla gösterir. Hazırlık: API ve arayüz çalışıyor, `03_ornek_veri.sql` yüklü olabilir (zorunlu değil).
+Aşağıdaki adımlar bunu sırayla gösterir. Hazırlık: API ve arayüz çalışıyor, veritabanı boşken ilk açılışta örnek veri yüklenmiş olur (Development).
 
 ## 1. Öğrenci kaydı (ekleme)
 
