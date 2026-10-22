@@ -16,6 +16,14 @@ public interface IAuthService
     Task<UserDto> GetCurrentUserAsync(CancellationToken ct = default);
 }
 
+public interface IPasswordResetService
+{
+    /// <summary>Sıfırlama bağlantısı gönderir. E-posta kayıtlı olsun olmasın aynı şekilde döner.</summary>
+    Task RequestAsync(ForgotPasswordRequest request, CancellationToken ct = default);
+
+    Task ResetAsync(ResetPasswordRequest request, CancellationToken ct = default);
+}
+
 public interface IStudentService
 {
     // Öğrencinin kendisi

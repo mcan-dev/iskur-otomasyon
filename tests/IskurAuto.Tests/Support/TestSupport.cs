@@ -71,6 +71,26 @@ public sealed class FakeDocumentStore : IDocumentStore
         => Task.FromResult<Stream?>(_files.TryGetValue(storedName, out var bytes) ? new MemoryStream(bytes) : null);
 }
 
+public sealed class FakeEmailSender : IEmailSender
+{
+    public List<(string To, string Subject, string Body)> Sent { get; } = new();
+
+    public Task SendAsync(string to, string subject, string body, CancellationToken ct = default)
+    {
+        Sent.Add((to, subject, body));
+        return Task.CompletedTask;
+    }
+
+    /// <summary>Son e-postadaki bağlantıdan jetonu alır.</summary>
+    public string LastToken()
+    {
+        var body = Sent[^1].Body;
+        var start = body.IndexOf("token=", StringComparison.Ordinal) + "token=".Length;
+        var end = body.IndexOfAny(new[] { '\n', '\r', ' ' }, start);
+        return body[start..(end < 0 ? body.Length : end)];
+    }
+}
+
 public sealed class FakeTokenService : ITokenService
 {
     public TokenResult CreateToken(User user) => new($"token-for-{user.Id}", DateTime.UtcNow.AddHours(1));
@@ -119,6 +139,8 @@ public sealed class TestScope : IDisposable
 {
     public IskurAutoDbContext Context { get; }
     public IAuthService Auth { get; }
+    public IPasswordResetService PasswordReset { get; }
+    public FakeEmailSender Email { get; } = new();
     public IStudentService Students { get; }
     public IUserService Users { get; }
     public IDepartmentService Departments { get; }
@@ -148,6 +170,8 @@ public sealed class TestScope : IDisposable
 
         Audit = audit;
         Auth = new AuthService(users, students, departments, context, db.Hasher, new FakeTokenService(), db.Clock, audit, db.Current);
+        PasswordReset = new PasswordResetService(users, new PasswordResetTokenRepository(context), context, db.Hasher,
+            Email, db.Clock, audit, new PasswordResetSettings { FrontendBaseUrl = "http://localhost:5173", TokenMinutes = 30 });
         Students = new StudentService(students, users, units, context, db.Clock, audit, db.Current);
         Users = new UserService(users, departments, context, db.Hasher, audit, db.Current);
         Departments = new DepartmentService(departments, context, audit, db.Current);

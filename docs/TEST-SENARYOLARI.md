@@ -1,6 +1,6 @@
 # Test senaryoları
 
-Belgenin 9. maddesindeki test başlıkları ve bunları karşılayan otomatik testler. Toplam 256 test yöntemi vardır; `[Theory]` testlerinin her veri satırı ayrı çalıştığı için `dotnet test` çıktısındaki sayı daha yüksektir.
+Belgenin 9. maddesindeki test başlıkları ve bunları karşılayan otomatik testler. Toplam 263 test yöntemi vardır; `[Theory]` testlerinin her veri satırı ayrı çalıştığı için `dotnet test` çıktısındaki sayı daha yüksektir.
 
 ```bash
 dotnet test                                         # hepsi
@@ -21,6 +21,7 @@ T.C. kimlik no ve IBAN algoritması, telefon ve ad normalleştirme, parola kural
 | `PasswordPolicyTests` | 1 | `Unit/ValidationTests.cs` |
 | `InputNormalizerTests` | 3 | `Unit/ValidationTests.cs` |
 | `AuthServiceTests` | 11 | `Services/AuthServiceTests.cs` |
+| `PasswordResetServiceTests` | 7 | `Services/PasswordResetServiceTests.cs` |
 | `DatabaseConstraintTests` | 8 | `Services/AdminAndDatabaseTests.cs` |
 
 Her modülün servis testlerinde de geçersiz girdiye karşı senaryolar vardır (örneğin `Assign_WithPastDueDate_IsRejected`, `Record_NeedsARealReason_AndASensibleDate`).

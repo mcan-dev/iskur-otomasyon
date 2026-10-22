@@ -36,6 +36,7 @@ public static class DependencyInjection
         services.AddScoped<IStudentTaskRepository, StudentTaskRepository>();
         services.AddScoped<IAbsenceNoticeRepository, AbsenceNoticeRepository>();
         services.AddScoped<ITerminationRepository, TerminationRepository>();
+        services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
 
         return services;
     }
