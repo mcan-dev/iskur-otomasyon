@@ -7,13 +7,17 @@ import ForgotPassword from './pages/ForgotPassword';
 import Login from './pages/Login';
 import Placeholder from './pages/Placeholder';
 import AbsencesPage from './pages/staff/AbsencesPage';
+import AuditPage from './pages/staff/AuditPage';
 import AttendancePage from './pages/staff/AttendancePage';
+import DefinitionsPage from './pages/staff/DefinitionsPage';
 import LeavesStaffPage from './pages/staff/LeavesStaffPage';
 import NoticesPage from './pages/staff/NoticesPage';
 import PlansReviewPage from './pages/staff/PlansReviewPage';
+import ReportsPage from './pages/staff/ReportsPage';
 import SessionsPage from './pages/staff/SessionsPage';
 import StudentDetailPage from './pages/staff/StudentDetailPage';
 import StudentsPage from './pages/staff/StudentsPage';
+import TerminationsPage from './pages/staff/TerminationsPage';
 import TasksStaffPage from './pages/staff/TasksStaffPage';
 import CheckInPage from './pages/student/CheckInPage';
 import HistoryPage from './pages/student/HistoryPage';
@@ -44,6 +48,10 @@ export default function App() {
     '/devam': <AttendancePage />,
     '/gorevler': <TasksStaffPage />,
     '/bildirimler': <NoticesPage />,
+    '/raporlar': <ReportsPage />,
+    '/iliski-kesme': <TerminationsPage />,
+    '/tanimlar': <DefinitionsPage />,
+    '/denetim': <AuditPage />,
   };
 
   // Menüdeki yollar yalnızca ilgili rol için tanımlanır; başka rolün adresi ana sayfaya döner.

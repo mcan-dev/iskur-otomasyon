@@ -188,3 +188,5 @@ textarea { font: inherit; }
 .qr-box canvas { width: 320px; height: 320px; max-width: 100%; }
 .qr-bar { width: 320px; max-width: 100%; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
 .qr-bar i { display: block; height: 100%; background: var(--blue); transition: width .25s linear; }
+.scroll-x { overflow-x: auto; }
+.right-cell { text-align: right; white-space: nowrap; }
