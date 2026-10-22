@@ -1,6 +1,6 @@
 # Test senaryoları
 
-Belgenin 9. maddesindeki test başlıkları ve bunları karşılayan otomatik testler. Toplam 263 test yöntemi vardır; `[Theory]` testlerinin her veri satırı ayrı çalıştığı için `dotnet test` çıktısındaki sayı daha yüksektir.
+Belgenin 9. maddesindeki test başlıkları ve bunları karşılayan otomatik testler. Toplam 267 test yöntemi vardır; `[Theory]` testlerinin her veri satırı ayrı çalıştığı için `dotnet test` çıktısındaki sayı daha yüksektir.
 
 ```bash
 dotnet test                                         # hepsi
@@ -16,10 +16,10 @@ T.C. kimlik no ve IBAN algoritması, telefon ve ad normalleştirme, parola kural
 
 | Test sınıfı | Test sayısı | Dosya |
 |---|---|---|
-| `NationalIdValidatorTests` | 2 | `Unit/ValidationTests.cs` |
-| `IbanValidatorTests` | 2 | `Unit/ValidationTests.cs` |
-| `PasswordPolicyTests` | 1 | `Unit/ValidationTests.cs` |
-| `InputNormalizerTests` | 3 | `Unit/ValidationTests.cs` |
+| `NationalIdValidatorTests` | 3 | `Unit/ValidationTests.cs` |
+| `IbanValidatorTests` | 3 | `Unit/ValidationTests.cs` |
+| `PasswordPolicyTests` | 2 | `Unit/ValidationTests.cs` |
+| `InputNormalizerTests` | 4 | `Unit/ValidationTests.cs` |
 | `AuthServiceTests` | 11 | `Services/AuthServiceTests.cs` |
 | `PasswordResetServiceTests` | 7 | `Services/PasswordResetServiceTests.cs` |
 | `DatabaseConstraintTests` | 8 | `Services/AdminAndDatabaseTests.cs` |
@@ -42,7 +42,7 @@ Haftada 1-3 gün, haftanın perşembesinin düştüğü aya sayılması, hafta s
 
 | Test sınıfı | Test sayısı | Dosya |
 |---|---|---|
-| `WorkPlanRulesTests` | 15 | `Unit/WorkPlanRulesTests.cs` |
+| `WorkPlanRulesTests` | 14 | `Unit/WorkPlanRulesTests.cs` |
 | `WorkPlanSettingsTests` | 1 | `Unit/WorkPlanRulesTests.cs` |
 | `WorkPlanCalendarTests` | 4 | `Unit/WorkPlanRulesTests.cs` |
 | `WorkPlanServiceTests` | 17 | `Services/WorkPlanServiceTests.cs` |
@@ -63,7 +63,7 @@ Jetonun 30 saniyede değişmesi, tolerans penceresinin dışında geçersizleşm
 
 | Test sınıfı | Test sayısı | Dosya |
 |---|---|---|
-| `QrTokenTests` | 9 | `Unit/QrTokenTests.cs` |
+| `QrTokenTests` | 10 | `Unit/QrTokenTests.cs` |
 | `AttendanceServiceTests` | 32 | `Services/AttendanceServiceTests.cs` |
 | `AttendanceComparerTests` | 6 | `Unit/AttendanceComparerTests.cs` |
 
