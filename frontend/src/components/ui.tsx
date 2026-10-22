@@ -33,3 +33,33 @@ export function Field({ label, error, hint, children }: { label: string; error?:
     </label>
   );
 }
+
+export function Badge({ tone = 'gray', children }: { tone?: 'green' | 'amber' | 'red' | 'gray' | 'blue'; children: ReactNode }) {
+  return <span className={`badge ${tone}`}>{children}</span>;
+}
+
+export function Empty({ children }: { children: ReactNode }) {
+  return <p className="muted empty">{children}</p>;
+}
+
+/** Ay seçici: önceki / sonraki ay düğmeleri. */
+export function MonthPicker({ year, month, onChange }: { year: number; month: number; onChange: (y: number, m: number) => void }) {
+  const move = (delta: number) => {
+    const d = new Date(year, month - 1 + delta, 1);
+    onChange(d.getFullYear(), d.getMonth() + 1);
+  };
+  const names = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+  return (
+    <div className="month-picker">
+      <button type="button" className="btn ghost" onClick={() => move(-1)} aria-label="Önceki ay">
+        ‹
+      </button>
+      <strong>
+        {names[month - 1]} {year}
+      </strong>
+      <button type="button" className="btn ghost" onClick={() => move(1)} aria-label="Sonraki ay">
+        ›
+      </button>
+    </div>
+  );
+}
