@@ -74,7 +74,8 @@ public class StudentRegistrationRequest
     [Required, StringLength(11, MinimumLength = 11)]
     public string NationalId { get; set; } = string.Empty;
 
-    [Required, StringLength(40)]
+    /// <summary>Kayıtta istenmez; öğrenci sonradan profilinden girer. Doluysa geçerli olmalıdır.</summary>
+    [StringLength(40)]
     public string Iban { get; set; } = string.Empty;
 
     [Required, StringLength(20, MinimumLength = 3)]

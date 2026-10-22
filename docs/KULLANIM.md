@@ -12,7 +12,8 @@ Uç noktaların listesi için [API.md](API.md) dosyasına bakın.
 
 ## Öğrenci
 
-1. **Kayıt:** İlk kayıt formu herkese açıktır. Bölüm seçilir, TC, IBAN, öğrenci numarası ve iletişim bilgileri girilir.
+1. **Kayıt:** İlk kayıt formu herkese açıktır. Bölüm seçilir, TC, öğrenci numarası ve iletişim bilgileri girilir. IBAN kayıtta istenmez; öğrenci profil ekranından kendisi girer (ay sonu dökümü için gereklidir).
+   Personel (danışman, bölüm başkanı, fakülte sekreterliği) kayıt olmaz: ilk fakülte hesabı kurulumda tanımlanır (`Bootstrap` ayarları, bkz. KURULUM.md), diğer personel hesaplarını Fakülte Sekreterliği "Tanımlar ve Hesaplar" ekranından açar ve başlangıç parolasını verir.
    Hesap ve ilk program katılım dönemi birlikte oluşur.
 2. **Profil:** Telefon ve IBAN bilgisi kendi ekranından güncellenir.
 3. **Ders günleri:** Haftalık ders günleri girilir; takvimde bu günler ayrıca işaretlenir.
