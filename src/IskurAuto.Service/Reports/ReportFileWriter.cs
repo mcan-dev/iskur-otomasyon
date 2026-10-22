@@ -34,7 +34,7 @@ public static class ReportFileWriter
             AddEntry(zip, "xl/workbook.xml", WorkbookXml(SheetName(table.Title)));
             AddEntry(zip, "xl/_rels/workbook.xml.rels", WorkbookRelsXml);
             AddEntry(zip, "xl/styles.xml", StylesXml);
-            AddEntry(zip, "xl/worksheets/sheet1.xml", SheetXml(table));
+            AddBytes(zip, "xl/worksheets/sheet1.xml", SheetXml(table));
         }
         return buffer.ToArray();
     }
@@ -72,11 +72,11 @@ public static class ReportFileWriter
 
     // ── XLSX ─────────────────────────────────────────────────────────────────
 
-    private static string SheetXml(ReportTable table)
+    private static byte[] SheetXml(ReportTable table)
     {
-        var output = new StringBuilder();
-        var settings = new XmlWriterSettings { OmitXmlDeclaration = false, Encoding = new UTF8Encoding(false), CheckCharacters = false };
-        using (var xml = XmlWriter.Create(output, settings))
+        using var buffer = new MemoryStream();
+        var settings = new XmlWriterSettings { Encoding = new UTF8Encoding(false), CheckCharacters = false };
+        using (var xml = XmlWriter.Create(buffer, settings))
         {
             xml.WriteStartDocument();
             xml.WriteStartElement("worksheet", "http://schemas.openxmlformats.org/spreadsheetml/2006/main");
@@ -90,7 +90,7 @@ public static class ReportFileWriter
             xml.WriteEndElement();
             xml.WriteEndDocument();
         }
-        return output.ToString();
+        return buffer.ToArray();
     }
 
     private static void WriteRow(XmlWriter xml, int rowNumber, IReadOnlyList<object?> values, bool headerStyle)
@@ -142,10 +142,12 @@ public static class ReportFileWriter
         => new(text.Where(c => c is '\t' or '\n' or '\r' || c >= ' ').ToArray());
 
     private static void AddEntry(ZipArchive zip, string path, string content)
+        => AddBytes(zip, path, new UTF8Encoding(false).GetBytes(content));
+
+    private static void AddBytes(ZipArchive zip, string path, byte[] bytes)
     {
         var entry = zip.CreateEntry(path, CompressionLevel.Optimal);
         using var stream = entry.Open();
-        var bytes = new UTF8Encoding(false).GetBytes(content);
         stream.Write(bytes, 0, bytes.Length);
     }
 

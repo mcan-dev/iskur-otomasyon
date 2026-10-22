@@ -95,12 +95,22 @@ public class ReportFileWriterTests
     }
 
     [Fact]
+    public void Xlsx_SheetIsWellFormedXmlDeclaredAsUtf8()
+    {
+        var sheet = ReadEntry(ReportFileWriter.ToXlsx(Table(new object?[] { "Çiğdem", 1 })), "xl/worksheets/sheet1.xml");
+
+        Assert.Contains("encoding=\"utf-8\"", sheet.Substring(0, 60).ToLowerInvariant());
+        var document = System.Xml.Linq.XDocument.Parse(sheet);   // bozuk XML burada patlar
+        Assert.Contains("Çiğdem", document.ToString());
+    }
+
+    [Fact]
     public void Xlsx_EscapesMarkupAndDropsInvalidCharacters()
     {
         var sheet = ReadEntry(ReportFileWriter.ToXlsx(Table(new object?[] { "<a&b>\u0001", 1 })), "xl/worksheets/sheet1.xml");
 
         Assert.Contains("&lt;a&amp;b&gt;", sheet);
-        Assert.DoesNotContain("\u0001", sheet);
+        Assert.False(sheet.Contains('\u0001'));   // xunit'in DoesNotContain'i kültüre duyarlıdır ve görünmez karakteri boş sayar
     }
 
     [Fact]
