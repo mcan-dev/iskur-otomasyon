@@ -297,3 +297,65 @@ export interface StudentDetailStaff extends StudentProfileFull {
   currentUnit?: { workUnitId: number; workUnitName: string } | null;
   currentAdvisor?: { advisorUserId: number; advisorName: string } | null;
 }
+
+export interface ReportTable {
+  title: string;
+  columns: string[];
+  rows: (string | number | boolean | null)[][];
+}
+
+export interface WorkUnit {
+  id: number;
+  name: string;
+  description?: string | null;
+  isActive: boolean;
+}
+
+export type TerminationBasis = 'LeaveLimitExceeded' | 'AbsenceLimitExceeded' | 'StudentRequest' | 'Other';
+
+export interface Termination {
+  id: number;
+  studentId: number;
+  studentName: string;
+  departmentName: string;
+  basis: TerminationBasis;
+  decisionDate: string;
+  note: string;
+  leaveDaysUsed: number;
+  unexcusedAbsenceDays: number;
+  decidedByName: string;
+  createdAt: string;
+}
+
+export interface Holiday {
+  id: number;
+  date: string;
+  name: string;
+}
+
+export interface ExamPeriod {
+  id: number;
+  name: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface LeavePolicy {
+  leaveDayLimit: number;
+  leaveWarningRemainingDays: number;
+  absenceDayLimit: number;
+  absenceWarningRemainingDays: number;
+  healthLeaveCountsTowardLimit: boolean;
+}
+
+export interface AuditLog {
+  id: number;
+  occurredAt: string;
+  userId?: number | null;
+  userEmail?: string | null;
+  action: string;
+  entityName: string;
+  entityId?: number | null;
+  details?: string | null;
+  ipAddress?: string | null;
+}

@@ -1,4 +1,4 @@
-import type { AbsenceType, LeaveStatus, LeaveType, PlanStatus, PlannedDayOutcome, TaskStatus } from './api/types';
+import type { AbsenceType, LeaveStatus, LeaveType, PlanStatus, PlannedDayOutcome, TaskStatus, TerminationBasis } from './api/types';
 
 const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
 export const monthName = (m: number) => months[m - 1] ?? '';
@@ -59,3 +59,21 @@ export const taskTone: Record<TaskStatus, Tone> = { Open: 'blue', Completed: 'gr
 export const outcomeTone: Record<PlannedDayOutcome, Tone> = {
   Attended: 'green', OnLeave: 'blue', RecordedAbsence: 'red', Missing: 'amber', Pending: 'gray', Upcoming: 'gray',
 };
+
+export const terminationBasisLabels: Record<TerminationBasis, string> = {
+  LeaveLimitExceeded: 'İzin hakkının aşılması',
+  AbsenceLimitExceeded: 'Devamsızlık sınırının aşılması',
+  StudentRequest: 'Öğrencinin talebi',
+  Other: 'Diğer',
+};
+
+export const reportKinds: { id: string; label: string; needsMonth?: boolean; facultyOnly?: boolean; noAdvisor?: boolean }[] = [
+  { id: 'MonthlyWork', label: 'Aylık çalışma (planlanan / gerçekleşen)', needsMonth: true },
+  { id: 'YearlyWork', label: 'Yıllık çalışma saati' },
+  { id: 'LeaveAndAbsence', label: 'İzin ve devamsızlık' },
+  { id: 'Advisor', label: 'Danışman özeti' },
+  { id: 'StudentList', label: 'Öğrenci listesi (aktif / pasif)' },
+  { id: 'NearLeaveLimit', label: 'İzin sınırına yaklaşanlar' },
+  { id: 'TerminationReview', label: 'İlişik kesme incelemesi', noAdvisor: true },
+  { id: 'MonthlyStatement', label: 'Ay sonu dökümü (TC ve IBAN içerir)', needsMonth: true, facultyOnly: true },
+];
