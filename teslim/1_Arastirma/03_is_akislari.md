@@ -6,7 +6,7 @@ Akışlar Mermaid ile yazılmıştır; GitHub ve Visual Studio Code (Markdown ö
 
 ```mermaid
 flowchart TD
-    A[Öğrenci kayıt formunu açar] --> B[Ad, TC, IBAN, bölüm, öğrenci no,<br/>e-posta, telefon, kayıt yılı girer]
+    A[Öğrenci kayıt formunu açar] --> B[Ad, TC, bölüm, öğrenci no,<br/>e-posta, telefon, kayıt yılı girer]
     B --> C{Doğrulama:<br/>TC geçerli mi, e-posta ve<br/>öğrenci no daha önce var mı?}
     C -- Hayır --> D[Hata mesajı, form düzeltilir]
     D --> B
