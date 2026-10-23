@@ -78,6 +78,13 @@ public class StudentsController : ControllerBase
     public async Task<ActionResult<StudentDetailDto>> StartParticipation(int id, [FromBody] StartParticipationRequest request, CancellationToken ct)
         => Ok(await _students.StartParticipationAsync(id, request, ct));
 
+    /// <summary>Öğrenciye özel yıllık izin hakkını (gün) belirler; boş gönderilirse genel hak geçerli olur.</summary>
+    [HttpPut("{id:int}/leave-allowance")]
+    [Authorize(Roles = AppRoles.FacultyAdmin)]
+    [ProducesResponseType(typeof(StudentDetailDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<StudentDetailDto>> SetLeaveAllowance(int id, [FromBody] SetLeaveAllowanceRequest request, CancellationToken ct)
+        => Ok(await _students.SetLeaveAllowanceAsync(id, request, ct));
+
     /// <summary>Öğrenciyi bir çalışma birimine atar; önceki atama geçmişe taşınır.</summary>
     [HttpPut("{id:int}/unit")]
     [Authorize(Roles = AppRoles.FacultyAdmin)]

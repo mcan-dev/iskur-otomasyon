@@ -197,6 +197,20 @@ public class StudentService : IStudentService
         return student.ToDetail(revealPersonalData: true);
     }
 
+    public async Task<StudentDetailDto> SetLeaveAllowanceAsync(int studentId, SetLeaveAllowanceRequest request, CancellationToken ct = default)
+    {
+        _current.RequireRole(UserRole.FacultyAdmin);
+        var student = await LoadAsync(studentId, ct);
+
+        student.LeaveDayAllowance = request.Days;
+
+        await _audit.RecordAsync(AuditActions.LeaveAllowanceChanged, nameof(StudentProfile), student.Id,
+            request.Days is int days ? $"Gün={days}" : "Genel hakka döndü", ct: ct);
+        await _uow.SaveChangesAsync(ct);
+
+        return student.ToDetail(revealPersonalData: true);
+    }
+
     public async Task<StudentDetailDto> AssignUnitAsync(int studentId, AssignUnitRequest request, CancellationToken ct = default)
     {
         _current.RequireRole(UserRole.FacultyAdmin);

@@ -51,12 +51,8 @@ public static class LeaveMappers
         Used = b.Used,
         Pending = b.Pending,
         Remaining = b.Remaining,
-        HealthLeaveDays = b.HealthLeaveDays,
-        AbsenceLimit = b.AbsenceLimit,
-        UnexcusedAbsenceDays = b.UnexcusedAbsenceDays,
-        AbsenceRemaining = b.AbsenceRemaining,
-        HealthAbsenceDays = b.HealthAbsenceDays,
-        ExcusedAbsenceDays = b.ExcusedAbsenceDays,
+        LeaveDays = b.LeaveDays,
+        AbsenceDays = b.AbsenceDays,
         Warnings = b.Warnings.Select(w => new WarningDto { Code = w.ToString(), Message = Message(w, b) }).ToList()
     };
 
@@ -64,8 +60,6 @@ public static class LeaveMappers
     {
         LeaveWarning.LeaveNearLimit => $"İzin hakkı azalıyor: {b.Remaining:0.##} gün kaldı.",
         LeaveWarning.LeavePendingExceeds => "Bekleyen talepler onaylanırsa izin hakkı aşılacak.",
-        LeaveWarning.LeaveLimitExceeded => $"İzin hakkı aşıldı ({b.Used:0.##}/{b.Limit} gün).",
-        LeaveWarning.AbsenceNearLimit => $"Devamsızlık sınırına yaklaşıldı: {b.AbsenceRemaining:0.##} gün kaldı.",
-        _ => $"Devamsızlık sınırı aşıldı ({b.UnexcusedAbsenceDays:0.##}/{b.AbsenceLimit} gün)."
+        _ => $"İzin hakkı aşıldı ({b.Used:0.##}/{b.Limit} gün)."
     };
 }

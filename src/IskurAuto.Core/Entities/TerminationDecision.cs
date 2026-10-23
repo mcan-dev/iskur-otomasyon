@@ -20,7 +20,7 @@ public class TerminationDecision : BaseEntity
     public decimal LeaveDaysUsed { get; set; }
 
     /// <summary>Karar günündeki yıl için mazeretsiz devamsızlık günü.</summary>
-    public int UnexcusedAbsenceDays { get; set; }
+    public int AbsenceDays { get; set; }
 
     public int DecidedByUserId { get; set; }
 

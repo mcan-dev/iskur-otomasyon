@@ -49,7 +49,7 @@ export default function StudentDetailPage() {
       </div>
       {s && tab === 'general' && <General student={s} role={user?.role} onChanged={student.reload} />}
       {tab === 'plans' && <Plans studentId={id} canReview={user?.role === 'FacultyAdmin'} />}
-      {tab === 'leaves' && <Leaves studentId={id} canReview={user?.role === 'FacultyAdmin'} />}
+      {s && tab === 'leaves' && <Leaves studentId={id} canReview={user?.role === 'FacultyAdmin'} allowance={s.leaveDayAllowance ?? null} onAllowanceChanged={student.reload} />}
       {tab === 'absences' && <Absences studentId={id} canRevoke={user?.role === 'FacultyAdmin'} />}
       {tab === 'attendance' && <Attendance studentId={id} />}
       {tab === 'tasks' && <Tasks studentId={id} />}
@@ -228,7 +228,35 @@ function Plans({ studentId, canReview }: { studentId: number; canReview: boolean
   );
 }
 
-function Leaves({ studentId, canReview }: { studentId: number; canReview: boolean }) {
+function AllowanceCard({ studentId, allowance, policyLimit, onChanged }: { studentId: number; allowance: number | null; policyLimit: number | null; onChanged: () => void }) {
+  const [value, setValue] = useState(allowance === null ? '' : String(allowance));
+  const [message, setMessage] = useState<{ kind: 'error' | 'info'; text: string } | null>(null);
+
+  async function save(days: number | null) {
+    setMessage(null);
+    try {
+      await api.put(`/api/students/${studentId}/leave-allowance`, { days });
+      setValue(days === null ? '' : String(days));
+      setMessage({ kind: 'info', text: days === null ? 'Genel izin hakkına dönüldü.' : 'Öğrencinin izin hakkı güncellendi.' });
+      onChanged();
+    } catch (err) {
+      setMessage({ kind: 'error', text: err instanceof ApiError ? err.message : 'Kaydedilemedi.' });
+    }
+  }
+
+  return (
+    <Card title="İzin hakkını düzenle" subtitle={allowance === null ? `Bu öğrenci genel izin hakkını kullanıyor (${policyLimit ?? ''} gün).` : `Bu öğrenciye özel ${allowance} gün tanımlı.`}>
+      {message && <Alert kind={message.kind}>{message.text}</Alert>}
+      <div className="row">
+        <input type="number" min={0} max={365} value={value} onChange={(e) => setValue(e.target.value)} placeholder="Gün" style={{ width: 110 }} />
+        <button className="btn primary" disabled={value === ''} onClick={() => save(Number(value))}>Kaydet</button>
+        {allowance !== null && <button className="btn" onClick={() => save(null)}>Genel hakka dön</button>}
+      </div>
+    </Card>
+  );
+}
+
+function Leaves({ studentId, canReview, allowance, onAllowanceChanged }: { studentId: number; canReview: boolean; allowance: number | null; onAllowanceChanged: () => void }) {
   const [year, setYear] = useState(new Date().getFullYear());
   const leaves = useLoad(() => api.get<Leave[]>(`/api/leaves?studentId=${studentId}&year=${year}`), [studentId, year]);
   const balance = useLoad(() => api.get<LeaveBalance>(`/api/leaves/students/${studentId}/balance?year=${year}`), [studentId, year]);
@@ -241,10 +269,10 @@ function Leaves({ studentId, canReview }: { studentId: number; canReview: boolea
           <Stat label="İzin hakkı" value={`${b.limit} gün`} />
           <Stat label="Kullanılan" value={`${b.used} gün`} tone="amber" />
           <Stat label="Kalan" value={`${b.remaining} gün`} tone="green" />
-          <Stat label="Mazeretsiz devamsızlık" value={`${b.unexcusedAbsenceDays} / ${b.absenceLimit}`} tone={b.absenceRemaining <= 1 ? 'red' : 'blue'} />
         </div>
       )}
       {b?.warnings.map((w) => <Alert key={w.code} kind="warn">{w.message}</Alert>)}
+      {canReview && b && <AllowanceCard studentId={studentId} allowance={allowance} policyLimit={allowance === null ? b.limit : null} onChanged={() => { onAllowanceChanged(); balance.reload(); }} />}
       <Card title="İzin talepleri">
         {leaves.error && <Alert>{leaves.error}</Alert>}
         {leaves.data && <LeaveTable leaves={leaves.data} canReview={canReview} showStudent={false} onChanged={() => { leaves.reload(); balance.reload(); }} />}

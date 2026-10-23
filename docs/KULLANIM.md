@@ -16,13 +16,13 @@ Uç noktaların listesi için [API.md](API.md) dosyasına bakın.
    Personel (danışman, bölüm başkanı, fakülte sekreterliği) de giriş sayfasındaki "Kayıt Ol" düğmesiyle başvurur. Başvuru pasif hesap olarak açılır; Fakülte Sekreterliği "Tanımlar ve Hesaplar" ekranından aktif edince giriş yapılabilir. Fakülte Sekreterliği hesabını doğrudan da açabilir. İlk fakülte hesabı kurulumda tanımlanır (`Bootstrap` ayarları, bkz. KURULUM.md).
    Hesap ve ilk program katılım dönemi birlikte oluşur.
 2. **Profil:** Telefon ve IBAN bilgisi kendi ekranından güncellenir.
-3. **Ders günleri:** Haftalık ders günleri girilir; takvimde bu günler ayrıca işaretlenir.
+3. **Ders günleri:** Dersli günler elle işaretlenir ve her gün için öğleden önce, öğleden sonra ya da tam gün seçilir; takvimde bu günler ve ders zamanı ayrıca görünür. IBAN kaydedilmeden gün seçimi ve plan kaydedilemez; Kaydet'e basınca "IBAN'ı giriniz" uyarısı çıkar ve Profilim sayfasına yönlendirir.
 4. **Aylık plan:**
    - Her hafta için 1 ile 3 gün seçilir. Hafta, perşembe gününün düştüğü aya sayılır.
    - Takvimde tatiller, sınav dönemleri ve ders günleri renkle işaretlidir.
    - Plan düzeltme için son gün ayarlardan belirlenir (varsayılan 5). Kaydedilen plan Fakülte Sekreterliği tarafından onaylanır veya gerekçeyle reddedilir.
    - Plan durumu ve geçmiş planlar listeden izlenir.
-5. **İzin:** Talep tarih aralığı veya saat ile açılır. Kalan izin hakkı (yılda 10 gün) ve uyarılar talebin yanıtında görünür.
+5. **İzin:** Talep tarih aralığı veya saat ile açılır. Tek bir izin hakkı vardır (varsayılan yılda 10 gün); onaylı izinler ve fakültenin girdiği devamsızlıklar aynı haktan düşer, mazeretli/mazeretsiz ayrımı yoktur. Kalan hak ve uyarılar talebin yanıtında görünür.
    Rapor gibi belgeler PDF, JPG veya PNG (en çok 5 MB) olarak eklenir. Onaylanmadan önce talep iptal edilebilir.
 6. **Devam:** Çalışma günü başında, fakülte ekranındaki karekod telefonla okutulur. Karekod her 30 saniyede yenilenir;
    eski görüntü çalışmaz. Okutma reddedilirse sebep ekranda yazar (oturum kapalı, bugün planda yok, izinli vb.).
@@ -55,8 +55,8 @@ Fakültedeki tüm kayıtları görür ve yönetir.
 - **Öğrenci yönetimi:** Öğrenciyi çalışma birimine atar, danışman atar, programa dahil eder veya katılımı sonlandırır.
   Her değişiklik tarihli geçmiş olarak saklanır.
 - **Plan onayı:** Öğrenci planlarını onaylar veya reddeder; gerekirse öğrenci adına plan girer.
-- **İzin:** Talepleri onaylar veya reddeder, izin hakkı ve devamsızlık sınırına yaklaşanları uyarılardan izler.
-  İzin hakkı ve sınırlar ayarlardan değiştirilir.
+- **İzin:** Talepleri onaylar veya reddeder, izin hakkına yaklaşanları uyarılardan izler.
+  Genel izin hakkı ayarlardan, belirli bir öğrencinin hakkı ise öğrencinin sayfasındaki İzin sekmesinden ("İzin hakkını düzenle") değiştirilir; fakülte sekreterliği ve dekanlık bu sekmede öğrencinin izin durumunu da görür.
 - **Devamsızlık:** Devamsızlık yalnızca bu rol tarafından girilir. Hatalı kayıt gerekçeyle geri alınır.
 - **Devam oturumu:** Fakülte genelinde veya bir bölüm için oturum açar, karekodu gösterir, elle devam girer veya iptal eder.
 - **Raporlar:** Aylık ve yıllık çalışma, izin ve devamsızlık, danışman, öğrenci listesi, sınıra yaklaşanlar ve

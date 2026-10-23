@@ -15,9 +15,6 @@ public class LeavePolicyService : ILeavePolicyProvider, ILeaveSettingsService
     private const string Prefix = "Leave.";
     private const string LeaveLimit = Prefix + "DayLimit";
     private const string LeaveWarning = Prefix + "WarningRemainingDays";
-    private const string AbsenceLimit = Prefix + "AbsenceDayLimit";
-    private const string AbsenceWarning = Prefix + "AbsenceWarningRemainingDays";
-    private const string HealthCounts = Prefix + "HealthCountsTowardLimit";
 
     private readonly ISystemSettingRepository _settings;
     private readonly IUnitOfWork _uow;
@@ -48,9 +45,6 @@ public class LeavePolicyService : ILeavePolicyProvider, ILeaveSettingsService
 
         await Upsert(stored, LeaveLimit, request.LeaveDayLimit.ToString());
         await Upsert(stored, LeaveWarning, request.LeaveWarningRemainingDays.ToString());
-        await Upsert(stored, AbsenceLimit, request.AbsenceDayLimit.ToString());
-        await Upsert(stored, AbsenceWarning, request.AbsenceWarningRemainingDays.ToString());
-        await Upsert(stored, HealthCounts, request.HealthLeaveCountsTowardLimit.ToString());
 
         await _audit.RecordAsync(AuditActions.LeavePolicyChanged, nameof(SystemSetting), ct: ct);
         await _uow.SaveChangesAsync(ct);
@@ -73,11 +67,6 @@ public class LeavePolicyService : ILeavePolicyProvider, ILeaveSettingsService
 
         policy.LeaveDayLimit = Int(values, LeaveLimit, policy.LeaveDayLimit);
         policy.LeaveWarningRemainingDays = Int(values, LeaveWarning, policy.LeaveWarningRemainingDays);
-        policy.AbsenceDayLimit = Int(values, AbsenceLimit, policy.AbsenceDayLimit);
-        policy.AbsenceWarningRemainingDays = Int(values, AbsenceWarning, policy.AbsenceWarningRemainingDays);
-        policy.HealthLeaveCountsTowardLimit = values.TryGetValue(HealthCounts, out var flag)
-            ? bool.TryParse(flag, out var parsed) && parsed
-            : policy.HealthLeaveCountsTowardLimit;
 
         return policy;
     }
@@ -88,9 +77,6 @@ public class LeavePolicyService : ILeavePolicyProvider, ILeaveSettingsService
     private static LeavePolicyDto ToDto(LeavePolicy p) => new()
     {
         LeaveDayLimit = p.LeaveDayLimit,
-        LeaveWarningRemainingDays = p.LeaveWarningRemainingDays,
-        AbsenceDayLimit = p.AbsenceDayLimit,
-        AbsenceWarningRemainingDays = p.AbsenceWarningRemainingDays,
-        HealthLeaveCountsTowardLimit = p.HealthLeaveCountsTowardLimit
+        LeaveWarningRemainingDays = p.LeaveWarningRemainingDays
     };
 }

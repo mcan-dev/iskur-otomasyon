@@ -36,6 +36,9 @@ public class StudentDetailDto
     public int RegistrationYear { get; set; }
     public bool IsActive { get; set; }
 
+    /// <summary>Öğrenciye özel izin hakkı (gün); boşsa genel hak geçerlidir.</summary>
+    public int? LeaveDayAllowance { get; set; }
+
     public UnitAssignmentDto? CurrentUnit { get; set; }
     public AdvisorAssignmentDto? CurrentAdvisor { get; set; }
 
@@ -111,6 +114,13 @@ public class StartParticipationRequest
 {
     /// <summary>Boş bırakılırsa bugün.</summary>
     public DateOnly? StartDate { get; set; }
+}
+
+public class SetLeaveAllowanceRequest
+{
+    /// <summary>Öğrenciye özel yıllık izin hakkı (gün). Boş bırakılırsa genel hak geçerli olur.</summary>
+    [Range(0, 365)]
+    public int? Days { get; set; }
 }
 
 public class AssignUnitRequest

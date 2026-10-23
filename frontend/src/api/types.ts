@@ -69,9 +69,8 @@ export interface LeaveBalance {
   used: number;
   pending: number;
   remaining: number;
-  absenceLimit: number;
-  unexcusedAbsenceDays: number;
-  absenceRemaining: number;
+  leaveDays: number;
+  absenceDays: number;
   warnings: Warning[];
 }
 
@@ -95,6 +94,13 @@ export interface LeaveAlert {
 }
 
 export type PlanStatus = 'Pending' | 'Approved' | 'Rejected';
+export type CourseSession = 'FullDay' | 'Morning' | 'Afternoon';
+
+export interface CourseDay {
+  day: string;
+  session: CourseSession;
+}
+
 export type CalendarColor = 'Green' | 'Red' | 'Yellow' | 'Gray';
 
 export interface CalendarDay {
@@ -104,6 +110,7 @@ export interface CalendarDay {
   isSelectable: boolean;
   isSelected: boolean;
   isLessonDay: boolean;
+  lessonSession?: CourseSession | null;
   isExamPeriod: boolean;
   note?: string | null;
 }
@@ -171,8 +178,6 @@ export interface LeaveResult {
   balance: LeaveBalance;
 }
 
-export type AbsenceType = 'Unexcused' | 'HealthReport' | 'Excused';
-
 export interface Absence {
   id: number;
   studentId?: number;
@@ -181,7 +186,6 @@ export interface Absence {
   recordedByName?: string;
   revokeReason?: string | null;
   date: string;
-  type: AbsenceType;
   note?: string | null;
   isRevoked: boolean;
 }
@@ -296,6 +300,7 @@ export interface AbsenceNotice {
 
 export interface StudentDetailStaff extends StudentProfileFull {
   departmentId: number;
+  leaveDayAllowance?: number | null;
   currentUnit?: { workUnitId: number; workUnitName: string } | null;
   currentAdvisor?: { advisorUserId: number; advisorName: string } | null;
 }
@@ -313,7 +318,7 @@ export interface WorkUnit {
   isActive: boolean;
 }
 
-export type TerminationBasis = 'LeaveLimitExceeded' | 'AbsenceLimitExceeded' | 'StudentRequest' | 'Other';
+export type TerminationBasis = 'LeaveLimitExceeded' | 'StudentRequest' | 'Other';
 
 export interface Termination {
   id: number;
@@ -324,7 +329,7 @@ export interface Termination {
   decisionDate: string;
   note: string;
   leaveDaysUsed: number;
-  unexcusedAbsenceDays: number;
+  absenceDays: number;
   decidedByName: string;
   createdAt: string;
 }
@@ -345,9 +350,6 @@ export interface ExamPeriod {
 export interface LeavePolicy {
   leaveDayLimit: number;
   leaveWarningRemainingDays: number;
-  absenceDayLimit: number;
-  absenceWarningRemainingDays: number;
-  healthLeaveCountsTowardLimit: boolean;
 }
 
 export interface AuditLog {

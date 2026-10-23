@@ -38,6 +38,7 @@ public interface IStudentService
     // Yönetim işlemleri
     Task<StudentDetailDto> EndParticipationAsync(int studentId, EndParticipationRequest request, CancellationToken ct = default);
     Task<StudentDetailDto> StartParticipationAsync(int studentId, StartParticipationRequest request, CancellationToken ct = default);
+    Task<StudentDetailDto> SetLeaveAllowanceAsync(int studentId, SetLeaveAllowanceRequest request, CancellationToken ct = default);
     Task<StudentDetailDto> AssignUnitAsync(int studentId, AssignUnitRequest request, CancellationToken ct = default);
     Task<StudentDetailDto> AssignAdvisorAsync(int studentId, AssignAdvisorRequest request, CancellationToken ct = default);
 }
@@ -91,8 +92,8 @@ public interface IWorkPlanService
 
 public interface ICourseDayService
 {
-    Task<IReadOnlyList<DayOfWeek>> GetMineAsync(CancellationToken ct = default);
-    Task<IReadOnlyList<DayOfWeek>> SetMineAsync(CourseDaysRequest request, CancellationToken ct = default);
+    Task<IReadOnlyList<CourseDayDto>> GetMineAsync(CancellationToken ct = default);
+    Task<IReadOnlyList<CourseDayDto>> SetMineAsync(CourseDaysRequest request, CancellationToken ct = default);
 }
 
 public interface ICalendarService
