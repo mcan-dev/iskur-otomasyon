@@ -50,6 +50,9 @@ Yalnızca Development'ta oluşur, parola `Demo1234!`:
 | Bölüm Başkanı | baskan.bm@teknoloji.edu.tr |
 | Danışman | danisman.bm@teknoloji.edu.tr |
 | Öğrenci | ogrenci@teknoloji.edu.tr, ogrenci2@teknoloji.edu.tr |
+| Onay bekleyen danışman (giriş yapamaz, fakülte aktif edince girer) | bekleyen.danisman@teknoloji.edu.tr |
+
+Başvuru onayı: Fakülte Sekreterliği girişi, Tanımlar ve Hesaplar, Personel hesapları, ilgili satırda "Aktif yap".
 
 ## Testler
 
