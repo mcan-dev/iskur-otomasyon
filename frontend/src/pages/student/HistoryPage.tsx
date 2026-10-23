@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { api } from '../../api/client';
-import type { Absence, Attendance, Leave, WorkPlan } from '../../api/types';
-import { Alert, Badge, Card, Empty } from '../../components/ui';
+import type { Absence, Attendance, AttendanceComparison, Leave, WorkPlan } from '../../api/types';
+import { Alert, Badge, Card, Empty, MonthPicker } from '../../components/ui';
 import {
-  absenceTypeLabels, fmtDate, fmtDateTime, leaveStatusLabels, leaveTone, leaveTypeLabels, monthYear, planStatusLabels, planTone,
+  absenceTypeLabels, fmtDate, fmtDateTime, leaveStatusLabels, leaveTone, leaveTypeLabels, monthYear, outcomeLabels, outcomeTone, planStatusLabels, planTone,
 } from '../../format';
 import { useLoad } from '../../useLoad';
 
-type Tab = 'plans' | 'leaves' | 'absences' | 'attendance';
+type Tab = 'summary' | 'plans' | 'leaves' | 'absences' | 'attendance';
 const tabs: { id: Tab; label: string }[] = [
+  { id: 'summary', label: 'Çalışılan günler' },
   { id: 'plans', label: 'Çalışma planları' },
   { id: 'leaves', label: 'İzinler' },
   { id: 'absences', label: 'Devamsızlıklar' },
@@ -18,7 +19,7 @@ const tabs: { id: Tab; label: string }[] = [
 export default function HistoryPage() {
   const thisYear = new Date().getFullYear();
   const [year, setYear] = useState(thisYear);
-  const [tab, setTab] = useState<Tab>('plans');
+  const [tab, setTab] = useState<Tab>('summary');
   const years = Array.from({ length: 6 }, (_, i) => thisYear - i);
 
   return (
@@ -31,15 +32,77 @@ export default function HistoryPage() {
             </button>
           ))}
         </div>
+        {tab !== 'summary' && (
         <select value={year} onChange={(e) => setYear(Number(e.target.value))}>
           {years.map((y) => <option key={y} value={y}>{y}</option>)}
         </select>
+        )}
       </div>
+      {tab === 'summary' && <Summary />}
       {tab === 'plans' && <Plans year={year} />}
       {tab === 'leaves' && <Leaves year={year} />}
       {tab === 'absences' && <Absences year={year} />}
       {tab === 'attendance' && <Records year={year} />}
     </Card>
+  );
+}
+
+const weekdayName = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString('tr-TR', { weekday: 'long' });
+
+/** Seçilen ayda kaç saat çalışıldığını ve hangi günlerde çalışıldığını gösterir. */
+function Summary() {
+  const now = new Date();
+  const [year, setYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState(now.getMonth() + 1);
+  const data = useLoad(() => api.get<AttendanceComparison>(`/api/attendance/me/comparison?year=${year}&month=${month}`), [year, month]);
+  const c = data.data;
+
+  return (
+    <div className="stack">
+      <MonthPicker year={year} month={month} onChange={(y, m) => { setYear(y); setMonth(m); }} />
+      {data.error && <Alert>{data.error}</Alert>}
+      {c && !c.hasApprovedPlan && <Empty>Bu ay için onaylı çalışma planı yok.</Empty>}
+      {c && c.hasApprovedPlan && (
+        <>
+          <div className="tiles">
+            <div className="tile-card tone-bg-green">
+              <div>
+                <span className="tile-label">Çalışılan saat</span>
+                <strong className="tile-value">{c.workedHours} saat</strong>
+                <span className="tile-hint">Günlük {c.dailyHours} saat</span>
+              </div>
+            </div>
+            <div className="tile-card">
+              <div>
+                <span className="tile-label">Çalışılan gün</span>
+                <strong className="tile-value">{c.attendedDays} / {c.plannedDays}</strong>
+                <span className="tile-hint">Planlanan günler içinde</span>
+              </div>
+            </div>
+            <div className="tile-card tone-bg-amber">
+              <div>
+                <span className="tile-label">İzinli / devamsız gün</span>
+                <strong className="tile-value">{c.leaveDays} / {c.recordedAbsenceDays + c.missingDays}</strong>
+                <span className="tile-hint">{monthYear(year, month)}</span>
+              </div>
+            </div>
+          </div>
+          <table className="table">
+            <thead><tr><th>Tarih</th><th>Gün</th><th>Durum</th><th>Çalışılan saat</th></tr></thead>
+            <tbody>
+              {c.days.map((d) => (
+                <tr key={d.date}>
+                  <td>{fmtDate(d.date)}</td>
+                  <td>{weekdayName(d.date)}</td>
+                  <td><Badge tone={outcomeTone[d.outcome]}>{outcomeLabels[d.outcome]}</Badge></td>
+                  <td>{d.outcome === 'Attended' ? `${c.dailyHours} saat` : '–'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      )}
+    </div>
   );
 }
 

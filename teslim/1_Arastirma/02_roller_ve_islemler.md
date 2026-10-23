@@ -48,7 +48,7 @@ edince giriş yapılabilir. Böylece yetkili bir hesap kendi kendine açılamaz.
 | Görev değerlendirme, "Tamamlandı / Tamamlanmadı" | – | ● | – | – |
 | Devamsızlık bildirimi gönderme | – | ● | – | – |
 | Devamsızlık bildirimlerini inceleme | – | ○ (kendi gönderdikleri) | ● | ○ |
-| Rapor alma (ekran, Excel, CSV) | – | ● (kendi öğrencileri) | ● (bölümü) | ● |
+| Rapor alma (ekran, Excel, CSV) | – | – | ● (bölümü) | ● |
 | Ay sonu dökümü (TC ve IBAN içerir) | – | – | – | ● |
 | İlişik kesme incelemesini görme | – | – | ● | ● |
 | İlişik kesme kararı girme | – | – | – | ● |

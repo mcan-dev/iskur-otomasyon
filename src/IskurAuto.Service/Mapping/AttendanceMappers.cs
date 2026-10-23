@@ -46,7 +46,7 @@ public static class AttendanceMappers
         VoidReason = r.VoidReason
     };
 
-    public static AttendanceComparisonDto ToDto(this AttendanceComparison c, int studentId, int year, int month, bool hasPlan) => new()
+    public static AttendanceComparisonDto ToDto(this AttendanceComparison c, int studentId, int year, int month, bool hasPlan, decimal dailyHours) => new()
     {
         StudentId = studentId,
         Year = year,
@@ -57,6 +57,8 @@ public static class AttendanceMappers
         LeaveDays = c.LeaveDays,
         RecordedAbsenceDays = c.RecordedAbsenceDays,
         MissingDays = c.MissingDays,
+        WorkedHours = c.AttendedDays * dailyHours,
+        DailyHours = dailyHours,
         Days = c.Days.Select(d => new PlannedDayDto { Date = d.Date, Outcome = d.Outcome }).ToList()
     };
 }
