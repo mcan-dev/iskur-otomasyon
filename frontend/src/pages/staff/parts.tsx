@@ -3,7 +3,7 @@ import { api, ApiError } from '../../api/client';
 import type { Absence, Leave, WorkPlan } from '../../api/types';
 import { Alert, Badge, Empty, Field, Modal } from '../../components/ui';
 import {
-  absenceTypeLabels, fmtDate, fmtDateTime, leaveStatusLabels, leaveTone, leaveTypeLabels, monthYear, planStatusLabels, planTone,
+  fmtDate, fmtDateTime, leaveStatusLabels, leaveTone, monthYear, planStatusLabels, planTone,
 } from '../../format';
 
 const msg = (err: unknown, fallback: string) => (err instanceof ApiError ? err.message : fallback);
@@ -104,7 +104,7 @@ export function LeaveTable({ leaves, canReview, onChanged, showStudent = true }:
         <thead>
           <tr>
             {showStudent && <th>Öğrenci</th>}
-            <th>Tarih</th><th>Tür</th><th>Süre</th><th>Gerekçe</th><th>Durum</th><th></th>
+            <th>Tarih</th><th>Süre</th><th>Gerekçe</th><th>Durum</th><th></th>
           </tr>
         </thead>
         <tbody>
@@ -112,7 +112,6 @@ export function LeaveTable({ leaves, canReview, onChanged, showStudent = true }:
             <tr key={l.id}>
               {showStudent && <td>{l.studentName}<div className="muted small">{l.departmentName}</div></td>}
               <td>{fmtDate(l.startDate)}{l.startDate !== l.endDate && ` – ${fmtDate(l.endDate)}`}</td>
-              <td>{leaveTypeLabels[l.type]}</td>
               <td>{l.hours ? `${l.hours} saat` : `${l.daysCounted} gün`}</td>
               <td>
                 {l.reason}
@@ -160,14 +159,13 @@ export function AbsenceTable({ absences, canRevoke, onChanged, showStudent = tru
     <>
       <table className="table">
         <thead>
-          <tr>{showStudent && <th>Öğrenci</th>}<th>Tarih</th><th>Tür</th><th>Not</th><th>Kaydeden</th><th></th></tr>
+          <tr>{showStudent && <th>Öğrenci</th>}<th>Tarih</th><th>Not</th><th>Kaydeden</th><th></th></tr>
         </thead>
         <tbody>
           {absences.map((a) => (
             <tr key={a.id}>
               {showStudent && <td>{a.studentName}<div className="muted small">{a.departmentName}</div></td>}
               <td>{fmtDate(a.date)}</td>
-              <td>{absenceTypeLabels[a.type]}</td>
               <td>{a.note}</td>
               <td>{a.recordedByName}</td>
               <td>

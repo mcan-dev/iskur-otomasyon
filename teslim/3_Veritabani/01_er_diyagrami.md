@@ -39,13 +39,13 @@ erDiagram
     Department { int Id string Name string Code bool IsActive }
     WorkUnit { int Id string Name string Description bool IsActive }
     User { int Id string FullName string Email string PasswordHash enum Role int DepartmentId bool IsActive }
-    StudentProfile { int Id int UserId string NationalId string Iban string StudentNumber int DepartmentId int RegistrationYear }
+    StudentProfile { int Id int UserId string NationalId string Iban string StudentNumber int DepartmentId int RegistrationYear int LeaveDayAllowance }
     ProgramParticipation { int Id date StartDate date EndDate string EndReason }
     StudentUnitAssignment { int Id date StartDate date EndDate }
     AdvisorAssignment { int Id date StartDate date EndDate }
     Holiday { int Id date Date string Name }
     ExamPeriod { int Id string Name date StartDate date EndDate }
-    StudentCourseDay { int Id int StudentProfileId int DayOfWeek }
+    StudentCourseDay { int Id int StudentProfileId int DayOfWeek enum Session }
     MonthlyWorkPlan { int Id int StudentProfileId int Year int Month enum Status string StudentNote datetime LastSavedAt int ReviewedByUserId datetime ReviewedAt string ReviewNote }
     WorkPlanDay { int Id int MonthlyWorkPlanId date Date bool IsLessonDay string Note }
     LeaveRequest { int Id int StudentProfileId enum Type enum Status date StartDate date EndDate decimal Hours decimal DaysCounted string Reason date AppliedOn int ReviewedByUserId datetime ReviewedAt string ReviewNote string DocumentStoredName }
@@ -55,7 +55,7 @@ erDiagram
     StudentTask { int Id int StudentProfileId string Title string Description date AssignedDate date DueDate int AssignedByUserId enum Status datetime StatusChangedAt }
     TaskEvaluation { int Id int StudentTaskId int AuthorUserId string Note enum NewStatus datetime CreatedAt }
     AbsenceNotice { int Id int StudentProfileId date Date string Message int AdvisorUserId datetime CreatedAt datetime ReadAt int ReadByUserId }
-    TerminationDecision { int Id int StudentProfileId enum Basis date DecisionDate string Note decimal LeaveDaysUsed int UnexcusedAbsenceDays int DecidedByUserId datetime CreatedAt }
+    TerminationDecision { int Id int StudentProfileId enum Basis date DecisionDate string Note decimal LeaveDaysUsed int AbsenceDays int DecidedByUserId datetime CreatedAt }
     PasswordResetToken { int Id int UserId string TokenHash datetime ExpiresAt datetime UsedAt }
     SystemSetting { int Id string Key string Value }
     AuditLog { long Id datetime OccurredAt string Action string EntityName int EntityId }

@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { api, ApiError } from '../../api/client';
-import type { Leave, LeaveBalance, LeaveResult, LeaveType } from '../../api/types';
+import type { Leave, LeaveBalance, LeaveResult } from '../../api/types';
 import { Alert, Badge, Card, Empty, Field, Stat } from '../../components/ui';
-import { fmtDate, leaveStatusLabels, leaveTone, leaveTypeLabels, todayIso } from '../../format';
+import { fmtDate, leaveStatusLabels, leaveTone, todayIso } from '../../format';
 import { useLoad } from '../../useLoad';
 
 export default function LeavesPage() {
@@ -17,9 +17,8 @@ export default function LeavesPage() {
     <div className="stack">
       <div className="stats">
         <Stat label={`${year} izin hakkı`} value={b ? `${b.limit} gün` : '–'} tone="blue" />
-        <Stat label="Kullanılan" value={b ? `${b.used} gün` : '–'} hint={b && b.pending > 0 ? `${b.pending} gün onay bekliyor` : undefined} tone="amber" />
+        <Stat label="Kullanılan" value={b ? `${b.used} gün` : '–'} hint={b ? `${b.leaveDays} gün izin, ${b.absenceDays} gün devamsızlık${b.pending > 0 ? `, ${b.pending} gün onay bekliyor` : ''}` : undefined} tone="amber" />
         <Stat label="Kalan" value={b ? `${b.remaining} gün` : '–'} tone="green" />
-        <Stat label="Mazeretsiz devamsızlık" value={b ? `${b.unexcusedAbsenceDays} / ${b.absenceLimit}` : '–'} tone={b && b.absenceRemaining <= 1 ? 'red' : 'blue'} />
       </div>
       {[...(b?.warnings.map((w) => w.message) ?? []), ...warnings].map((w, i) => (
         <Alert key={i} kind="warn">{w}</Alert>
@@ -78,7 +77,7 @@ function LeaveItem({ leave, onChanged }: { leave: Leave; onChanged: () => void }
         <Badge tone={leaveTone[leave.status]}>{leaveStatusLabels[leave.status]}</Badge>
       </div>
       <p className="muted small">
-        {leaveTypeLabels[leave.type]} · {leave.hours ? `${leave.hours} saat` : `${leave.daysCounted} gün`} · Başvuru {fmtDate(leave.appliedOn)}
+        {leave.hours ? `${leave.hours} saat` : `${leave.daysCounted} gün`} · Başvuru {fmtDate(leave.appliedOn)}
       </p>
       <p>{leave.reason}</p>
       {leave.reviewNote && <p className="muted small">İnceleme notu: {leave.reviewNote}</p>}
@@ -107,7 +106,6 @@ function LeaveItem({ leave, onChanged }: { leave: Leave; onChanged: () => void }
 
 function NewLeave({ onCreated }: { onCreated: (r: LeaveResult) => void }) {
   const today = todayIso();
-  const [type, setType] = useState<LeaveType>('Excuse');
   const [start, setStart] = useState(today);
   const [end, setEnd] = useState(today);
   const [hours, setHours] = useState('');
@@ -122,7 +120,6 @@ function NewLeave({ onCreated }: { onCreated: (r: LeaveResult) => void }) {
     setBusy(true);
     try {
       const result = await api.post<LeaveResult>('/api/leaves/me', {
-        type,
         startDate: start,
         endDate: end,
         hours: start === end && hours ? Number(hours.replace(',', '.')) : null,
@@ -150,13 +147,6 @@ function NewLeave({ onCreated }: { onCreated: (r: LeaveResult) => void }) {
     <Card title="Yeni izin talebi">
       <form onSubmit={submit}>
         {error && !hasFields && <Alert>{error.message}</Alert>}
-        <Field label="İzin türü">
-          <select value={type} onChange={(e) => setType(e.target.value as LeaveType)}>
-            {(Object.keys(leaveTypeLabels) as LeaveType[]).map((t) => (
-              <option key={t} value={t}>{leaveTypeLabels[t]}</option>
-            ))}
-          </select>
-        </Field>
         <Field label="Başlangıç" error={fieldMsg('startDate')}>
           <input type="date" value={start} onChange={(e) => { setStart(e.target.value); if (e.target.value > end) setEnd(e.target.value); }} required />
         </Field>

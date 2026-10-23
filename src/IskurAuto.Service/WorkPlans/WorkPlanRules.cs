@@ -21,11 +21,11 @@ public sealed class PlanMonth
 {
     private readonly HashSet<DateOnly> _holidays;
     private readonly IReadOnlyList<ExamPeriod> _examPeriods;
-    private readonly HashSet<DayOfWeek> _lessonDays;
+    private readonly Dictionary<DayOfWeek, CourseSession> _lessonDays;
     private readonly IReadOnlyList<ProgramPeriod> _programPeriods;
 
     public PlanMonth(int year, int month, IEnumerable<DateOnly> holidays, IEnumerable<ExamPeriod> examPeriods,
-        IEnumerable<DayOfWeek> lessonDays, IEnumerable<ProgramPeriod> programPeriods)
+        IEnumerable<StudentCourseDay> lessonDays, IEnumerable<ProgramPeriod> programPeriods)
     {
         Year = year;
         Month = month;
@@ -33,7 +33,7 @@ public sealed class PlanMonth
         Last = First.AddMonths(1).AddDays(-1);
         _holidays = holidays.ToHashSet();
         _examPeriods = examPeriods.ToList();
-        _lessonDays = lessonDays.ToHashSet();
+        _lessonDays = lessonDays.ToDictionary(c => c.DayOfWeek, c => c.Session);
         _programPeriods = programPeriods.ToList();
     }
 
@@ -59,7 +59,10 @@ public sealed class PlanMonth
         return DayBlock.None;
     }
 
-    public bool IsLessonDay(DateOnly date) => _lessonDays.Contains(date.DayOfWeek);
+    public bool IsLessonDay(DateOnly date) => _lessonDays.ContainsKey(date.DayOfWeek);
+
+    public CourseSession? LessonSession(DateOnly date)
+        => _lessonDays.TryGetValue(date.DayOfWeek, out var session) ? session : null;
 
     public bool IsExamDay(DateOnly date) => _examPeriods.Any(e => date >= e.StartDate && date <= e.EndDate);
 

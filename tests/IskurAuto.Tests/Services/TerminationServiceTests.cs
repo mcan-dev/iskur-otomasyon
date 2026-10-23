@@ -12,11 +12,11 @@ public class TerminationServiceTests
 {
     private static readonly DateOnly Today = new(2026, 10, 21);
 
-    private static RecordTerminationRequest Decision(int studentId, TerminationBasis basis = TerminationBasis.AbsenceLimitExceeded) => new()
+    private static RecordTerminationRequest Decision(int studentId, TerminationBasis basis = TerminationBasis.Other) => new()
     {
         StudentId = studentId,
         Basis = basis,
-        Note = "Mazeretsiz devamsızlık sınırı aşıldı, inceleme tamamlandı."
+        Note = "Devamsızlık nedeniyle, inceleme tamamlandı."
     };
 
     private static async Task ApproveLeaveAsync(TestDb db, SeedResult seed, DateOnly from, DateOnly to)

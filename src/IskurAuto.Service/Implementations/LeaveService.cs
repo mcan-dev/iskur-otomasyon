@@ -269,7 +269,7 @@ public class LeaveService : ILeaveService
                 Student = s,
                 Balance = LeaveBalanceCalculator.Calculate(policy,
                     leaves.Where(l => l.StudentProfileId == s.Id),
-                    absences.Where(a => a.StudentProfileId == s.Id))
+                    absences.Where(a => a.StudentProfileId == s.Id), s.LeaveDayAllowance)
             })
             .Where(x => x.Balance.Warnings.Count > 0)
             .OrderByDescending(x => x.Balance.Warnings.Max())
@@ -323,7 +323,9 @@ public class LeaveService : ILeaveService
         var leaves = await _leaves.SearchAsync(new LeaveSearchCriteria { StudentId = studentId, Year = year }, ct);
         var absences = await _absences.SearchAsync(new AbsenceSearchCriteria { StudentId = studentId, Year = year }, ct);
 
-        return LeaveBalanceCalculator.Calculate(policy, leaves, absences).ToDto(year);
+        var student = await _students.GetByIdAsync(studentId);
+
+        return LeaveBalanceCalculator.Calculate(policy, leaves, absences, student?.LeaveDayAllowance).ToDto(year);
     }
 
     private async Task<LeaveResultDto> ResultAsync(int leaveId, CancellationToken ct)

@@ -43,8 +43,19 @@ Ayarlar `src/IskurAuto.API/appsettings.json` içindedir. Gizli değerler dosyaya
 | `WorkPlan:DailyHours` | 8 | Günlük çalışma süresi (saat). Çalışılan her gün tam gündür, yarım gün yoktur. |
 | `Bootstrap:AdminEmail` / `AdminPassword` | boş | Sistemde hiç Fakülte Sekreterliği hesabı yoksa ilk yönetici bununla oluşturulur. |
 
-İzin hakkı ve devamsızlık sınırları dosyada değil veritabanındadır; Fakülte Sekreterliği hesabıyla
+Genel izin hakkı ve uyarı eşiği dosyada değil veritabanındadır; Fakülte Sekreterliği hesabıyla
 `PUT /api/settings/leave` üzerinden değiştirilir. Değişiklik denetim kaydına yazılır.
+
+## Demo verisini sıfırlama
+
+Şema değiştiğinde ya da demo verisi bozulduğunda veritabanı silinip yeniden kurulabilir (yalnızca Development):
+
+```powershell
+.\scripts\sifirla.ps1
+# başka bir SQL Server için: .\scripts\sifirla.ps1 -Sunucu "DESKTOP-B3EQC6H"
+```
+
+Betik veritabanını siler, API'yi başlatır ve her rolün her sayfasını dolduran demo kayıtlarını yeniden yazar.
 
 ## Üretim kurulumu
 

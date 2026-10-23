@@ -23,6 +23,12 @@ public class StudentProfile : BaseEntity
     /// <summary>Kayıt yılı (örn. 2026).</summary>
     public int RegistrationYear { get; set; }
 
+    /// <summary>
+    /// Öğrenciye özel yıllık izin hakkı (gün). Boşsa genel izin hakkı geçerlidir.
+    /// Fakülte sekreterliği tarafından değiştirilir.
+    /// </summary>
+    public int? LeaveDayAllowance { get; set; }
+
     // Navigation
     public User User { get; set; } = null!;
     public Department Department { get; set; } = null!;

@@ -273,3 +273,16 @@ textarea { font: inherit; }
 .qr-bar i { display: block; height: 100%; background: var(--blue); transition: width .25s linear; }
 .scroll-x { overflow-x: auto; }
 .right-cell { text-align: right; white-space: nowrap; }
+
+/* İzin / özet kartları */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+.stat { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 16px 18px; }
+.stat > .muted { font-size: 13px; font-weight: 600; }
+.stat-value { font-size: 24px; line-height: 1.2; }
+
+/* Ders günleri */
+.course-days { display: flex; flex-direction: column; gap: 8px; }
+.course-day { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; }
+.course-day label { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.course-day select { width: auto; min-width: 150px; }
+.course-day.off select { opacity: .45; }

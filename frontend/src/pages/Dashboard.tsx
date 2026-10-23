@@ -101,7 +101,6 @@ function StudentSummary() {
         <Tile icon="building" label="Çalıştığı birim" value={p?.currentUnit?.workUnitName ?? 'Atanmadı'} />
         <Tile icon="user" label="Danışman" value={p?.currentAdvisor?.advisorName ?? 'Atanmadı'} />
         <Tile icon="mail" label="Kalan izin hakkı" value={b ? `${b.remaining} gün` : '–'} hint={b ? `${b.year} yılı, ${b.limit} gün üzerinden` : undefined} tone="green" />
-        <Tile icon="alert" label="Mazeretsiz devamsızlık" value={b ? `${b.unexcusedAbsenceDays} gün` : '–'} hint={b ? `Sınır ${b.absenceLimit} gün` : undefined} tone="amber" />
       </div>
       <Section title="Sizi Bekleyenler">
         <ul className="todo">
@@ -174,7 +173,7 @@ function StaffSummary({ role }: { role: string }) {
                   <th>Öğrenci</th>
                   <th>Bölüm</th>
                   <th>Kalan izin</th>
-                  <th>Mazeretsiz devamsızlık</th>
+                  <th>Kullanılan</th>
                 </tr>
               </thead>
               <tbody>
@@ -184,7 +183,7 @@ function StaffSummary({ role }: { role: string }) {
                     <td>{x.departmentName}</td>
                     <td>{x.balance.remaining} gün</td>
                     <td>
-                      {x.balance.unexcusedAbsenceDays} / {x.balance.absenceLimit}
+                      {x.balance.used} / {x.balance.limit}
                     </td>
                   </tr>
                 ))}

@@ -97,7 +97,7 @@ public class WorkPlanServiceTests
         using var _ = db;
 
         using (var scope = db.NewScope())
-            await scope.CourseDays.SetMineAsync(new CourseDaysRequest { Days = [DayOfWeek.Tuesday] });
+            await scope.CourseDays.SetMineAsync(new CourseDaysRequest { Days = [new CourseDayDto { Day = DayOfWeek.Tuesday }] });
 
         using (var scope = db.NewScope())
             await Assert.ThrowsAsync<DomainValidationException>(() => scope.WorkPlans.SaveMyPlanAsync(ValidPlan()));
@@ -370,18 +370,57 @@ public class CourseDayAndCalendarServiceTests
         {
             var saved = await scope.CourseDays.SetMineAsync(new CourseDaysRequest
             {
-                Days = [DayOfWeek.Wednesday, DayOfWeek.Monday, DayOfWeek.Monday]
+                Days =
+                [
+                    new CourseDayDto { Day = DayOfWeek.Wednesday, Session = CourseSession.Morning },
+                    new CourseDayDto { Day = DayOfWeek.Monday },
+                    new CourseDayDto { Day = DayOfWeek.Monday }
+                ]
             });
-            Assert.Equal(new[] { DayOfWeek.Monday, DayOfWeek.Wednesday }, saved);
+            Assert.Equal(new[] { DayOfWeek.Monday, DayOfWeek.Wednesday }, saved.Select(c => c.Day));
             await Assert.ThrowsAsync<DomainValidationException>(() =>
-                scope.CourseDays.SetMineAsync(new CourseDaysRequest { Days = [DayOfWeek.Saturday] }));
+                scope.CourseDays.SetMineAsync(new CourseDaysRequest { Days = [new CourseDayDto { Day = DayOfWeek.Saturday }] }));
         }
 
         using (var scope = db.NewScope())
         {
-            await scope.CourseDays.SetMineAsync(new CourseDaysRequest { Days = [DayOfWeek.Wednesday, DayOfWeek.Friday] });
-            Assert.Equal(new[] { DayOfWeek.Wednesday, DayOfWeek.Friday }, await scope.CourseDays.GetMineAsync());
+            await scope.CourseDays.SetMineAsync(new CourseDaysRequest
+            {
+                Days =
+                [
+                    new CourseDayDto { Day = DayOfWeek.Wednesday, Session = CourseSession.Afternoon },
+                    new CourseDayDto { Day = DayOfWeek.Friday }
+                ]
+            });
+            var stored = await scope.CourseDays.GetMineAsync();
+            Assert.Equal(new[] { DayOfWeek.Wednesday, DayOfWeek.Friday }, stored.Select(c => c.Day));
+            Assert.Equal(CourseSession.Afternoon, stored[0].Session);   // öğleden sonra seçimi korunur
+            Assert.Equal(CourseSession.FullDay, stored[1].Session);
         }
+    }
+
+    [Fact]
+    public async Task CourseDaysAndPlan_CannotBeSaved_WithoutIban()
+    {
+        using var db = new TestDb();
+        var seed = TestData.Seed(db);
+        db.Current.As(UserRole.Student, seed.MehmetUserId);
+
+        using (var ctx = db.NewContext())
+        {
+            (await ctx.StudentProfiles.FindAsync(seed.MehmetId))!.Iban = string.Empty;
+            await ctx.SaveChangesAsync();
+        }
+
+        using var scope = db.NewScope();
+        var days = new CourseDaysRequest { Days = [new CourseDayDto { Day = DayOfWeek.Monday }] };
+
+        var courseError = await Assert.ThrowsAsync<DomainValidationException>(() => scope.CourseDays.SetMineAsync(days));
+        Assert.True(courseError.Errors.ContainsKey("Iban"));
+
+        var planError = await Assert.ThrowsAsync<DomainValidationException>(() =>
+            scope.WorkPlans.SaveMyPlanAsync(new SaveWorkPlanRequest { Year = 2026, Month = 11, Days = new() }));
+        Assert.True(planError.Errors.ContainsKey("Iban"));
     }
 
     [Fact]

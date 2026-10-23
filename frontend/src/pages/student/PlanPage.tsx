@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api, ApiError } from '../../api/client';
-import type { PlanCalendar, WorkPlan } from '../../api/types';
+import type { CourseDay, CourseSession, PlanCalendar, WorkPlan } from '../../api/types';
 import { Alert, Badge, Card, MonthPicker } from '../../components/ui';
-import { fmtDate, fmtDateTime, planStatusLabels, planTone, weekdays } from '../../format';
+import { courseSessionLabels, fmtDate, fmtDateTime, planStatusLabels, planTone, weekdays } from '../../format';
 import { useLoad } from '../../useLoad';
 
 const headers = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
@@ -17,7 +18,7 @@ export default function PlanPage() {
 
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [note, setNote] = useState('');
-  const [message, setMessage] = useState<{ kind: 'error' | 'info'; text: string } | null>(null);
+  const [message, setMessage] = useState<{ kind: 'error' | 'warn' | 'info'; text: string; iban?: boolean } | null>(null);
   const [busy, setBusy] = useState(false);
 
   // Takvim yüklenince seçimleri sunucudaki duruma getir.
@@ -56,7 +57,7 @@ export default function PlanPage() {
       plan.reload();
       setMessage({ kind: 'info', text: 'Plan kaydedildi ve onaya gönderildi.' });
     } catch (err) {
-      setMessage({ kind: 'error', text: err instanceof ApiError ? errorText(err) : 'Plan kaydedilemedi.' });
+      setMessage(failure(err, 'Plan kaydedilemedi.'));
     } finally {
       setBusy(false);
     }
@@ -75,7 +76,7 @@ export default function PlanPage() {
           </div>
 
           {calendar.error && <Alert>{calendar.error}</Alert>}
-          {message && <Alert kind={message.kind}>{message.text}</Alert>}
+          {message && <Alert kind={message.kind}>{message.text}{message.iban && <> <Link to="/profil">Profilime git</Link></>}</Alert>}
           {cal && !canEdit && <Alert kind="info">Bu ay için plan değiştirilemez (son düzeltme günü: {fmtDate(cal.editDeadline)}).</Alert>}
           {status === 'Rejected' && plan.data?.reviewNote && <Alert kind="warn">Planınız reddedildi: {plan.data.reviewNote}</Alert>}
 
@@ -99,6 +100,7 @@ export default function PlanPage() {
                 >
                   <span className="num">{Number(d.date.slice(8))}</span>
                   <span className="lbl">{d.label}</span>
+                  {d.lessonSession && <span className="lbl">Ders: {courseSessionLabels[d.lessonSession].toLowerCase()}</span>}
                   {chosen && <span className="lbl">8 saat</span>}
                 </div>
               );
@@ -146,44 +148,72 @@ export default function PlanPage() {
   );
 }
 
+function failure(err: unknown, fallback: string): { kind: 'error' | 'warn'; text: string; iban?: boolean } {
+  if (!(err instanceof ApiError)) return { kind: 'error', text: fallback };
+  if (err.fieldErrors.Iban || err.fieldErrors.iban) return { kind: 'warn', text: "IBAN'ı giriniz. Gün seçimini kaydedebilmek için önce IBAN bilginizi kaydetmelisiniz.", iban: true };
+  return { kind: 'error', text: errorText(err) };
+}
+
 function errorText(err: ApiError): string {
   const details = Object.values(err.fieldErrors).flat();
   return details.length ? details.join(' ') : err.message;
 }
 
 function CourseDays({ onSaved }: { onSaved: () => void }) {
-  const days = useLoad(() => api.get<string[]>('/api/students/me/course-days'), []);
-  const [selected, setSelected] = useState<string[]>([]);
-  const [message, setMessage] = useState('');
+  const days = useLoad(() => api.get<CourseDay[]>('/api/students/me/course-days'), []);
+  const [selected, setSelected] = useState<Record<string, CourseSession>>({});
+  const [message, setMessage] = useState<{ kind: 'error' | 'warn' | 'info'; text: string; iban?: boolean } | null>(null);
 
-  useEffect(() => setSelected(days.data ?? []), [days.data]);
+  useEffect(() => {
+    const next: Record<string, CourseSession> = {};
+    days.data?.forEach((d) => { next[d.day] = d.session; });
+    setSelected(next);
+  }, [days.data]);
 
   async function save() {
-    setMessage('');
+    setMessage(null);
     try {
-      await api.put('/api/students/me/course-days', { days: selected });
-      setMessage('Ders günleriniz kaydedildi.');
+      await api.put('/api/students/me/course-days', { days: Object.entries(selected).map(([day, session]) => ({ day, session })) });
+      setMessage({ kind: 'info', text: 'Ders günleriniz kaydedildi.' });
+      days.reload();
       onSaved();
     } catch (err) {
-      setMessage(err instanceof ApiError ? err.message : 'Kaydedilemedi.');
+      setMessage(failure(err, 'Kaydedilemedi.'));
     }
   }
 
-  const toggle = (v: string) => setSelected((s) => (s.includes(v) ? s.filter((x) => x !== v) : [...s, v]));
+  function toggle(day: string) {
+    setSelected((s) => {
+      const copy = { ...s };
+      if (day in copy) delete copy[day];
+      else copy[day] = 'FullDay';
+      return copy;
+    });
+  }
 
   return (
-    <Card title="Ders günlerim" subtitle="Derslerinizin olduğu günler takvimde işaretlenir.">
-      <div className="checks">
-        {weekdays.slice(0, 5).map((w) => (
-          <label key={w.value}>
-            <input type="checkbox" checked={selected.includes(w.value)} onChange={() => toggle(w.value)} />
-            {w.label}
-          </label>
-        ))}
+    <Card title="Ders günlerim" subtitle="Derslerinizin olduğu günleri ve zamanını girin; takvimde işaretlenir.">
+      {message && <Alert kind={message.kind}>{message.text}{message.iban && <> <Link to="/profil">Profilime git</Link></>}</Alert>}
+      <div className="course-days">
+        {weekdays.slice(0, 5).map((w) => {
+          const on = w.value in selected;
+          return (
+            <div key={w.value} className={`course-day ${on ? '' : 'off'}`}>
+              <label>
+                <input type="checkbox" checked={on} onChange={() => toggle(w.value)} />
+                {w.label}
+              </label>
+              <select value={selected[w.value] ?? 'FullDay'} disabled={!on} onChange={(e) => setSelected((s) => ({ ...s, [w.value]: e.target.value as CourseSession }))}>
+                {(Object.keys(courseSessionLabels) as CourseSession[]).map((k) => (
+                  <option key={k} value={k}>{courseSessionLabels[k]}</option>
+                ))}
+              </select>
+            </div>
+          );
+        })}
       </div>
       <div className="row" style={{ marginTop: 12 }}>
-        <button className="btn" onClick={save}>Kaydet</button>
-        {message && <span className="muted">{message}</span>}
+        <button className="btn primary" onClick={save}>Kaydet</button>
       </div>
     </Card>
   );

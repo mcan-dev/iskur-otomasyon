@@ -67,7 +67,7 @@ public class TerminationService : ITerminationService
         if (decisionDate < participation.StartDate)
             throw new DomainValidationException(nameof(request.DecisionDate), "Karar tarihi program başlangıcından önce olamaz.");
 
-        var balance = await BalanceAsync(student.Id, decisionDate.Year, ct);
+        var balance = await BalanceAsync(student, decisionDate.Year, ct);
 
         await using var tx = await _uow.BeginTransactionAsync(ct);
 
@@ -84,7 +84,7 @@ public class TerminationService : ITerminationService
             DecisionDate = decisionDate,
             Note = note,
             LeaveDaysUsed = balance.Used,
-            UnexcusedAbsenceDays = (int)balance.UnexcusedAbsenceDays,
+            AbsenceDays = (int)balance.AbsenceDays,
             DecidedByUserId = _current.UserId,
             CreatedAt = _clock.UtcNow
         };
@@ -110,17 +110,16 @@ public class TerminationService : ITerminationService
         return decisions.Select(ToDto).ToList();
     }
 
-    private async Task<LeaveBalance> BalanceAsync(int studentId, int year, CancellationToken ct)
+    private async Task<LeaveBalance> BalanceAsync(StudentProfile student, int year, CancellationToken ct)
     {
-        var leaves = await _leaves.SearchAsync(new LeaveSearchCriteria { StudentId = studentId, Year = year }, ct);
-        var absences = await _absences.SearchAsync(new AbsenceSearchCriteria { StudentId = studentId, Year = year }, ct);
-        return LeaveBalanceCalculator.Calculate(await _policy.GetAsync(ct), leaves, absences);
+        var leaves = await _leaves.SearchAsync(new LeaveSearchCriteria { StudentId = student.Id, Year = year }, ct);
+        var absences = await _absences.SearchAsync(new AbsenceSearchCriteria { StudentId = student.Id, Year = year }, ct);
+        return LeaveBalanceCalculator.Calculate(await _policy.GetAsync(ct), leaves, absences, student.LeaveDayAllowance);
     }
 
     private static string BasisText(TerminationBasis basis) => basis switch
     {
         TerminationBasis.LeaveLimitExceeded => "izin hakkının aşılması",
-        TerminationBasis.AbsenceLimitExceeded => "devamsızlık sınırının aşılması",
         TerminationBasis.StudentRequest => "öğrencinin talebi",
         _ => "diğer"
     };
@@ -135,7 +134,7 @@ public class TerminationService : ITerminationService
         DecisionDate = d.DecisionDate,
         Note = d.Note,
         LeaveDaysUsed = d.LeaveDaysUsed,
-        UnexcusedAbsenceDays = d.UnexcusedAbsenceDays,
+        AbsenceDays = d.AbsenceDays,
         DecidedByName = d.DecidedByUser.FullName,
         CreatedAt = d.CreatedAt
     };
