@@ -4,7 +4,6 @@ namespace IskurAuto.Core.Enums;
 public enum TerminationBasis
 {
     LeaveLimitExceeded = 1,
-    AbsenceLimitExceeded = 2,
-    StudentRequest = 3,
-    Other = 4
+    StudentRequest = 2,
+    Other = 3
 }

@@ -390,7 +390,7 @@ public class LeaveServiceTests
             Assert.Equal(10, (await scope.LeaveSettings.GetAsync()).LeaveDayLimit);
             await scope.LeaveSettings.UpdateAsync(new LeavePolicyDto
             {
-                LeaveDayLimit = 3, LeaveWarningRemainingDays = 1, AbsenceDayLimit = 2, AbsenceWarningRemainingDays = 0
+                LeaveDayLimit = 3, LeaveWarningRemainingDays = 1
             });
         }
 
@@ -467,7 +467,7 @@ public class AbsenceServiceTests
 
         using (var scope = db.NewScope())
         {
-            Assert.Equal(1m, (await scope.Leaves.GetStudentBalanceAsync(seed.MehmetId, 2026)).UnexcusedAbsenceDays);
+            Assert.Equal(1m, (await scope.Leaves.GetStudentBalanceAsync(seed.MehmetId, 2026)).AbsenceDays);
 
             await Assert.ThrowsAsync<DomainValidationException>(() =>
                 scope.Absences.RevokeAsync(recorded.Id, new RevokeAbsenceRequest { Reason = "" }));
@@ -481,7 +481,7 @@ public class AbsenceServiceTests
 
         using (var scope = db.NewScope())
         {
-            Assert.Equal(0m, (await scope.Leaves.GetStudentBalanceAsync(seed.MehmetId, 2026)).UnexcusedAbsenceDays);
+            Assert.Equal(0m, (await scope.Leaves.GetStudentBalanceAsync(seed.MehmetId, 2026)).AbsenceDays);
             await scope.Absences.RecordAsync(Absent(seed.MehmetId));   // gün yeniden kaydedilebilir
             Assert.Equal(2, (await scope.Absences.SearchAsync(new AbsenceQuery { Year = 2026 })).Count);   // eski kayıt silinmedi
         }
@@ -517,7 +517,35 @@ public class AbsenceServiceTests
     }
 
     [Fact]
-    public async Task Balance_ShowsAbsenceWarnings_AfterTheLimitIsPassed()
+    public async Task LeaveAllowance_CanBeSetPerStudent_OnlyByFaculty()
+    {
+        using var db = new TestDb();
+        var seed = TestData.Seed(db);
+
+        db.Current.As(UserRole.DepartmentHead, seed.HeadId, seed.BmId);
+        using (var scope = db.NewScope())
+            await Assert.ThrowsAsync<ForbiddenException>(() =>
+                scope.Students.SetLeaveAllowanceAsync(seed.MehmetId, new SetLeaveAllowanceRequest { Days = 15 }));
+
+        db.Current.As(UserRole.FacultyAdmin, seed.AdminId);
+        using (var scope = db.NewScope())
+        {
+            var detail = await scope.Students.SetLeaveAllowanceAsync(seed.MehmetId, new SetLeaveAllowanceRequest { Days = 15 });
+            Assert.Equal(15, detail.LeaveDayAllowance);
+            Assert.Equal(15, (await scope.Leaves.GetStudentBalanceAsync(seed.MehmetId, 2026)).Limit);
+            Assert.Equal(10, (await scope.Leaves.GetStudentBalanceAsync(seed.ElifId, 2026)).Limit);   // diğer öğrenci etkilenmez
+
+            var cleared = await scope.Students.SetLeaveAllowanceAsync(seed.MehmetId, new SetLeaveAllowanceRequest());
+            Assert.Null(cleared.LeaveDayAllowance);
+            Assert.Equal(10, (await scope.Leaves.GetStudentBalanceAsync(seed.MehmetId, 2026)).Limit);
+        }
+
+        using var verify = db.NewContext();
+        Assert.True(await verify.AuditLogs.AnyAsync(a => a.Action == AuditActions.LeaveAllowanceChanged));
+    }
+
+    [Fact]
+    public async Task Balance_AbsencesAndLeaveShareTheSameAllowance()
     {
         using var db = new TestDb();
         var seed = TestData.Seed(db);
@@ -530,8 +558,8 @@ public class AbsenceServiceTests
 
         var balance = await scope.Leaves.GetStudentBalanceAsync(seed.MehmetId, 2026);
 
-        Assert.Equal(6m, balance.UnexcusedAbsenceDays);
-        Assert.Equal(1m, balance.HealthAbsenceDays);
-        Assert.Contains(balance.Warnings, w => w.Code == "AbsenceLimitExceeded");
+        Assert.Equal(7m, balance.AbsenceDays);          // tür fark etmez, hepsi düşer
+        Assert.Equal(7m, balance.Used);
+        Assert.Equal(3m, balance.Remaining);
     }
 }

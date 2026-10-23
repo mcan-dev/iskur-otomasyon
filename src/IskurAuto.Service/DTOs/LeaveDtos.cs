@@ -63,14 +63,15 @@ public class LeaveBalanceDto
     public int Year { get; set; }
     public int Limit { get; set; }
     public decimal Used { get; set; }
+
+    /// <summary>Kullanılan günün izin olarak harcanan kısmı.</summary>
+    public decimal LeaveDays { get; set; }
+
+    /// <summary>Kullanılan günün devamsızlık olarak harcanan kısmı.</summary>
+    public decimal AbsenceDays { get; set; }
+
     public decimal Pending { get; set; }
     public decimal Remaining { get; set; }
-    public decimal HealthLeaveDays { get; set; }
-    public int AbsenceLimit { get; set; }
-    public decimal UnexcusedAbsenceDays { get; set; }
-    public decimal AbsenceRemaining { get; set; }
-    public decimal HealthAbsenceDays { get; set; }
-    public decimal ExcusedAbsenceDays { get; set; }
     public List<WarningDto> Warnings { get; set; } = new();
 }
 
@@ -104,7 +105,8 @@ public class RecordAbsenceRequest
 
     public DateOnly Date { get; set; }
 
-    public AbsenceType Type { get; set; }
+    /// <summary>İzin hakkından düşme açısından türler arasında fark yoktur; her devamsızlık günü 1 gün sayılır.</summary>
+    public AbsenceType Type { get; set; } = AbsenceType.Unexcused;
 
     [StringLength(500)]
     public string? Note { get; set; }
@@ -149,13 +151,6 @@ public class LeavePolicyDto
     [Range(0, 365)]
     public int LeaveWarningRemainingDays { get; set; }
 
-    [Range(0, 365)]
-    public int AbsenceDayLimit { get; set; }
-
-    [Range(0, 365)]
-    public int AbsenceWarningRemainingDays { get; set; }
-
-    public bool HealthLeaveCountsTowardLimit { get; set; }
 }
 
 public sealed class DocumentUpload

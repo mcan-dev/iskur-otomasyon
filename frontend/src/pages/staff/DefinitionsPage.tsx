@@ -414,24 +414,18 @@ function Policy() {
     }
   }
 
-  const num = (key: keyof Omit<LeavePolicy, 'healthLeaveCountsTowardLimit'>) => (
+  const num = (key: keyof LeavePolicy) => (
     <input type="number" min={0} max={365} value={form?.[key] ?? 0} onChange={(e) => form && setV({ ...form, [key]: Number(e.target.value) })} required />
   );
 
   return (
-    <Card title="İzin ve devamsızlık sınırları" subtitle="Sınırlar kod içinde sabit değildir; fakülte yönetimi buradan belirler. Raporlardaki uyarılar bu değerlere göre hesaplanır.">
+    <Card title="İzin hakkı" subtitle="Tek bir izin hakkı vardır; izinler ve devamsızlıklar bu haktan düşer. Belirli bir öğrenci için farklı bir hak, öğrenci sayfasından verilebilir.">
       {(error || policy.error) && <Alert>{error || policy.error}</Alert>}
       {done && <Alert kind="info">Ayarlar kaydedildi.</Alert>}
       {form && (
         <form onSubmit={submit} style={{ maxWidth: 460 }}>
           <Field label="Yıllık izin hakkı (gün)">{num('leaveDayLimit')}</Field>
           <Field label="İzin uyarısı (kalan gün)" hint="Kalan izin bu değere indiğinde uyarı verilir.">{num('leaveWarningRemainingDays')}</Field>
-          <Field label="Devamsızlık sınırı (gün)">{num('absenceDayLimit')}</Field>
-          <Field label="Devamsızlık uyarısı (kalan gün)">{num('absenceWarningRemainingDays')}</Field>
-          <label className="row" style={{ margin: '8px 0 14px' }}>
-            <input type="checkbox" checked={form.healthLeaveCountsTowardLimit} onChange={(e) => setV({ ...form, healthLeaveCountsTowardLimit: e.target.checked })} />
-            Sağlık izinleri izin hakkından düşsün
-          </label>
           <button className="btn primary">Kaydet</button>
         </form>
       )}

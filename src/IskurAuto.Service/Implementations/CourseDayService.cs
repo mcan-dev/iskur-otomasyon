@@ -28,36 +28,55 @@ public class CourseDayService : ICourseDayService
         _current = current;
     }
 
-    public async Task<IReadOnlyList<DayOfWeek>> GetMineAsync(CancellationToken ct = default)
+    public async Task<IReadOnlyList<CourseDayDto>> GetMineAsync(CancellationToken ct = default)
     {
         _current.RequireRole(UserRole.Student);
 
         var student = await LoadMineAsync(ct);
         var stored = await _courseDays.GetByStudentAsync(student.Id, ct);
-        return stored.Select(c => c.DayOfWeek).OrderBy(Order).ToList();
+        return stored.Select(ToDto).OrderBy(c => Order(c.Day)).ToList();
     }
 
-    public async Task<IReadOnlyList<DayOfWeek>> SetMineAsync(CourseDaysRequest request, CancellationToken ct = default)
+    public async Task<IReadOnlyList<CourseDayDto>> SetMineAsync(CourseDaysRequest request, CancellationToken ct = default)
     {
         _current.RequireRole(UserRole.Student);
 
-        var requested = request.Days.Distinct().ToList();
-        if (requested.Any(d => d is DayOfWeek.Saturday or DayOfWeek.Sunday))
+        var requested = request.Days.GroupBy(d => d.Day).Select(g => g.Last()).ToList();
+        if (requested.Any(d => d.Day is DayOfWeek.Saturday or DayOfWeek.Sunday))
             throw new DomainValidationException(nameof(request.Days), "Ders günleri hafta içi günlerden seçilmelidir.");
+        if (requested.Any(d => !Enum.IsDefined(d.Session)))
+            throw new DomainValidationException(nameof(request.Days), "Ders zamanı geçersiz.");
 
         var student = await LoadMineAsync(ct);
+        EnsureIbanSaved(student);
+
         var stored = await _courseDays.GetByStudentAsync(student.Id, ct);
 
-        _courseDays.RemoveRange(stored.Where(c => !requested.Contains(c.DayOfWeek)).ToList());
+        _courseDays.RemoveRange(stored.Where(c => requested.All(r => r.Day != c.DayOfWeek)).ToList());
 
-        var missing = requested.Where(d => stored.All(c => c.DayOfWeek != d));
-        await _courseDays.AddRangeAsync(missing.Select(d => new StudentCourseDay { StudentProfileId = student.Id, DayOfWeek = d }));
+        foreach (var item in requested)
+        {
+            var existing = stored.FirstOrDefault(c => c.DayOfWeek == item.Day);
+            if (existing is null)
+                await _courseDays.AddRangeAsync(new[] { new StudentCourseDay { StudentProfileId = student.Id, DayOfWeek = item.Day, Session = item.Session } });
+            else
+                existing.Session = item.Session;
+        }
 
         await _audit.RecordAsync(AuditActions.CourseDaysUpdated, nameof(StudentProfile), student.Id, ct: ct);
         await _uow.SaveChangesAsync(ct);
 
-        return requested.OrderBy(Order).ToList();
+        return requested.OrderBy(c => Order(c.Day)).ToList();
     }
+
+    /// <summary>Gün seçimi, IBAN kaydedilmeden onaya gidemez.</summary>
+    internal static void EnsureIbanSaved(StudentProfile student)
+    {
+        if (string.IsNullOrWhiteSpace(student.Iban))
+            throw new DomainValidationException("Iban", "IBAN'ı giriniz. Gün seçimini kaydedebilmek için profilinizden IBAN bilgisini kaydetmelisiniz.");
+    }
+
+    private static CourseDayDto ToDto(StudentCourseDay c) => new() { Day = c.DayOfWeek, Session = c.Session };
 
     private async Task<StudentProfile> LoadMineAsync(CancellationToken ct)
         => await _students.GetDetailByUserIdAsync(_current.UserId, ct)

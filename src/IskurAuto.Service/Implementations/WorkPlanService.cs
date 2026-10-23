@@ -79,6 +79,7 @@ public class WorkPlanService : IWorkPlanService
         EnsureValidMonth(request.Year, request.Month);
 
         var student = await LoadMineAsync(ct);
+        CourseDayService.EnsureIbanSaved(student);
         if (!student.IsActive)
             throw new ConflictException("Programda aktif olmadığınız için plan oluşturamazsınız.");
 
@@ -256,7 +257,7 @@ public class WorkPlanService : IWorkPlanService
         var periods = student.Participations.Select(p => new ProgramPeriod(p.StartDate, p.EndDate));
 
         return new PlanMonth(year, month, holidays.Select(h => h.Date), examPeriods,
-            courseDays.Select(c => c.DayOfWeek), periods);
+            courseDays, periods);
     }
 
     private void EnsureStudentMayEdit(MonthlyWorkPlan? plan, int year, int month)

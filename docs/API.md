@@ -27,6 +27,7 @@ Roller: **Fakülte** = Dekanlık/Fakülte Sekreterliği, **Bölüm Başkanı**, 
 | GET | `/api/students/{id}` | Giriş yapmış herkes | Öğrenci detayı, tüm geçmişiyle. Ham TC/IBAN yalnızca fakülte yönetimine ve öğrencinin kendisine gösterilir; yönetimin ham veriye erişimi denetim kaydına yazılır.  |
 | POST | `/api/students/{id}/end-participation` | Fakülte | Öğrencinin program katılımını sonlandırır (kayıt silinmez, pasif olur). |
 | POST | `/api/students/{id}/start-participation` | Fakülte | Pasif öğrenciyi yeni bir katılım dönemiyle programa yeniden dahil eder. |
+| PUT | `/api/students/{id}/leave-allowance` | Fakülte | Öğrenciye özel yıllık izin hakkını (gün) belirler; boş gönderilirse genel hak geçerli olur. |
 | PUT | `/api/students/{id}/unit` | Fakülte | Öğrenciyi bir çalışma birimine atar; önceki atama geçmişe taşınır. |
 | PUT | `/api/students/{id}/advisor` | Fakülte, Bölüm Başkanı | Öğrenciye danışman atar; önceki danışman geçmişe taşınır. Bölüm başkanı yalnızca kendi bölümü için. |
 
@@ -79,7 +80,7 @@ Roller: **Fakülte** = Dekanlık/Fakülte Sekreterliği, **Bölüm Başkanı**, 
 | Yöntem | Adres | Kim | Açıklama |
 |---|---|---|---|
 | GET | `/api/students/me/course-days` | Öğrenci |  |
-| PUT | `/api/students/me/course-days` | Öğrenci |  |
+| PUT | `/api/students/me/course-days` | Öğrenci | Her gün için `FullDay`, `Morning` veya `Afternoon` seçilir. IBAN kayıtlı değilse `Iban` alan hatası döner. |
 
 ## Takvim (tatil ve sınav dönemi)
 
