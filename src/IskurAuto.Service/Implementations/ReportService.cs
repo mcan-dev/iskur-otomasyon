@@ -113,7 +113,7 @@ public class ReportService : IReportService
                 _current.RequireRole(UserRole.FacultyAdmin, UserRole.DepartmentHead);
                 break;
             default:
-                _current.RequireRole(UserRole.FacultyAdmin, UserRole.DepartmentHead, UserRole.Advisor);
+                _current.RequireRole(UserRole.FacultyAdmin, UserRole.DepartmentHead);
                 break;
         }
     }

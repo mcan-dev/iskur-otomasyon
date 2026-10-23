@@ -213,6 +213,8 @@ export interface AttendanceComparison {
   leaveDays: number;
   recordedAbsenceDays: number;
   missingDays: number;
+  workedHours: number;
+  dailyHours: number;
   days: { date: string; outcome: PlannedDayOutcome }[];
 }
 

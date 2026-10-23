@@ -117,5 +117,10 @@ public class AttendanceComparisonDto
     public decimal LeaveDays { get; set; }
     public decimal RecordedAbsenceDays { get; set; }
     public decimal MissingDays { get; set; }
+
+    /// <summary>Gerçekleşen çalışma saati: devam kaydı olan gün sayısı x günlük saat.</summary>
+    public decimal WorkedHours { get; set; }
+
+    public decimal DailyHours { get; set; }
     public IReadOnlyList<PlannedDayDto> Days { get; set; } = Array.Empty<PlannedDayDto>();
 }

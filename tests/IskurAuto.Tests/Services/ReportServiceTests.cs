@@ -157,8 +157,16 @@ public class ReportServiceTests
         var head = await ReportAsync(f, ReportKind.MonthlyWork, anotherDepartment, UserRole.DepartmentHead);
         Assert.Equal(new[] { "Mehmet Öztürk", "TOPLAM" }, Names(head));      // istenen bölüm kapsamı aşamaz
 
-        var advisor = await ReportAsync(f, ReportKind.MonthlyWork, October, UserRole.Advisor);
-        Assert.Equal(new[] { "Mehmet Öztürk", "TOPLAM" }, Names(advisor));
+    }
+
+    [Fact]
+    public async Task Advisors_CannotOpenReports()
+    {
+        using var f = await CreateAsync();
+        f.Db.Current.As(UserRole.Advisor, f.Seed.AdvisorId, f.Seed.BmId);
+        using var scope = f.Db.NewScope();
+
+        await Assert.ThrowsAsync<ForbiddenException>(() => scope.Reports.GetAsync(ReportKind.MonthlyWork, October));
     }
 
     [Fact]

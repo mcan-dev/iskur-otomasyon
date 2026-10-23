@@ -24,7 +24,7 @@ Her ekranın gerçek görüntüsü [2_Tasarimlar/ekranlar](../2_Tasarimlar/ekran
 | İzin Taleplerim | `/izinlerim` | Talep formu, kalan hak, talep listesi | 12 |
 | Karekod ile Devam | `/devam-kaydi` | Karekodu okutma, planlanan/gerçekleşen karşılaştırma | 13 |
 | Görevlerim | `/gorevlerim` | Verilen görevler, notlar, durum | – |
-| Geçmiş Kayıtlarım | `/gecmis` | Önceki ay ve yıllara ait plan, devam, izin | – |
+| Geçmiş Kayıtlarım | `/gecmis` | Aylık çalışılan saat ve çalışılan günler; önceki plan, izin, devamsızlık, devam kayıtları | 15 |
 | Profilim | `/profil` | Kişisel bilgiler, birim, danışman, program dönemleri | 14 |
 
 ## Fakülte Sekreterliği / Dekanlık
@@ -51,7 +51,7 @@ Bölüm Öğrencileri (31), Karekod Devam, İzin ve Devamsızlık, Görevler ve 
 
 ## Danışman
 
-Öğrencilerim (41), Devam Durumu, İzin Durumu, Görev ve Değerlendirme, Devamsızlık Bildirimi, Raporlar. Görüntü: 40, 41.
+Öğrencilerim (41), Devam Durumu, İzin Durumu, Görev ve Değerlendirme, Devamsızlık Bildirimi. Raporları danışman almaz. Görüntü: 40, 41.
 
 ## Ekran taslağı
 

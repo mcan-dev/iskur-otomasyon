@@ -35,6 +35,9 @@ export default function AppLayout() {
 
   if (!user) return null;
 
+  // Dar ekranda menü çekmece gibi açılır, geniş ekranda daralır / genişler.
+  const toggleMenu = () => (window.matchMedia('(max-width: 800px)').matches ? setDrawer((d) => !d) : setCollapsed((c) => !c));
+
   const items = menus[user.role];
   const current = items.find((m) => (m.path === '/' ? location.pathname === '/' : location.pathname.startsWith(m.path)));
   const title = current?.label ?? (location.pathname.startsWith('/ogrenciler/') ? 'Öğrenci Bilgileri' : 'İŞKUR Otomasyonu');
@@ -49,7 +52,7 @@ export default function AppLayout() {
     <div className={`shell ${collapsed ? 'collapsed' : ''} ${drawer ? 'drawer-open' : ''}`}>
       <header className="site-header">
         <div className="header-in">
-          <button className="icon-btn menu-toggle" onClick={() => setDrawer((d) => !d)} aria-label="Menüyü aç veya kapat">
+          <button className="icon-btn menu-toggle" onClick={toggleMenu} aria-label="Menüyü aç veya kapat">
             <Icon name="menu" size={22} />
           </button>
           <Brand />
@@ -97,9 +100,6 @@ export default function AppLayout() {
               </NavLink>
             ))}
           </nav>
-          <button className="link-btn collapse-btn" onClick={() => setCollapsed((c) => !c)}>
-            {collapsed ? '»' : '« Menüyü daralt'}
-          </button>
         </aside>
         {drawer && <div className="drawer-back" onClick={() => setDrawer(false)} />}
 

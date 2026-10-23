@@ -25,10 +25,11 @@ public class AttendanceService : IAttendanceService
     private readonly IClock _clock;
     private readonly IAuditService _audit;
     private readonly ICurrentUser _current;
+    private readonly WorkPlanSettings _settings;
 
     public AttendanceService(IAttendanceSessionRepository sessions, IAttendanceRecordRepository records,
         IStudentRepository students, IWorkPlanRepository plans, ILeaveRepository leaves, IAbsenceRepository absences,
-        IUnitOfWork uow, IClock clock, IAuditService audit, ICurrentUser current)
+        IUnitOfWork uow, IClock clock, IAuditService audit, ICurrentUser current, WorkPlanSettings settings)
     {
         _sessions = sessions;
         _records = records;
@@ -40,6 +41,7 @@ public class AttendanceService : IAttendanceService
         _clock = clock;
         _audit = audit;
         _current = current;
+        _settings = settings;
     }
 
     // ── Oturum ve karekod ────────────────────────────────────────────────────
@@ -380,7 +382,7 @@ public class AttendanceService : IAttendanceService
         var result = AttendanceComparer.Compare(approvedPlan?.Days ?? Enumerable.Empty<WorkPlanDay>(),
             attended, leaves, absences, _clock.Today);
 
-        return result.ToDto(student.Id, year, month, approvedPlan is not null);
+        return result.ToDto(student.Id, year, month, approvedPlan is not null, _settings.DailyHours);
     }
 
     private static string RequireReason(string? value, string field, string message)

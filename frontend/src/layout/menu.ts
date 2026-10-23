@@ -47,7 +47,6 @@ export const menus: Record<Role, MenuItem[]> = {
     { path: '/izinler', label: 'İzin Durumu', icon: 'mail', desc: 'Öğrencilerinizin izin durumu' },
     { path: '/gorevler', label: 'Görev ve Değerlendirme', icon: 'tasks', desc: 'Görev ver, değerlendirme notu yaz' },
     { path: '/bildirimler', label: 'Devamsızlık Bildirimi', icon: 'bell', desc: 'Bölüm başkanlığına bildirim gönder' },
-    { path: '/raporlar', label: 'Raporlar', icon: 'report', desc: 'Aylık çalışma, devam ve izin raporları' },
   ],
   Student: [
     home,
