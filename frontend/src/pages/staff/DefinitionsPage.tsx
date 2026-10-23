@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { api, ApiError } from '../../api/client';
 import type { Department, ExamPeriod, Holiday, LeavePolicy, Role, User, WorkUnit } from '../../api/types';
-import { Alert, Badge, Card, Empty, Field, Modal } from '../../components/ui';
+import { Alert, Badge, Card, Empty, Field, Modal, PhoneInput } from '../../components/ui';
 import { fmtDate } from '../../format';
 import { roleLabels } from '../../layout/menu';
 import { useLoad } from '../../useLoad';
@@ -242,7 +242,7 @@ function StaffForm({ onClose, onDone }: { onClose: () => void; onDone: () => voi
         {error && <Alert>{error}</Alert>}
         <Field label="Ad soyad"><input value={v.fullName} onChange={(e) => setV({ ...v, fullName: e.target.value })} required /></Field>
         <Field label="E-posta"><input type="email" value={v.email} onChange={(e) => setV({ ...v, email: e.target.value })} required /></Field>
-        <Field label="Telefon (isteğe bağlı)"><input value={v.phoneNumber} onChange={(e) => setV({ ...v, phoneNumber: e.target.value })} /></Field>
+        <Field label="Telefon (isteğe bağlı)"><PhoneInput value={v.phoneNumber} onChange={(x) => setV({ ...v, phoneNumber: x })} /></Field>
         <Field label="Rol">
           <select value={v.role} onChange={(e) => setV({ ...v, role: e.target.value as Exclude<Role, 'Student'> })}>
             {staffRoles.map((r) => <option key={r} value={r}>{roleLabels[r]}</option>)}

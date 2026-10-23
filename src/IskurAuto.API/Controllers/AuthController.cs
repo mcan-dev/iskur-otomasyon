@@ -47,6 +47,22 @@ public class AuthController : ControllerBase
         return StatusCode(StatusCodes.Status201Created, result);
     }
 
+    /// <summary>
+    /// Personel başvurusu. Hesap pasif oluşur; fakülte sekreterliği Tanımlar ekranından aktif edince giriş açılır.
+    /// </summary>
+    /// <response code="409">E-posta zaten kayıtlı.</response>
+    [HttpPost("register-staff")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(StaffRegistrationResultDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<StaffRegistrationResultDto>> RegisterStaff(
+        [FromBody] StaffRegistrationRequest request, CancellationToken ct)
+    {
+        var result = await _auth.RegisterStaffAsync(request, ct);
+        return StatusCode(StatusCodes.Status201Created, result);
+    }
+
     /// <summary>Giriş yapmış kullanıcının kendi hesap bilgileri.</summary>
     [HttpGet("me")]
     [Authorize]

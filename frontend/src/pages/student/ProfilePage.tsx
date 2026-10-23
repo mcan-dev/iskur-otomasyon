@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { api, ApiError, firstError } from '../../api/client';
 import type { StudentProfileFull } from '../../api/types';
-import { Alert, Badge, Card, Field } from '../../components/ui';
+import { Alert, Badge, Card, Field, PhoneInput } from '../../components/ui';
 import { fmtDate } from '../../format';
 import { useLoad } from '../../useLoad';
 
@@ -94,7 +94,7 @@ function EditContact({ profile, onSaved }: { profile: StudentProfileFull; onSave
         {done && <Alert kind="info">Bilgileriniz güncellendi.</Alert>}
         <div className="grid-2">
           <Field label="Cep telefonu" error={firstError(error, 'phoneNumber')}>
-            <input value={phone} onChange={(e) => setPhone(e.target.value)} required />
+            <PhoneInput value={phone} onChange={setPhone} required />
           </Field>
           <Field label="IBAN" error={firstError(error, 'iban')}>
             <input value={iban} onChange={(e) => setIban(e.target.value.toUpperCase())} required />

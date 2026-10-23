@@ -21,7 +21,7 @@ export function LoginChooser() {
   if (user) return <Navigate to="/" replace />;
 
   return (
-    <AuthShell side={false} wide>
+    <AuthShell wide>
       <div className="auth-card chooser">
         <h1>Giriş Türünüzü Seçin</h1>
         <p className="muted">İŞKUR Otomasyonu, Selçuk Üniversitesi Teknoloji Fakültesi. Hesabınızın türüne uygun girişi kullanın.</p>
@@ -89,11 +89,9 @@ export default function Login() {
         <button className="btn primary wide" disabled={busy}>
           {busy ? 'Giriş yapılıyor…' : 'Giriş Yap'}
         </button>
-        {type.role === 'Student' && (
-          <p className="muted center">
-            Henüz kaydınız yok mu? <Link to="/kayit">Kayıt olun</Link>
-          </p>
-        )}
+        <Link to={type.role === 'Student' ? '/kayit' : `/kayit/${type.slug}`} className="btn wide">
+          Kayıt Ol
+        </Link>
         <p className="muted center small">
           <Link to="/giris">‹ Başka bir giriş türü seç</Link>
         </p>
