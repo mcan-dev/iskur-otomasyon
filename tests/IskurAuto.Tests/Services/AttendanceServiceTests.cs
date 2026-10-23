@@ -548,6 +548,7 @@ public class AttendanceServiceTests
         Assert.True(comparison.HasApprovedPlan);
         Assert.Equal(5m, comparison.PlannedDays);
         Assert.Equal(1m, comparison.AttendedDays);          // 21 Ekim
+        Assert.Equal(8m, comparison.WorkedHours);           // 1 gün x 8 saat
         Assert.Equal(1m, comparison.RecordedAbsenceDays);   // 6 Ekim
         Assert.Equal(2m, comparison.MissingDays);           // 1 ve 14 Ekim: kayıt da izin de yok
         Assert.Equal(PlannedDayOutcome.Upcoming, comparison.Days.Single(d => d.Date.Day == 28).Outcome);

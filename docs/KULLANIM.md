@@ -27,7 +27,7 @@ Uç noktaların listesi için [API.md](API.md) dosyasına bakın.
 6. **Devam:** Çalışma günü başında, fakülte ekranındaki karekod telefonla okutulur. Karekod her 30 saniyede yenilenir;
    eski görüntü çalışmaz. Okutma reddedilirse sebep ekranda yazar (oturum kapalı, bugün planda yok, izinli vb.).
    Okutamayan öğrenci Fakülte Sekreterliğine başvurur, kayıt gerekçeyle elle girilir.
-7. **Karşılaştırma ve saatler:** Planlanan ve gerçekleşen günler, toplam çalışma saati ve kalan izin hakkı ekranda görünür.
+7. **Karşılaştırma ve saatler:** Planlanan ve gerçekleşen günler, toplam çalışma saati ve kalan izin hakkı ekranda görünür. Geçmiş Kayıtlarım sayfasındaki "Çalışılan günler" sekmesi seçilen ayda kaç saat ve hangi günlerde çalışıldığını gösterir.
 8. **Görevler:** Danışmanın verdiği görevler, notlar ve tamamlanma durumu izlenir. Süresi geçip açık kalan görev "gecikmiş" görünür.
 
 ## Danışman
@@ -36,7 +36,7 @@ Uç noktaların listesi için [API.md](API.md) dosyasına bakın.
 - **Görev:** Öğrenciye başlık, açıklama ve bitiş tarihiyle görev verir. Sonradan başlık ve tarihler değişmez; durum ve notlar değerlendirme olarak eklenir.
   Görev "Tamamlandı" veya "Tamamlanmadı" olarak işaretlenir. Yalnızca öğrencinin güncel danışmanı değerlendirme yapabilir.
 - **Devamsızlık bildirimi:** Öğrencinin gelmediği veya devamda sorun olan gün için bölüm başkanına bildirim gönderir.
-- Geçmiş görev ve değerlendirmelere ulaşır, kendi öğrencileri için rapor alır.
+- Geçmiş görev ve değerlendirmelere ulaşır. Rapor almaz; raporlar Fakülte Sekreterliği ve Bölüm Başkanına aittir.
 
 ## Bölüm başkanı
 

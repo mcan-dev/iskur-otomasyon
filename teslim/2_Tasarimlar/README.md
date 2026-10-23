@@ -19,7 +19,9 @@ Ekran taslakları ve çalışan uygulamadan alınmış ekran görüntüleri.
 | 11-ogrenci-calisma-plani.png | Aylık çalışma planı (renkli takvim) |
 | 12-ogrenci-izin-talepleri.png | İzin talepleri ve kalan hak |
 | 13-ogrenci-karekod-devam.png | Karekodla devam ve karşılaştırma |
+| 15-ogrenci-calisilan-gunler.png | Geçmiş kayıtlar: aylık çalışılan saat ve günler |
 | 14-ogrenci-profil.png | Öğrenci profili |
+| 15-ogrenci-calisilan-gunler.png | Geçmiş kayıtlar: aylık çalışılan saat ve günler |
 | 20-fakulte-ana-sayfa.png | Fakülte sekreterliği ana sayfa |
 | 21-ogrenci-listesi-filtreli.png | Öğrenci listesi ve filtreler |
 | 22-ogrenci-detay.png | Öğrenci detayı |
