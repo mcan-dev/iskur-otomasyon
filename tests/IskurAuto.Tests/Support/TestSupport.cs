@@ -193,7 +193,7 @@ public sealed class TestScope : IDisposable
             db.Documents, policy, context, db.Clock, audit, db.Current, db.WorkPlanSettings);
         Absences = new AbsenceService(absenceRepository, students, context, db.Clock, audit, db.Current);
         Attendance = new AttendanceService(new AttendanceSessionRepository(context), new AttendanceRecordRepository(context),
-            students, new WorkPlanRepository(context), leaveRepository, absenceRepository, context, db.Clock, audit, db.Current);
+            students, new WorkPlanRepository(context), leaveRepository, absenceRepository, context, db.Clock, audit, db.Current, db.WorkPlanSettings);
         Tasks = new TaskService(new StudentTaskRepository(context), students, context, db.Clock, audit, db.Current);
         AbsenceNotices = new AbsenceNoticeService(new AbsenceNoticeRepository(context), students, context, db.Clock, audit, db.Current);
         Reports = new ReportService(students, new WorkPlanRepository(context), new AttendanceRecordRepository(context), leaveRepository,

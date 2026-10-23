@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
-import type { AbsenceNotice, Leave, LeaveAlert, LeaveBalance, Paged, PlanCalendar, StudentProfileFull, StudentSummary, StudentTask, WorkPlan } from '../api/types';
+import type { AbsenceNotice, AttendanceComparison, Leave, LeaveAlert, LeaveBalance, Paged, PlanCalendar, StudentProfileFull, StudentSummary, StudentTask, WorkPlan } from '../api/types';
 import { useAuth } from '../auth/AuthContext';
 import { Alert, Badge } from '../components/ui';
 import { Icon } from '../components/Icon';
@@ -80,6 +80,7 @@ function StudentSummary() {
   const calendar = useLoad(() => api.get<PlanCalendar>(`/api/work-plans/me/calendar?year=${year}&month=${month}`), []);
   const tasks = useLoad(() => api.get<StudentTask[]>('/api/tasks/me?status=Open'), []);
   const leaves = useLoad(() => api.get<Leave[]>(`/api/leaves/me?year=${year}`), []);
+  const worked = useLoad(() => api.get<AttendanceComparison>(`/api/attendance/me/comparison?year=${year}&month=${month}`), []);
 
   const p = profile.data;
   const b = balance.data;
@@ -96,6 +97,7 @@ function StudentSummary() {
         </Alert>
       ))}
       <div className="tiles">
+        <Tile icon="clock" label="Bu ay çalışılan saat" value={worked.data?.hasApprovedPlan ? `${worked.data.workedHours} saat` : '–'} hint={worked.data?.hasApprovedPlan ? `${worked.data.attendedDays} / ${worked.data.plannedDays} gün` : 'Onaylı plan yok'} tone="green" />
         <Tile icon="building" label="Çalıştığı birim" value={p?.currentUnit?.workUnitName ?? 'Atanmadı'} />
         <Tile icon="user" label="Danışman" value={p?.currentAdvisor?.advisorName ?? 'Atanmadı'} />
         <Tile icon="mail" label="Kalan izin hakkı" value={b ? `${b.remaining} gün` : '–'} hint={b ? `${b.year} yılı, ${b.limit} gün üzerinden` : undefined} tone="green" />
