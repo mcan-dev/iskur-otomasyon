@@ -11,6 +11,7 @@ Ekran taslakları ve çalışan uygulamadan alınmış ekran görüntüleri.
 | Dosya | Ekran |
 |---|---|
 | 00-giris.png | Giriş türü seçimi (dört rol) |
+| 07-personel-kayit.png | Personel kayıt (başvuru) formu |
 | 03 – 06 | Öğrenci, danışman, bölüm başkanı, fakülte sekreterliği giriş sayfaları |
 | 01-ogrenci-kayit.png | Öğrenci kayıt formu |
 | 02-parola-sifirlama.png | Parolamı unuttum |

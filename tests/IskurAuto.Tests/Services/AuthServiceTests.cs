@@ -121,6 +121,74 @@ public class AuthServiceTests
         Assert.False(await verify.Users.AnyAsync(u => u.Email == "yeni@ogr.edu.tr"));
     }
 
+    // ─── Personel başvurusu ───────────────────────────────────────────────────
+
+    private static StaffRegistrationRequest ValidStaff(int departmentId) => new()
+    {
+        FullName = " Yeni  Danışman ",
+        Email = "Yeni.Danisman@Test.local",
+        Password = "Parola123",
+        PhoneNumber = "0532 222 33 44",
+        Role = UserRole.Advisor,
+        DepartmentId = departmentId
+    };
+
+    [Fact]
+    public async Task RegisterStaff_CreatesInactiveAccountThatCannotLogInYet()
+    {
+        using var db = new TestDb();
+        var seed = TestData.Seed(db);
+
+        using (var scope = db.NewScope())
+        {
+            var result = await scope.Auth.RegisterStaffAsync(ValidStaff(seed.BmId));
+            Assert.False(result.IsActive);
+        }
+
+        using (var verify = db.NewContext())
+        {
+            var user = await verify.Users.SingleAsync(u => u.Email == "yeni.danisman@test.local");
+            Assert.False(user.IsActive);
+            Assert.Equal(UserRole.Advisor, user.Role);
+            Assert.Equal("Yeni Danışman", user.FullName);
+            Assert.Equal("05322223344", user.PhoneNumber);
+        }
+
+        using var login = db.NewScope();
+        await Assert.ThrowsAsync<AuthenticationFailedException>(() =>
+            login.Auth.LoginAsync(new LoginRequest { Email = "yeni.danisman@test.local", Password = "Parola123" }));
+    }
+
+    [Fact]
+    public async Task RegisterStaff_AsStudentOrWithoutDepartment_IsRejected()
+    {
+        using var db = new TestDb();
+        var seed = TestData.Seed(db);
+
+        var student = ValidStaff(seed.BmId);
+        student.Role = UserRole.Student;
+        var noDepartment = ValidStaff(seed.BmId);
+        noDepartment.DepartmentId = null;
+
+        using var scope = db.NewScope();
+        var e1 = await Assert.ThrowsAsync<DomainValidationException>(() => scope.Auth.RegisterStaffAsync(student));
+        Assert.True(e1.Errors.ContainsKey("Role"));
+        var e2 = await Assert.ThrowsAsync<DomainValidationException>(() => scope.Auth.RegisterStaffAsync(noDepartment));
+        Assert.True(e2.Errors.ContainsKey("DepartmentId"));
+    }
+
+    [Fact]
+    public async Task RegisterStaff_WithExistingEmail_ThrowsConflict()
+    {
+        using var db = new TestDb();
+        var seed = TestData.Seed(db);
+        var request = ValidStaff(seed.BmId);
+        request.Email = "mehmet@test.local";
+
+        using var scope = db.NewScope();
+        await Assert.ThrowsAsync<ConflictException>(() => scope.Auth.RegisterStaffAsync(request));
+    }
+
     // ─── Giriş ────────────────────────────────────────────────────────────────
 
     [Fact]

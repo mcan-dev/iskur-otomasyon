@@ -88,3 +88,19 @@ export function Pager({ page, totalPages, onChange }: { page: number; totalPages
     </div>
   );
 }
+
+/** Cep telefonu girişi: yalnızca rakam kabul eder, en fazla 11 hane (05XXXXXXXXX). */
+export function PhoneInput({ value, onChange, required }: { value: string; onChange: (v: string) => void; required?: boolean }) {
+  return (
+    <input
+      type="tel"
+      inputMode="numeric"
+      autoComplete="tel"
+      maxLength={11}
+      placeholder="05XXXXXXXXX"
+      value={value}
+      onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, 11))}
+      required={required}
+    />
+  );
+}
