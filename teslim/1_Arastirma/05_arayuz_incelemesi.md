@@ -1,50 +1,35 @@
 # Arayüz incelemesi: Selçuk Üniversitesi web sayfaları
 
-Arayüzün kurumsal görünüme uyması için Selçuk Üniversitesi ana sayfası (selcuk.edu.tr) ve ona bağlı sayfalar
-(Akademik birimler, etkinlik sitesi) incelendi. Renkler ve yazı tipi tarayıcıdan okundu; sayfa düzeni
-(üst şerit, menü, haber ve duyuru bölümleri, alt bilgi) gözlemlenerek otomasyona uyarlandı.
+Arayüzün kurumsal görünüme uyması için Selçuk Üniversitesi ana sayfası (selcuk.edu.tr) ve bağlı sayfaları
+incelendi. Renkler ve yazı tipi tarayıcıdan okundu; sayfa düzeninden yalnızca işe yarayan öğeler alındı.
+İlk sürümde fazla süslü bulunduğu için arayüz sadeleştirildi.
 
 ## Renk ve yazı tipi
 
 | Öğe | Sitede | Otomasyonda kullanılan |
 |---|---|---|
-| Üst şerit ve ana renk | Lacivert `#1c458b` | Düğmeler, bağlantılar, başlıklar |
+| Ana renk | Lacivert `#1c458b` | Düğmeler, bağlantılar, başlıklar |
 | Koyu lacivert | `#0d2d5e` | Üst başlık, seçili menü, tablo başlığı |
-| Vurgu rengi | Sarı `#ffc700` (Hızlı Menü düğmesi, vurgu çizgileri) | Hızlı Menü düğmesi, başlık altı çizgisi, seçili menü şeridi |
+| Vurgu rengi | Sarı `#ffc700` | Başlık altı çizgisi, seçili menü şeridi, avatar |
 | Sayfa zemini | Açık gri-mavi `#f6f8fc`, beyaz kartlar | Aynı |
-| Metin | `#1e293b` (başlık), `#475569` (ikincil) | Aynı |
-| Kenarlık | `#cbd5e1` civarı | `#dde4ef` |
 | Yazı tipi | Montserrat | Montserrat |
 
-## Sitedeki düzen ve otomasyondaki karşılığı
+## Düzen
 
-| Sitede gözlenen | Otomasyonda |
-|---|---|
-| En üstte ince koyu şerit ve bağlantılar | Tarih ve üniversite bağlantıları (Selçuk Üniversitesi, Akademik Birimler, Etkinlikler, İŞKUR) |
-| Lacivert başlık, ortada amblem, solda sarı yuvarlak "HIZLI MENÜ" düğmesi | Lacivert yapışkan başlık; sarı "HIZLI MENÜ" düğmesi rolün tüm işlemlerini açıklamalı kartlar olarak açar |
-| Arama simgesi | Başlıkta "Sayfa ara" kutusu; menü sayfalarını bulur, Enter ile ilkine gider |
-| Sağ kenarda kayan sosyal medya çubuğu | Sağ kenarda kayan çubuk: ana sayfa, hızlı menü, üniversite sitesi, yazdır |
-| Sol altta sarı erişilebilirlik düğmesi | Aynı yerde erişilebilirlik düğmesi: yazı boyutu, yüksek karşıtlık, bağlantı altı çizgisi (tercih tarayıcıda saklanır) |
-| Sağ altta yukarı çık düğmesi | Aynı |
-| "Genel Duyurular", "Öğrenci Duyuruları" bölümleri; mavi başlık, sağda çerçeveli "TÜMÜ →" düğmesi | Ana sayfada "Sizi Bekleyenler", "Bilgilendirme", "Bağlantılar" bölümleri aynı başlık ve düğme biçimiyle |
-| Duyuruların solunda mavi tarih kutusu | Ana sayfada bugünün tarih kutusu; bilgilendirme maddelerinde mavi simge kutuları |
-| Koyu lacivert alt bilgi, sarı başlıklı iletişim kartları | Aynı yapıda alt bilgi: Rektörlük adresi, kampüs santral, bağlantılar |
-
-Öğrenci panosunda çalıştığı birim, danışman, kalan izin hakkı ve devamsızlık özeti; çalışma planı durumu, açık görev
-ve bekleyen izin sayıları gösterilir. Personel panolarında aktif öğrenci, bekleyen izin, onay bekleyen plan
-(fakülte) veya okunmamış bildirim (danışman, bölüm başkanı) ve sınıra yaklaşan öğrenciler yer alır.
+- **Logo:** Üniversite logosu üst başlıkta ve giriş kapağında kullanılır (`frontend/public/logo.png`).
+- **Üst başlık:** Lacivert, logo ve fakülte adı solda, kullanıcı menüsü (profil, çıkış) sağda.
+- **Sol menü:** Rolün işlemleri simgeli liste olarak durur; daraltılabilir, dar ekranda çekmeceye dönüşür.
+- **Ana sayfa:** Karşılama bandı, simgeli özet kartları, "Sizi Bekleyenler" ve "Hızlı Erişim". Başka bölüm yoktur.
+- **Giriş, kayıt, parola sayfaları:** Solda Selçuk Üniversitesi kapağı (logo ve ad), sağda form. Her giriş sayfasında
+  "Kayıt Ol" düğmesi bulunur.
+- **Alt bilgi:** Tek satır.
+- **Erişilebilirlik:** Sol altta yazı boyutu, yüksek karşıtlık ve bağlantı altı çizgisi ayarı (tercih tarayıcıda saklanır).
 
 ## Kararlar
 
-- Üniversitenin logosu ve görselleri kopyalanmadı. Amblem yerine yuvarlak çerçeveli "S" harfi kullanılır.
-  Resmî logo kullanılacaksa `frontend/public/logo.png` olarak eklenip `frontend/src/layout/SiteChrome.tsx`
-  içindeki `emblem` öğelerinin yerine konabilir.
-- Sol yan menü korundu: günlük işlerde çok sayıda ekran arasında geçiş gerekir. Üniversite sitesindeki
-  "Hızlı Menü" düğmesi bunun yanına eklendi, ikisi aynı menü listesini kullanır.
-- Giriş, kayıt ve parola sayfaları da aynı üst başlık ve alt bilgiyi taşır; giriş sayfasında programın ne yaptığını
-  anlatan lacivert bir tanıtım alanı vardır.
+- Sitedeki yan çubuk, arama, hızlı menü paneli ve üst bağlantı şeridi kullanılmadı; menü zaten solda olduğu için
+  tekrar olurdu ve ekranı kalabalıklaştırırdı.
+- Cep telefonu alanları yalnızca rakam kabul eder ve 11 haneyle sınırlıdır.
 - Durum renkleri (yeşil onay, sarı bekleyen, kırmızı ret) belgedeki takvim renk önerisiyle uyumludur ve yalnızca renge
   dayanmaz; her durumun yanında yazı vardır.
-- Dar ekranlarda yan menü açılır çekmeceye, sayfalar tek sütuna iner.
-- Teknoloji Fakültesi'nin kendi sayfası incelemeye açık olmadığı için fakülteye özgü içerik eklenmedi; fakülte adı
-  başlıkta ve sayfa metinlerinde yer alır.
+- Teknoloji Fakültesi'nin kendi sayfası incelemeye açık olmadığı için fakülteye özgü içerik eklenmedi.

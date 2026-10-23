@@ -25,6 +25,7 @@ import PlanPage from './pages/student/PlanPage';
 import ProfilePage from './pages/student/ProfilePage';
 import TasksPage from './pages/student/TasksPage';
 import Register from './pages/Register';
+import StaffRegister from './pages/StaffRegister';
 import ResetPassword from './pages/ResetPassword';
 
 export default function App() {
@@ -61,6 +62,7 @@ export default function App() {
       <Route path="/giris" element={<LoginChooser />} />
       <Route path="/giris/:tur" element={<Login />} />
       <Route path="/kayit" element={<Register />} />
+      <Route path="/kayit/:tur" element={<StaffRegister />} />
       <Route path="/parolami-unuttum" element={<ForgotPassword />} />
       <Route path="/sifre-sifirla" element={<ResetPassword />} />
       <Route element={user ? <AppLayout /> : <Navigate to="/giris" replace />}>

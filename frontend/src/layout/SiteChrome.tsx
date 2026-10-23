@@ -1,76 +1,26 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from '../components/Icon';
-import { siteLinks } from './links';
 
-const dateText = () => new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' });
-
-/** Sayfanın en üstündeki ince bağlantı çubuğu. */
-export function UtilityBar() {
-  return (
-    <div className="utility">
-      <div className="utility-in">
-        <span className="utility-date">{dateText()}</span>
-        <nav aria-label="Üniversite bağlantıları">
-          {siteLinks.map((l) => (
-            <a key={l.href} href={l.href} target="_blank" rel="noreferrer">
-              {l.label}
-            </a>
-          ))}
-        </nav>
-      </div>
-    </div>
-  );
+/** Üniversite logosu (frontend/public/logo.png). */
+export function Logo({ size = 44 }: { size?: number }) {
+  return <img className="logo" src="/logo.png" alt="Selçuk Üniversitesi" width={size} height={size} />;
 }
 
 export function Brand({ to = '/' }: { to?: string }) {
   return (
     <Link to={to} className="brand-link">
-      <span className="emblem">S</span>
+      <Logo />
       <span className="brand-text">
-        <strong>SELÇUK ÜNİVERSİTESİ</strong>
-        <span>Teknoloji Fakültesi · İŞKUR Otomasyonu</span>
+        <strong>Teknoloji Fakültesi</strong>
+        <span>İŞKUR Otomasyonu</span>
       </span>
     </Link>
   );
 }
 
-/** Alt bilgi: iletişim kartları ve bağlantılar. */
 export function SiteFooter() {
-  return (
-    <footer className="site-footer">
-      <div className="footer-in">
-        <div className="footer-brand">
-          <span className="emblem big">S</span>
-          <strong>Selçuk Üniversitesi</strong>
-          <span>Teknoloji Fakültesi</span>
-          <span className="muted-light">İŞKUR öğrenci programı otomasyonu</span>
-        </div>
-        <div className="footer-card wide">
-          <h3>Rektörlük</h3>
-          <p>Selçuk Üniversitesi Rektörlüğü, Alaaddin Keykubat Yerleşkesi, Akademi Mah. Yeni İstanbul Cad. No:369 Posta Kodu 42130 Selçuklu / Konya</p>
-        </div>
-        <div className="footer-card">
-          <h3>Kampüs Santral</h3>
-          <p>0 (332) 241 00 41</p>
-          <p>0 (332) 223 82 65</p>
-        </div>
-        <div className="footer-card">
-          <h3>Bağlantılar</h3>
-          <ul>
-            {siteLinks.map((l) => (
-              <li key={l.href}>
-                <a href={l.href} target="_blank" rel="noreferrer">
-                  {l.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-      <div className="footer-bottom">© {new Date().getFullYear()} Selçuk Üniversitesi Teknoloji Fakültesi · İŞKUR Otomasyonu</div>
-    </footer>
-  );
+  return <footer className="site-footer">© {new Date().getFullYear()} Selçuk Üniversitesi Teknoloji Fakültesi · İŞKUR Otomasyonu</footer>;
 }
 
 type Prefs = { size: number; contrast: boolean; underline: boolean };
@@ -155,9 +105,4 @@ export function BackToTop() {
       <Icon name="up" size={22} />
     </button>
   );
-}
-
-/** Sağ kenardaki kayan hızlı erişim çubuğu. */
-export function FloatingBar({ children }: { children: ReactNode }) {
-  return <div className="float-bar">{children}</div>;
 }

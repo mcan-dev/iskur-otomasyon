@@ -88,6 +88,38 @@ public class StudentRegistrationRequest
     public int RegistrationYear { get; set; }
 }
 
+/// <summary>
+/// Personelin kendi başvurusu (danışman, bölüm başkanı, fakülte sekreterliği).
+/// Hesap pasif açılır; fakülte sekreterliği onaylayınca giriş yapılabilir.
+/// </summary>
+public class StaffRegistrationRequest
+{
+    [Required, StringLength(200, MinimumLength = 2)]
+    public string FullName { get; set; } = string.Empty;
+
+    [Required, EmailAddress, StringLength(254)]
+    public string Email { get; set; } = string.Empty;
+
+    [Required, StringLength(128)]
+    public string Password { get; set; } = string.Empty;
+
+    [Required, StringLength(25)]
+    public string PhoneNumber { get; set; } = string.Empty;
+
+    /// <summary>FacultyAdmin | DepartmentHead | Advisor</summary>
+    public UserRole Role { get; set; }
+
+    /// <summary>Danışman ve bölüm başkanı için zorunlu.</summary>
+    public int? DepartmentId { get; set; }
+}
+
+public class StaffRegistrationResultDto
+{
+    public int UserId { get; set; }
+    public string Email { get; set; } = string.Empty;
+    public bool IsActive { get; set; }
+}
+
 public class RegistrationResultDto
 {
     public int UserId { get; set; }
