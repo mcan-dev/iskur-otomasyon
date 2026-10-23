@@ -56,7 +56,9 @@ public static class DatabaseSeeder
         var advisor = new User { FullName = "Dr. Öğr. Üyesi Zeynep Arslan", Email = "danisman.bm@teknoloji.edu.tr", PasswordHash = Hash(), Role = UserRole.Advisor, Department = bm };
         var oldAdvisor = new User { FullName = "Dr. Öğr. Üyesi Hakan Polat", Email = "danisman2.bm@teknoloji.edu.tr", PasswordHash = Hash(), Role = UserRole.Advisor, Department = bm };
         var advisorYm = new User { FullName = "Dr. Öğr. Üyesi Can Aksoy", Email = "danisman.ym@teknoloji.edu.tr", PasswordHash = Hash(), Role = UserRole.Advisor, Department = ym };
-        db.Users.AddRange(admin, head, advisor, oldAdvisor, advisorYm);
+        // Onay bekleyen başvuru örneği: pasif hesap, fakülte sekreterliği aktif edene kadar giriş yapamaz.
+        var pending = new User { FullName = "Dr. Öğr. Üyesi Deniz Kara", Email = "bekleyen.danisman@teknoloji.edu.tr", PhoneNumber = "05361112233", PasswordHash = Hash(), Role = UserRole.Advisor, Department = eem, IsActive = false };
+        db.Users.AddRange(admin, head, advisor, oldAdvisor, advisorYm, pending);
 
         var start = clock.Today.AddDays(-60);
 
