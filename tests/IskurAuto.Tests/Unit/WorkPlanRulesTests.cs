@@ -18,8 +18,10 @@ public class WorkPlanRulesTests
         IEnumerable<ExamPeriod>? exams = null,
         IEnumerable<DayOfWeek>? lessonDays = null,
         ProgramPeriod? period = null)
-        => new(2026, 11, holidays ?? [], exams ?? [], lessonDays ?? [],
+        => new(2026, 11, holidays ?? [], exams ?? [], (lessonDays ?? []).Select(Lesson),
             [period ?? new ProgramPeriod(new DateOnly(2026, 9, 1), null)]);
+
+    private static StudentCourseDay Lesson(DayOfWeek day) => new() { DayOfWeek = day };
 
     private static PlannedDay Day(int day, string? note = null)
         => new(new DateOnly(2026, 11, day), note);
@@ -170,7 +172,9 @@ public class WorkPlanSettingsTests
 public class WorkPlanCalendarTests
 {
     private static PlanMonth November(IEnumerable<DateOnly>? holidays = null, IEnumerable<DayOfWeek>? lessonDays = null)
-        => new(2026, 11, holidays ?? [], [], lessonDays ?? [], [new ProgramPeriod(new DateOnly(2026, 9, 1), null)]);
+        => new(2026, 11, holidays ?? [], [], (lessonDays ?? []).Select(Lesson), [new ProgramPeriod(new DateOnly(2026, 9, 1), null)]);
+
+    private static StudentCourseDay Lesson(DayOfWeek day) => new() { DayOfWeek = day };
 
     private static CalendarDayDto Find(List<CalendarDayDto> calendar, int day)
         => calendar.Single(d => d.Date == new DateOnly(2026, 11, day));

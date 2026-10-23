@@ -21,7 +21,7 @@ export default function TerminationsPage() {
         {list.data && list.data.length > 0 && (
           <div className="scroll-x">
             <table className="table">
-              <thead><tr><th>Tarih</th><th>Öğrenci</th><th>Bölüm</th><th>Dayanak</th><th>İzin (gün)</th><th>Mazeretsiz</th><th>Karar veren</th></tr></thead>
+              <thead><tr><th>Tarih</th><th>Öğrenci</th><th>Bölüm</th><th>Dayanak</th><th>İzin (gün)</th><th>Devamsızlık (gün)</th><th>Karar veren</th></tr></thead>
               <tbody>
                 {list.data.map((t) => (
                   <tr key={t.id} title={t.note}>
@@ -30,7 +30,7 @@ export default function TerminationsPage() {
                     <td>{t.departmentName}</td>
                     <td>{terminationBasisLabels[t.basis]}</td>
                     <td>{t.leaveDaysUsed}</td>
-                    <td>{t.unexcusedAbsenceDays}</td>
+                    <td>{t.absenceDays}</td>
                     <td>{t.decidedByName}</td>
                   </tr>
                 ))}

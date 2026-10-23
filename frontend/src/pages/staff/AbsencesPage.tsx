@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from 'react';
 import { api, ApiError } from '../../api/client';
-import type { Absence, AbsenceType, StudentSummary } from '../../api/types';
+import type { Absence, StudentSummary } from '../../api/types';
 import StudentPicker from '../../components/StudentPicker';
 import { Alert, Card, Field } from '../../components/ui';
-import { absenceTypeLabels, todayIso } from '../../format';
+import { todayIso } from '../../format';
 import { useLoad } from '../../useLoad';
 import { AbsenceTable } from './parts';
 
@@ -28,7 +28,6 @@ export default function AbsencesPage() {
 function RecordAbsence({ onDone }: { onDone: () => void }) {
   const [student, setStudent] = useState<StudentSummary | null>(null);
   const [date, setDate] = useState(todayIso());
-  const [type, setType] = useState<AbsenceType>('Unexcused');
   const [note, setNote] = useState('');
   const [error, setError] = useState<ApiError | null>(null);
   const [done, setDone] = useState(false);
@@ -39,7 +38,7 @@ function RecordAbsence({ onDone }: { onDone: () => void }) {
     setError(null);
     setDone(false);
     try {
-      await api.post('/api/absences', { studentId: student.id, date, type, note: note.trim() || null });
+      await api.post('/api/absences', { studentId: student.id, date, note: note.trim() || null });
       setDone(true);
       setNote('');
       onDone();
@@ -49,17 +48,12 @@ function RecordAbsence({ onDone }: { onDone: () => void }) {
   }
 
   return (
-    <Card title="Devamsızlık gir" subtitle="Devamsızlık yalnızca fakülte yönetimi tarafından kaydedilir.">
+    <Card title="Devamsızlık gir" subtitle="Devamsızlık yalnızca fakülte yönetimi tarafından kaydedilir ve öğrencinin izin hakkından düşer.">
       <form onSubmit={submit}>
         {error && <Alert>{error.message}</Alert>}
         {done && <Alert kind="info">Devamsızlık kaydedildi.</Alert>}
         <Field label="Öğrenci"><StudentPicker value={student} onChange={setStudent} /></Field>
         <Field label="Tarih"><input type="date" value={date} max={todayIso()} onChange={(e) => setDate(e.target.value)} required /></Field>
-        <Field label="Tür">
-          <select value={type} onChange={(e) => setType(e.target.value as AbsenceType)}>
-            {(Object.keys(absenceTypeLabels) as AbsenceType[]).map((t) => <option key={t} value={t}>{absenceTypeLabels[t]}</option>)}
-          </select>
-        </Field>
         <Field label="Not (isteğe bağlı)"><textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} /></Field>
         <button className="btn primary wide" disabled={!student}>Kaydet</button>
       </form>

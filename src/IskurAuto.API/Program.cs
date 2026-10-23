@@ -158,6 +158,15 @@ app.MapControllers();
 
 // ─── Veritabanı hazırlığı ─────────────────────────────────────────────────
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
+// Yalnızca geliştirmede: Development:ResetDatabase=true ise veritabanı silinip demo verisiyle yeniden kurulur.
+if (app.Environment.IsDevelopment() && app.Configuration.GetValue<bool>("Development:ResetDatabase"))
+{
+    using var resetScope = app.Services.CreateScope();
+    var resetDb = resetScope.ServiceProvider.GetRequiredService<IskurAuto.Data.Context.IskurAutoDbContext>();
+    await resetDb.Database.EnsureDeletedAsync();
+    logger.LogWarning("Geliştirme veritabanı silindi; demo verisiyle yeniden oluşturulacak.");
+}
+
 await app.Services.InitializeDatabaseAsync();
 if (app.Environment.IsDevelopment())
     await DatabaseSeeder.SeedDemoDataAsync(app.Services, logger);

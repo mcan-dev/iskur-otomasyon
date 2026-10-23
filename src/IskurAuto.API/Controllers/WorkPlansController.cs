@@ -84,11 +84,11 @@ public class CourseDaysController : ControllerBase
     public CourseDaysController(ICourseDayService courseDays) => _courseDays = courseDays;
 
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<DayOfWeek>>> Get(CancellationToken ct)
+    public async Task<ActionResult<IReadOnlyList<CourseDayDto>>> Get(CancellationToken ct)
         => Ok(await _courseDays.GetMineAsync(ct));
 
     [HttpPut]
-    public async Task<ActionResult<IReadOnlyList<DayOfWeek>>> Set([FromBody] CourseDaysRequest request, CancellationToken ct)
+    public async Task<ActionResult<IReadOnlyList<CourseDayDto>>> Set([FromBody] CourseDaysRequest request, CancellationToken ct)
         => Ok(await _courseDays.SetMineAsync(request, ct));
 }
 

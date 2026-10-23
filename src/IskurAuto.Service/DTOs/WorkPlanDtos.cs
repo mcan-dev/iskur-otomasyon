@@ -91,6 +91,7 @@ public class CalendarDayDto
     public bool IsSelectable { get; set; }
     public bool IsSelected { get; set; }
     public bool IsLessonDay { get; set; }
+    public CourseSession? LessonSession { get; set; }
     public bool IsExamPeriod { get; set; }
     public string? Note { get; set; }
 }
@@ -105,10 +106,16 @@ public class WorkPlanCalendarDto
     public List<CalendarDayDto> Days { get; set; } = new();
 }
 
+public class CourseDayDto
+{
+    public DayOfWeek Day { get; set; }
+    public CourseSession Session { get; set; } = CourseSession.FullDay;
+}
+
 public class CourseDaysRequest
 {
     [Required]
-    public List<DayOfWeek> Days { get; set; } = new();
+    public List<CourseDayDto> Days { get; set; } = new();
 }
 
 public class HolidayDto

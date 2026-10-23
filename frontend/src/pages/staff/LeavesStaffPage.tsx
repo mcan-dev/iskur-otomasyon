@@ -69,19 +69,19 @@ function Alerts({ year }: { year: number }) {
   const navigate = useNavigate();
   const alerts = useLoad(() => api.get<LeaveAlert[]>(`/api/leaves/alerts?year=${year}`), [year]);
   return (
-    <Card title="İzin veya devamsızlık sınırına yaklaşan / aşan öğrenciler">
+    <Card title="İzin hakkına yaklaşan / hakkı aşan öğrenciler">
       {alerts.error && <Alert>{alerts.error}</Alert>}
       {alerts.data?.length === 0 && <Empty>Sınıra yaklaşan öğrenci yok.</Empty>}
       {alerts.data && alerts.data.length > 0 && (
         <table className="table">
-          <thead><tr><th>Öğrenci</th><th>Bölüm</th><th>Kalan izin</th><th>Mazeretsiz devamsızlık</th><th>Uyarı</th></tr></thead>
+          <thead><tr><th>Öğrenci</th><th>Bölüm</th><th>Kalan izin</th><th>Kullanılan</th><th>Uyarı</th></tr></thead>
           <tbody>
             {alerts.data.map((a) => (
               <tr key={a.studentId} className="link-row" onClick={() => navigate(`/ogrenciler/${a.studentId}`)}>
                 <td>{a.studentName}</td>
                 <td>{a.departmentName}</td>
                 <td>{a.balance.remaining} gün</td>
-                <td>{a.balance.unexcusedAbsenceDays} / {a.balance.absenceLimit}</td>
+                <td>{a.balance.used} / {a.balance.limit} gün</td>
                 <td>{a.balance.warnings.map((w) => w.message).join(' ')}</td>
               </tr>
             ))}

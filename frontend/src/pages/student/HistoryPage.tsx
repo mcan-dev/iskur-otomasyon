@@ -3,7 +3,7 @@ import { api } from '../../api/client';
 import type { Absence, Attendance, AttendanceComparison, Leave, WorkPlan } from '../../api/types';
 import { Alert, Badge, Card, Empty, MonthPicker } from '../../components/ui';
 import {
-  absenceTypeLabels, fmtDate, fmtDateTime, leaveStatusLabels, leaveTone, leaveTypeLabels, monthYear, outcomeLabels, outcomeTone, planStatusLabels, planTone,
+  fmtDate, fmtDateTime, leaveStatusLabels, leaveTone, monthYear, outcomeLabels, outcomeTone, planStatusLabels, planTone,
 } from '../../format';
 import { useLoad } from '../../useLoad';
 
@@ -135,12 +135,11 @@ function Leaves({ year }: { year: number }) {
   if (!leaves.data?.length) return <Empty>Bu yıl için izin kaydı yok.</Empty>;
   return (
     <table className="table">
-      <thead><tr><th>Tarih</th><th>Tür</th><th>Süre</th><th>Gerekçe</th><th>Durum</th></tr></thead>
+      <thead><tr><th>Tarih</th><th>Süre</th><th>Gerekçe</th><th>Durum</th></tr></thead>
       <tbody>
         {leaves.data.map((l) => (
           <tr key={l.id}>
             <td>{fmtDate(l.startDate)}{l.startDate !== l.endDate && ` – ${fmtDate(l.endDate)}`}</td>
-            <td>{leaveTypeLabels[l.type]}</td>
             <td>{l.hours ? `${l.hours} saat` : `${l.daysCounted} gün`}</td>
             <td>{l.reason}</td>
             <td><Badge tone={leaveTone[l.status]}>{leaveStatusLabels[l.status]}</Badge></td>
@@ -157,12 +156,11 @@ function Absences({ year }: { year: number }) {
   if (!absences.data?.length) return <Empty>Bu yıl için devamsızlık kaydı yok.</Empty>;
   return (
     <table className="table">
-      <thead><tr><th>Tarih</th><th>Tür</th><th>Not</th><th></th></tr></thead>
+      <thead><tr><th>Tarih</th><th>Not</th><th></th></tr></thead>
       <tbody>
         {absences.data.map((a) => (
           <tr key={a.id}>
             <td>{fmtDate(a.date)}</td>
-            <td>{absenceTypeLabels[a.type]}</td>
             <td>{a.note ?? ''}</td>
             <td>{a.isRevoked && <Badge tone="gray">Geri alındı</Badge>}</td>
           </tr>

@@ -38,7 +38,7 @@ dotnet user-secrets set "Bootstrap:AdminPassword" "<güçlü parola>" --project 
 
 Frontend adresi `Cors:AllowedOrigins` içine eklenir. Çalışma planı kuralları `WorkPlan` bölümünden değiştirilir
 (haftalık gün sınırı, düzeltme son günü, günlük çalışma saati). İzin ve devamsızlık sınırları ise koddan değil, fakülte yönetimi tarafından
-`PUT /api/settings/leave` ile değiştirilir. Yüklenen belgeler `Storage:DocumentsPath` klasöründe tutulur.
+`PUT /api/settings/leave` ile değiştirilir; belirli bir öğrenci için farklı hak, öğrenci sayfasından verilebilir. Yüklenen belgeler `Storage:DocumentsPath` klasöründe tutulur.
 
 ## Demo hesaplar
 
@@ -49,7 +49,8 @@ Yalnızca Development'ta oluşur, parola `Demo1234!`:
 | Fakülte Sekreterliği | sekreter@teknoloji.edu.tr |
 | Bölüm Başkanı | baskan.bm@teknoloji.edu.tr |
 | Danışman | danisman.bm@teknoloji.edu.tr |
-| Öğrenci | ogrenci@teknoloji.edu.tr, ogrenci2@teknoloji.edu.tr |
+| Öğrenci | ogrenci@teknoloji.edu.tr (en dolu hesap), ogrenci2@, burak.sahin@ (izin hakkına yakın), selin.celik@ (birim/danışman atanmamış) — hepsi @teknoloji.edu.tr |
+| Danışman (diğer) | danisman2.bm@, danisman.ym@ teknoloji.edu.tr |
 | Onay bekleyen danışman (giriş yapamaz, fakülte aktif edince girer) | bekleyen.danisman@teknoloji.edu.tr |
 
 Başvuru onayı: Fakülte Sekreterliği girişi, Tanımlar ve Hesaplar, Personel hesapları, ilgili satırda "Aktif yap".

@@ -72,6 +72,7 @@ public static class WorkPlanMappers
                 IsSelectable = block == DayBlock.None,
                 IsSelected = chosen is not null,
                 IsLessonDay = lesson,
+                LessonSession = month.LessonSession(date),
                 IsExamPeriod = month.IsExamDay(date),
                 Note = chosen?.Note
             };

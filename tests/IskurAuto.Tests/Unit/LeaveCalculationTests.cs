@@ -141,23 +141,12 @@ public class LeaveBalanceCalculatorTests
     }
 
     [Fact]
-    public void HealthLeave_IsTrackedSeparately_ByDefault()
+    public void HealthLeave_CountsLikeAnyOtherLeave()
     {
         var balance = Calc([Leave(6, type: LeaveType.Health)]);
 
-        Assert.Equal(0m, balance.Used);
-        Assert.Equal(6m, balance.HealthLeaveDays);
-        Assert.Empty(balance.Warnings);
-    }
-
-    [Fact]
-    public void HealthLeave_CountsWhenPolicySaysSo()
-    {
-        var policy = new LeavePolicy { HealthLeaveCountsTowardLimit = true };
-
-        var balance = Calc([Leave(6, type: LeaveType.Health)], policy: policy);
-
         Assert.Equal(6m, balance.Used);
+        Assert.Equal(4m, balance.Remaining);
     }
 
     [Fact]
@@ -172,13 +161,14 @@ public class LeaveBalanceCalculatorTests
     }
 
     [Fact]
-    public void Absences_OnlyUnexcusedCountTowardLimit()
+    public void Absences_AllTypesComeOutOfTheSameLeaveAllowance()
     {
-        var balance = Calc(absences: [Absent(), Absent(AbsenceType.HealthReport), Absent(AbsenceType.Excused)]);
+        var balance = Calc([Leave(3)], absences: [Absent(), Absent(AbsenceType.HealthReport), Absent(AbsenceType.Excused)]);
 
-        Assert.Equal(1m, balance.UnexcusedAbsenceDays);
-        Assert.Equal(1m, balance.HealthAbsenceDays);
-        Assert.Equal(1m, balance.ExcusedAbsenceDays);
+        Assert.Equal(3m, balance.LeaveDays);
+        Assert.Equal(3m, balance.AbsenceDays);
+        Assert.Equal(6m, balance.Used);
+        Assert.Equal(4m, balance.Remaining);
     }
 
     [Fact]
@@ -186,16 +176,27 @@ public class LeaveBalanceCalculatorTests
     {
         var balance = Calc(absences: [Absent(revoked: true), Absent(revoked: true)]);
 
-        Assert.Equal(0m, balance.UnexcusedAbsenceDays);
+        Assert.Equal(0m, balance.AbsenceDays);
+        Assert.Equal(10m, balance.Remaining);
     }
 
     [Fact]
-    public void Absences_WarnNearAndOverLimit()
+    public void Absences_CanPushTheSharedAllowanceOverTheLimit()
     {
-        var near = Calc(absences: Enumerable.Range(0, 4).Select(_ => Absent()));
-        var over = Calc(absences: Enumerable.Range(0, 6).Select(_ => Absent()));
+        var near = Calc([Leave(5)], absences: Enumerable.Range(0, 3).Select(_ => Absent()));
+        var over = Calc([Leave(5)], absences: Enumerable.Range(0, 6).Select(_ => Absent()));
 
-        AssertWarnings(near, LeaveWarning.AbsenceNearLimit);
-        AssertWarnings(over, LeaveWarning.AbsenceLimitExceeded);
+        AssertWarnings(near, LeaveWarning.LeaveNearLimit);
+        AssertWarnings(over, LeaveWarning.LeaveLimitExceeded);
+    }
+
+    [Fact]
+    public void StudentSpecificAllowance_ReplacesThePolicyLimit()
+    {
+        var balance = LeaveBalanceCalculator.Calculate(new LeavePolicy(), [Leave(7)], [], limitOverride: 15);
+
+        Assert.Equal(15, balance.Limit);
+        Assert.Equal(8m, balance.Remaining);
+        Assert.Empty(balance.Warnings);
     }
 }

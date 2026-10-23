@@ -8,22 +8,19 @@ public enum LeaveWarning
 {
     LeaveNearLimit = 1,
     LeavePendingExceeds = 2,
-    LeaveLimitExceeded = 3,
-    AbsenceNearLimit = 4,
-    AbsenceLimitExceeded = 5
+    LeaveLimitExceeded = 3
 }
 
+/// <summary>
+/// İzin bakiyesi. Tek bir hak vardır: onaylı izin günleri ve devamsızlık günleri aynı haktan düşer.
+/// </summary>
 public sealed record LeaveBalance(
     int Limit,
     decimal Used,
+    decimal LeaveDays,
+    decimal AbsenceDays,
     decimal Pending,
     decimal Remaining,
-    decimal HealthLeaveDays,
-    decimal UnexcusedAbsenceDays,
-    decimal HealthAbsenceDays,
-    decimal ExcusedAbsenceDays,
-    int AbsenceLimit,
-    decimal AbsenceRemaining,
     IReadOnlyList<LeaveWarning> Warnings);
 
 public static class LeaveDayCounter
@@ -62,48 +59,34 @@ public static class LeaveDayCounter
 
 public static class LeaveBalanceCalculator
 {
-    public static LeaveBalance Calculate(LeavePolicy policy, IEnumerable<LeaveRequest> leaves, IEnumerable<Absence> absences)
+    /// <param name="limitOverride">Öğrenciye özel hak; boşsa genel hak kullanılır.</param>
+    public static LeaveBalance Calculate(LeavePolicy policy, IEnumerable<LeaveRequest> leaves, IEnumerable<Absence> absences,
+        int? limitOverride = null)
     {
+        var limit = limitOverride ?? policy.LeaveDayLimit;
         var all = leaves.ToList();
-        var counted = all
-            .Where(l => l.Type != LeaveType.Health || policy.HealthLeaveCountsTowardLimit)
-            .ToList();
 
-        var used = counted.Where(l => l.Status == LeaveStatus.Approved).Sum(l => l.DaysCounted);
-        var pending = counted.Where(l => l.Status == LeaveStatus.Pending).Sum(l => l.DaysCounted);
-        var healthLeave = all.Where(l => l.Type == LeaveType.Health && l.Status == LeaveStatus.Approved).Sum(l => l.DaysCounted);
+        var leaveDays = all.Where(l => l.Status == LeaveStatus.Approved).Sum(l => l.DaysCounted);
+        var pending = all.Where(l => l.Status == LeaveStatus.Pending).Sum(l => l.DaysCounted);
+        var absenceDays = absences.Count(a => !a.IsRevoked);
 
-        var active = absences.Where(a => !a.IsRevoked).ToList();
-        var unexcused = active.Count(a => a.Type == AbsenceType.Unexcused);
+        var used = leaveDays + absenceDays;
+        var remaining = limit - used;
 
-        var remaining = policy.LeaveDayLimit - used;
-        var absenceRemaining = policy.AbsenceDayLimit - unexcused;
-
-        return new LeaveBalance(
-            policy.LeaveDayLimit, used, pending, remaining, healthLeave,
-            unexcused,
-            active.Count(a => a.Type == AbsenceType.HealthReport),
-            active.Count(a => a.Type == AbsenceType.Excused),
-            policy.AbsenceDayLimit, absenceRemaining,
-            Warnings(policy, used, pending, remaining, unexcused, absenceRemaining));
+        return new LeaveBalance(limit, used, leaveDays, absenceDays, pending, remaining,
+            Warnings(policy, limit, used, pending, remaining));
     }
 
-    private static List<LeaveWarning> Warnings(LeavePolicy policy, decimal used, decimal pending, decimal remaining,
-        int unexcused, decimal absenceRemaining)
+    private static List<LeaveWarning> Warnings(LeavePolicy policy, int limit, decimal used, decimal pending, decimal remaining)
     {
         var warnings = new List<LeaveWarning>();
 
-        if (used > policy.LeaveDayLimit)
+        if (used > limit)
             warnings.Add(LeaveWarning.LeaveLimitExceeded);
-        else if (used + pending > policy.LeaveDayLimit)
+        else if (used + pending > limit)
             warnings.Add(LeaveWarning.LeavePendingExceeds);
         else if (used + pending > 0 && remaining <= policy.LeaveWarningRemainingDays)
             warnings.Add(LeaveWarning.LeaveNearLimit);
-
-        if (unexcused > policy.AbsenceDayLimit)
-            warnings.Add(LeaveWarning.AbsenceLimitExceeded);
-        else if (unexcused > 0 && absenceRemaining <= policy.AbsenceWarningRemainingDays)
-            warnings.Add(LeaveWarning.AbsenceNearLimit);
 
         return warnings;
     }

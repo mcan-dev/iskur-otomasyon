@@ -286,10 +286,10 @@ public class ReportService : IReportService
     // ── İzin, devamsızlık ve ilişik kesme ────────────────────────────────────
 
     private static bool IsNearLimit(LeaveBalance b)
-        => b.Warnings.Any(w => w is LeaveWarning.LeaveNearLimit or LeaveWarning.LeavePendingExceeds or LeaveWarning.AbsenceNearLimit);
+        => b.Warnings.Any(w => w is LeaveWarning.LeaveNearLimit or LeaveWarning.LeavePendingExceeds);
 
     private static bool IsOverLimit(LeaveBalance b)
-        => b.Warnings.Any(w => w is LeaveWarning.LeaveLimitExceeded or LeaveWarning.AbsenceLimitExceeded);
+        => b.Warnings.Any(w => w is LeaveWarning.LeaveLimitExceeded);
 
     private async Task<ReportTable> BalanceReportAsync(ReportKind kind, ReportQuery query, StudentSearchCriteria scope,
         IReadOnlyList<StudentProfile> students, Func<LeaveBalance, bool> include, CancellationToken ct)
@@ -307,11 +307,10 @@ public class ReportService : IReportService
         }, ct)).ToLookup(a => a.StudentProfileId);
 
         var rows = students
-            .Select(s => (Student: s, Balance: LeaveBalanceCalculator.Calculate(policy, leaves[s.Id], absences[s.Id])))
+            .Select(s => (Student: s, Balance: LeaveBalanceCalculator.Calculate(policy, leaves[s.Id], absences[s.Id], s.LeaveDayAllowance)))
             .Where(x => include(x.Balance))
             .Select(x => Row(x.Student.StudentNumber, x.Student.User.FullName, x.Student.Department.Name, StatusText(x.Student),
-                x.Balance.Limit, x.Balance.Used, x.Balance.Pending, x.Balance.Remaining, x.Balance.HealthLeaveDays,
-                x.Balance.UnexcusedAbsenceDays, x.Balance.AbsenceLimit,
+                x.Balance.Limit, x.Balance.Used, x.Balance.LeaveDays, x.Balance.AbsenceDays, x.Balance.Pending, x.Balance.Remaining,
                 string.Join("; ", x.Balance.Warnings.Select(WarningText))))
             .ToList();
 
@@ -327,8 +326,8 @@ public class ReportService : IReportService
             Title = title,
             Columns = new[]
             {
-                "Öğrenci No", "Ad Soyad", "Bölüm", "Durum", "İzin Hakkı", "Kullanılan", "Bekleyen", "Kalan",
-                "Sağlık İzni", "Mazeretsiz Devamsızlık", "Devamsızlık Sınırı", "Uyarı"
+                "Öğrenci No", "Ad Soyad", "Bölüm", "Durum", "İzin Hakkı", "Kullanılan", "İzin Günü", "Devamsızlık Günü",
+                "Bekleyen", "Kalan", "Uyarı"
             },
             Rows = rows
         };
@@ -339,8 +338,6 @@ public class ReportService : IReportService
         LeaveWarning.LeaveNearLimit => "İzin hakkı bitmek üzere",
         LeaveWarning.LeavePendingExceeds => "Bekleyen talepler hakkı aşıyor",
         LeaveWarning.LeaveLimitExceeded => "İzin hakkı aşıldı",
-        LeaveWarning.AbsenceNearLimit => "Devamsızlık sınırına yaklaştı",
-        LeaveWarning.AbsenceLimitExceeded => "Devamsızlık sınırı aşıldı",
         _ => warning.ToString()
     };
 

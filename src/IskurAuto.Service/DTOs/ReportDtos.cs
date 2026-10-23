@@ -43,7 +43,7 @@ public class TerminationDto
     public DateOnly DecisionDate { get; set; }
     public string Note { get; set; } = string.Empty;
     public decimal LeaveDaysUsed { get; set; }
-    public int UnexcusedAbsenceDays { get; set; }
+    public int AbsenceDays { get; set; }
     public string DecidedByName { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
 }

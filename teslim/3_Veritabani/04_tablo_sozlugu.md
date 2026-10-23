@@ -84,6 +84,7 @@ Tüm kullanıcı hesapları (öğrenci ve personel). Rol bu tabloda tutulur.
 | StudentNumber | nvarchar(20) | Hayır |  |
 | DepartmentId | int | Hayır | FK → Departments |
 | RegistrationYear | int | Hayır |  |
+| LeaveDayAllowance | int | Evet |  |
 | CreatedAt | datetime2 | Hayır |  |
 | UpdatedAt | datetime2 | Evet |  |
 
@@ -156,15 +157,18 @@ Tüm kullanıcı hesapları (öğrenci ve personel). Rol bu tabloda tutulur.
 
 ### StudentCourseDays
 
-Öğrencinin beyan ettiği haftalık ders günleri.
+Öğrencinin beyan ettiği haftalık ders günleri ve her günün dersli bölümü.
 
 | Alan | Tür | Boş olabilir | Anahtar |
 |---|---|---|---|
 | Id | int | Hayır | PK |
 | StudentProfileId | int | Hayır | FK → StudentProfiles |
 | DayOfWeek | int | Hayır |  |
+| Session | nvarchar(20) | Hayır |  |
 | CreatedAt | datetime2 | Hayır |  |
 | UpdatedAt | datetime2 | Evet |  |
+
+`Session` değeri `FullDay` (tam gün), `Morning` (öğleden önce) ya da `Afternoon` (öğleden sonra) olur.
 
 İndeksler:
 
@@ -426,7 +430,7 @@ Danışmanın bölüm başkanına gönderdiği devamsızlık bildirimleri.
 | DecisionDate | date | Hayır |  |
 | Note | nvarchar(1000) | Hayır |  |
 | LeaveDaysUsed | decimal(5,2) | Hayır |  |
-| UnexcusedAbsenceDays | int | Hayır |  |
+| AbsenceDays | int | Hayır |  |
 | DecidedByUserId | int | Hayır | FK → Users |
 | CreatedAt | datetime2 | Hayır |  |
 | UpdatedAt | datetime2 | Evet |  |

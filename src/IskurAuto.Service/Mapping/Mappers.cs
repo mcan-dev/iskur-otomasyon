@@ -59,6 +59,7 @@ public static class Mappers
     /// <param name="revealPersonalData">true ise TC ve IBAN ham; false ise maskeli döner.</param>
     public static StudentDetailDto ToDetail(this StudentProfile s, bool revealPersonalData) => new()
     {
+        LeaveDayAllowance = s.LeaveDayAllowance,
         Id = s.Id,
         UserId = s.UserId,
         FullName = s.User.FullName,

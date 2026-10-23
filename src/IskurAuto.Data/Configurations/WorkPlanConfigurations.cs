@@ -28,6 +28,7 @@ public class StudentCourseDayConfiguration : IEntityTypeConfiguration<StudentCou
     public void Configure(EntityTypeBuilder<StudentCourseDay> b)
     {
         b.ToTable("StudentCourseDays");
+        b.Property(x => x.Session).HasConversion<string>().HasMaxLength(20);
         b.HasIndex(x => new { x.StudentProfileId, x.DayOfWeek }).IsUnique();
         b.HasOne(x => x.StudentProfile).WithMany()
             .HasForeignKey(x => x.StudentProfileId).OnDelete(DeleteBehavior.Restrict);

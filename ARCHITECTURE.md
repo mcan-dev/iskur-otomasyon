@@ -96,8 +96,8 @@ Hesaplamalar `LeaveDayCounter` ve `LeaveBalanceCalculator` sınıflarında, veri
 - Sınırı aşan talep engellenmez; bakiye yanıtında uyarı olarak döner, karar fakülte yönetimindedir.
 - Onay ve ret yalnızca fakülte yönetiminde, ret için gerekçe zorunlu. Onaylanan gün sayısı talep anında sabitlenir.
 - Sağlık raporlu izin ayrı izlenir; izin hakkından düşüp düşmeyeceği ayarla belirlenir.
-- Devamsızlık kaydı fakülte yönetimi tarafından girilir, silinmez, gerekçeyle geri alınır. Yalnızca mazeretsiz devamsızlık sınıra sayılır.
-- Sınırlar (`LeaveDayLimit`, uyarı eşikleri, devamsızlık sınırı) `SystemSettings` tablosunda durur; kod değişmeden güncellenir.
+- Devamsızlık kaydı fakülte yönetimi tarafından girilir, silinmez, gerekçeyle geri alınır. Tek bir izin hakkı vardır: onaylı izinler ve devamsızlıklar aynı haktan düşer; hak, fakülte tarafından öğrenci bazında değiştirilebilir.
+- Sınırlar (`LeaveDayLimit` ve uyarı eşiği) `SystemSettings` tablosunda durur; kod değişmeden güncellenir.
 - Belgeler `IDocumentStore` arkasında saklanır (şimdilik yerel klasör). Personel belgeyi açtığında denetim kaydı düşer.
 
 ## 8. Karekodla devam (Aşama 4)
