@@ -12,6 +12,7 @@ Roller: **Fakülte** = Dekanlık/Fakülte Sekreterliği, **Bölüm Başkanı**, 
 | POST | `/api/auth/login` | Herkese açık | E-posta ve parola ile giriş yapar, JWT erişim jetonu döner. İsteğe bağlı `role` alanı (giriş sayfasının rolü) doluysa hesap rolüyle eşleşmelidir; eşleşmezse 403 döner ve jeton verilmez. |
 | POST | `/api/auth/register-student` | Herkese açık | Öğrenci ilk kayıt formu (belge madde 3). Hesap, profil ve ilk program katılım dönemi birlikte oluşur.  |
 | GET | `/api/auth/me` | Giriş yapmış herkes | Giriş yapmış kullanıcının kendi hesap bilgileri. |
+| POST | `/api/auth/register-staff` | Herkese açık | Danışman, bölüm başkanı veya fakülte sekreterliği başvurusu. Hesap pasif oluşur; fakülte yönetimi `PUT /api/users/{id}/active` ile aktif edince giriş açılır. |
 | POST | `/api/auth/forgot-password` | Herkese açık | Parola sıfırlama bağlantısını e-postayla gönderir. E-posta kayıtlı olsun olmasın yanıt aynıdır (204). |
 | POST | `/api/auth/reset-password` | Herkese açık | E-postadaki bağlantıdaki jetonla yeni parola belirler. Bağlantı tek kullanımlık ve 30 dakika geçerlidir. |
 | POST | `/api/auth/change-password` | Giriş yapmış herkes | Kendi parolasını değiştirir. |

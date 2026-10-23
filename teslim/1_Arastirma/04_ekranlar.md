@@ -12,6 +12,7 @@ Her ekranın gerçek görüntüsü [2_Tasarimlar/ekranlar](../2_Tasarimlar/ekran
 | Bölüm başkanı girişi | `/giris/bolum-baskani` | 05-giris-bolum-baskani.png |
 | Fakülte sekreterliği / dekanlık girişi | `/giris/fakulte` | 06-giris-fakulte.png |
 | Öğrenci kaydı | `/kayit` | 01-ogrenci-kayit.png |
+| Personel kaydı (danışman, bölüm başkanı, fakülte) | `/kayit/danisman`, `/kayit/bolum-baskani`, `/kayit/fakulte` | 07-personel-kayit.png |
 | Parolamı unuttum, parola sıfırlama | `/parolami-unuttum`, `/sifre-sifirla` | 02-parola-sifirlama.png |
 
 ## Öğrenci

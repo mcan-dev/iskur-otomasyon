@@ -5,7 +5,6 @@ import { useAuth } from '../auth/AuthContext';
 import { Alert, Badge } from '../components/ui';
 import { Icon } from '../components/Icon';
 import { fmtDate, planStatusLabels } from '../format';
-import { siteLinks } from '../layout/links';
 import { menus, roleLabels } from '../layout/menu';
 import { useLoad } from '../useLoad';
 
@@ -46,96 +45,30 @@ function Section({ title, to, toLabel, children }: { title: string; to?: string;
 export default function Dashboard() {
   const { user } = useAuth();
   if (!user) return null;
-  const now = new Date();
   const items = menus[user.role].filter((m) => m.path !== '/');
   return (
     <>
       <div className="hero">
-        <div>
-          <span className="tag">{roleLabels[user.role]}</span>
-          <h2>Merhaba, {user.fullName}</h2>
-          <p>{user.departmentName ? `${user.departmentName} · ` : ''}Teknoloji Fakültesi İŞKUR öğrenci programı: plan, devam, izin, görev ve raporlar tek yerde.</p>
-        </div>
-        <div className="date-tile" aria-label="Bugünün tarihi">
-          <strong>{now.getDate()}</strong>
-          <span>{now.toLocaleDateString('tr-TR', { month: 'long' })}</span>
-          <small>{now.toLocaleDateString('tr-TR', { weekday: 'long' })}</small>
-        </div>
+        <span className="tag">{roleLabels[user.role]}</span>
+        <h2>Merhaba, {user.fullName}</h2>
+        {user.departmentName && <p>{user.departmentName}</p>}
       </div>
 
       {user.role === 'Student' ? <StudentSummary /> : <StaffSummary role={user.role} />}
 
-      <div className="dash-grid">
-        <Section title="Hızlı Erişim">
-          <div className="quick">
-            {items.map((m) => (
-              <Link key={m.path} to={m.path} className="quick-item">
-                <span className="tile">
-                  <Icon name={m.icon} size={22} />
-                </span>
-                <span>
-                  <strong>{m.label}</strong>
-                  <small>{m.desc}</small>
-                </span>
-              </Link>
-            ))}
-          </div>
-        </Section>
-        <div className="side-col">
-          <Section title="Bilgilendirme">
-            <Info role={user.role} />
-          </Section>
-          <Section title="Bağlantılar">
-            <ul className="link-list">
-              {siteLinks.map((l) => (
-                <li key={l.href}>
-                  <a href={l.href} target="_blank" rel="noreferrer">
-                    <Icon name="external" size={16} />
-                    {l.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </Section>
+      <Section title="Hızlı Erişim">
+        <div className="quick">
+          {items.map((m) => (
+            <Link key={m.path} to={m.path} className="quick-item">
+              <span className="tile">
+                <Icon name={m.icon} size={22} />
+              </span>
+              <strong>{m.label}</strong>
+            </Link>
+          ))}
         </div>
-      </div>
+      </Section>
     </>
-  );
-}
-
-const infos: Record<string, { head: string; text: string }[]> = {
-  Student: [
-    { head: '8', text: 'saatlik çalışma günü: plan günleri tam gün olarak seçilir.' },
-    { head: 'QR', text: 'Karekod 30 saniyede bir yenilenir; devam kaydını yalnızca açık oturumda yapabilirsiniz.' },
-    { head: '₺', text: 'Ödeme için IBAN bilginizi Profilim sayfasından ekleyin.' },
-  ],
-  Advisor: [
-    { head: '8', text: 'saatlik çalışma günü esas alınır.' },
-    { head: '!', text: 'Devamsızlık bildirimleriniz bölüm başkanlığına iletilir.' },
-    { head: '✓', text: 'Öğrencilerinize görev verip değerlendirme notu yazabilirsiniz.' },
-  ],
-  DepartmentHead: [
-    { head: '8', text: 'saatlik çalışma günü esas alınır.' },
-    { head: 'QR', text: 'Bölümünüz için karekodlu devam oturumu açabilirsiniz.' },
-    { head: '!', text: 'Danışmanlardan gelen devamsızlık bildirimleri Bildirimler sayfasındadır.' },
-  ],
-  FacultyAdmin: [
-    { head: '8', text: 'saatlik çalışma günü esas alınır.' },
-    { head: '✓', text: 'Çalışma planlarını onaylayın veya gerekçeyle reddedin.' },
-    { head: '⚙', text: 'Bölüm, çalışma birimi, tatil ve personel hesapları Tanımlar sayfasındadır.' },
-  ],
-};
-
-function Info({ role }: { role: string }) {
-  return (
-    <ul className="info-list">
-      {(infos[role] ?? []).map((i) => (
-        <li key={i.text}>
-          <span className="info-head">{i.head}</span>
-          <span>{i.text}</span>
-        </li>
-      ))}
-    </ul>
   );
 }
 

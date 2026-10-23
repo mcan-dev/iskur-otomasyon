@@ -154,6 +154,58 @@ public class AuthService : IAuthService
         return new RegistrationResultDto { UserId = profile.UserId, StudentId = profile.Id, Email = email };
     }
 
+    public async Task<StaffRegistrationResultDto> RegisterStaffAsync(StaffRegistrationRequest request, CancellationToken ct = default)
+    {
+        var email = InputNormalizer.Email(request.Email);
+        var fullName = InputNormalizer.Name(request.FullName);
+        var phone = InputNormalizer.Phone(request.PhoneNumber);
+        var needsDepartment = request.Role is UserRole.DepartmentHead or UserRole.Advisor;
+
+        var errors = new ValidationErrors();
+        if (!Enum.IsDefined(request.Role) || request.Role == UserRole.Student)
+            errors.Add(nameof(request.Role), "Rol danışman, bölüm başkanı veya fakülte sekreterliği olmalıdır.");
+        if (fullName.Length < 2)
+            errors.Add(nameof(request.FullName), "Ad soyad en az 2 karakter olmalıdır.");
+        errors.Add(nameof(request.Password), PasswordPolicy.Validate(request.Password));
+        if (!InputNormalizer.IsValidMobile(phone))
+            errors.Add(nameof(request.PhoneNumber), "Geçerli bir cep telefonu numarası giriniz (örn. 0532 123 45 67).");
+
+        Department? department = null;
+        if (needsDepartment)
+        {
+            department = request.DepartmentId is int id ? await _departments.GetByIdAsync(id) : null;
+            if (department is null || !department.IsActive)
+                errors.Add(nameof(request.DepartmentId), "Bu rol için geçerli bir bölüm seçilmelidir.");
+        }
+        errors.ThrowIfAny();
+
+        if (await _users.EmailExistsAsync(email, ct))
+            throw new ConflictException("Bu e-posta adresiyle kayıtlı bir hesap zaten var.");
+
+        // Hesap pasif açılır: yetkili bir hesabın kendi kendine açılmasını önler.
+        var user = new User
+        {
+            FullName = fullName,
+            Email = email,
+            PhoneNumber = phone,
+            PasswordHash = _hasher.Hash(request.Password),
+            Role = request.Role,
+            DepartmentId = department?.Id,
+            Department = department,
+            IsActive = false
+        };
+        await _users.AddAsync(user);
+
+        await using var tx = await _uow.BeginTransactionAsync(ct);
+        await _uow.SaveChangesAsync(ct);
+        await _audit.RecordAsync(AuditActions.StaffRegistered, nameof(User), user.Id,
+            $"Rol={user.Role}, onay bekliyor.", actorUserId: user.Id, actorEmail: email, ct: ct);
+        await _uow.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
+
+        return new StaffRegistrationResultDto { UserId = user.Id, Email = email, IsActive = false };
+    }
+
     public async Task ChangePasswordAsync(ChangePasswordRequest request, CancellationToken ct = default)
     {
         if (!_current.IsAuthenticated)

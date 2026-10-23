@@ -12,6 +12,7 @@ public interface IAuthService
 {
     Task<LoginResponse> LoginAsync(LoginRequest request, CancellationToken ct = default);
     Task<RegistrationResultDto> RegisterStudentAsync(StudentRegistrationRequest request, CancellationToken ct = default);
+    Task<StaffRegistrationResultDto> RegisterStaffAsync(StaffRegistrationRequest request, CancellationToken ct = default);
     Task ChangePasswordAsync(ChangePasswordRequest request, CancellationToken ct = default);
     Task<UserDto> GetCurrentUserAsync(CancellationToken ct = default);
 }

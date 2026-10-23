@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { api, ApiError, firstError } from '../api/client';
 import type { Department, RegistrationRequest } from '../api/types';
-import { Alert, Field } from '../components/ui';
+import { Alert, Field, PhoneInput } from '../components/ui';
 import AuthShell from '../layout/AuthShell';
 
 const empty: RegistrationRequest = {
@@ -46,7 +46,7 @@ export default function Register() {
 
   if (done) {
     return (
-      <AuthShell side={false} wide>
+      <AuthShell wide>
         <div className="auth-card">
           <h1>Kaydınız alındı</h1>
           <p className="muted">Hesabınız oluşturuldu. E-posta ve parolanızla giriş yapabilirsiniz.</p>
@@ -61,7 +61,7 @@ export default function Register() {
   const hasFieldErrors = error && Object.keys(error.fieldErrors).length > 0;
 
   return (
-    <AuthShell side={false} wide>
+    <AuthShell wide>
       <form className="auth-card wide-card" onSubmit={submit}>
         <h1>Öğrenci Kaydı</h1>
         <p className="muted">İŞKUR programı için temel bilgilerinizi girin.</p>
@@ -92,8 +92,8 @@ export default function Register() {
           <Field label="Kayıt Yılı" error={fieldError('registrationYear')}>
             <input type="number" value={form.registrationYear} onChange={(e) => set('registrationYear', Number(e.target.value))} required />
           </Field>
-          <Field label="Cep Telefonu" error={fieldError('phoneNumber')} hint="Örn: 0532 123 45 67">
-            <input value={form.phoneNumber} onChange={(e) => set('phoneNumber', e.target.value)} required />
+          <Field label="Cep Telefonu" error={fieldError('phoneNumber')} hint="11 hane, örn. 05321234567">
+            <PhoneInput value={form.phoneNumber} onChange={(v) => set('phoneNumber', v)} required />
           </Field>
           <Field label="Parola" error={fieldError('password')}>
             <input type="password" value={form.password} onChange={(e) => set('password', e.target.value)} autoComplete="new-password" required />
