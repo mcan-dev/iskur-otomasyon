@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { api, ApiError } from '../../api/client';
 import type { CourseDay, CourseSession, PlanCalendar, WorkPlan } from '../../api/types';
 import { Alert, Badge, Card, MonthPicker } from '../../components/ui';
-import { courseSessionLabels, fmtDate, fmtDateTime, planStatusLabels, planTone, weekdays } from '../../format';
+import { courseSessionLabels, fmtDate, fmtDateTime, hoursLabel, planStatusLabels, planTone, weekdays } from '../../format';
 import { useLoad } from '../../useLoad';
 
 const headers = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
@@ -101,7 +101,7 @@ export default function PlanPage() {
                   <span className="num">{Number(d.date.slice(8))}</span>
                   <span className="lbl">{d.label}</span>
                   {d.lessonSession && <span className="lbl">Ders: {courseSessionLabels[d.lessonSession].toLowerCase()}</span>}
-                  {chosen && <span className="lbl">8 saat</span>}
+                  {chosen && <span className="lbl">{hoursLabel(cal?.dailyHours)} saat</span>}
                 </div>
               );
             })}
@@ -122,7 +122,7 @@ export default function PlanPage() {
             <button className="btn primary" disabled={!canEdit || busy || picked.size === 0} onClick={save}>
               {busy ? 'Kaydediliyor…' : 'Planı Kaydet'}
             </button>
-            <span className="muted">{picked.size} gün seçildi · {picked.size * 8} saat</span>
+            <span className="muted">{picked.size} gün seçildi · {hoursLabel(picked.size * (cal?.dailyHours ?? 0))} saat</span>
           </div>
         </Card>
       </div>

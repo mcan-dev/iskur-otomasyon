@@ -33,7 +33,7 @@ Kapsama girmeyenler:
 
 ## Çalışma kuralları
 
-- Günlük çalışma süresi **8 saattir**. Planlanan her gün tam gündür; yarım gün yoktur.
+- Günlük çalışma süresi **7,5 saattir** (İŞKUR programında haftada 3 gün ve en fazla 22,5 saat çalışılır). Planlanan her gün tam gündür; yarım gün yoktur.
 - Kayıtlar silinmez. Yanlış kayıt gerekçeyle geri alınır; geçmiş korunur.
 - Sistem uyarı üretir ama idari kararı kendisi vermez. İzin sınırı, devamsızlık sınırı ve ilişik kesme kararı yetkili kişiler tarafından verilir; sınırlar ayarlardan değiştirilebilir.
 - Öğrenci yalnızca kendi kayıtlarını görür; bölüm başkanı yalnızca kendi bölümünü; danışman yalnızca kendi öğrencilerini.

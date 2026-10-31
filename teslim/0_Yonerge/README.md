@@ -38,5 +38,5 @@ Projenin dayandığı iki belge bu klasördedir:
 
 ## Bu projedeki tek sapma
 
-Belgedeki "yarım gün çalışma" seçeneği uygulanmamıştır. Günlük çalışma süresi 8 saattir; planlanan her gün tam gün
+Belgedeki "yarım gün çalışma" seçeneği uygulanmamıştır. Günlük çalışma süresi 7,5 saattir; planlanan her gün tam gün
 sayılır. Bunun dışında belgeden ayrılan bir yer yoktur.

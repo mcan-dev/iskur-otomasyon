@@ -38,7 +38,7 @@ Rol kontrolü ve kapsam: bölüm başkanı yalnızca kendi bölümünü, danış
 Rol ve kapsam senaryoları diğer sınıflarda da modül bazında vardır: `*_IsForbidden`, `*_FollowTheRoleScope`, `*_OutsideTheScope_LooksLikeNotFound`, `OnlyStudentsCanCheckIn`, `OnlyTheFacultyOfficeRecordsDecisions`, `MonthlyStatement_IsOnlyForTheFacultyOffice`.
 
 ### Çalışma günü sınırları
-Haftada 1-3 gün, haftanın perşembesinin düştüğü aya sayılması, hafta sonu/tatil/program dışı günün seçilememesi, dersli günde açıklama zorunluluğu, sınav haftasında alt sınırın aranmaması, her günün 8 saat sayılması, düzeltme süresi, onaylı planın kilitlenmesi.
+Haftada 1-3 gün, haftanın perşembesinin düştüğü aya sayılması, hafta sonu/tatil/program dışı günün seçilememesi, dersli günde açıklama zorunluluğu, sınav haftasında alt sınırın aranmaması, her günün 7,5 saat sayılması, düzeltme süresi, onaylı planın kilitlenmesi.
 
 | Test sınıfı | Test sayısı | Dosya |
 |---|---|---|

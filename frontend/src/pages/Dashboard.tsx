@@ -4,7 +4,7 @@ import type { AbsenceNotice, AttendanceComparison, Leave, LeaveAlert, LeaveBalan
 import { useAuth } from '../auth/AuthContext';
 import { Alert, Badge } from '../components/ui';
 import { Icon } from '../components/Icon';
-import { fmtDate, planStatusLabels } from '../format';
+import { fmtDate, hoursLabel, planStatusLabels } from '../format';
 import { menus, roleLabels } from '../layout/menu';
 import { useLoad } from '../useLoad';
 
@@ -97,7 +97,7 @@ function StudentSummary() {
         </Alert>
       ))}
       <div className="tiles">
-        <Tile icon="clock" label="Bu ay çalışılan saat" value={worked.data?.hasApprovedPlan ? `${worked.data.workedHours} saat` : '–'} hint={worked.data?.hasApprovedPlan ? `${worked.data.attendedDays} / ${worked.data.plannedDays} gün` : 'Onaylı plan yok'} tone="green" />
+        <Tile icon="clock" label="Bu ay çalışılan saat" value={worked.data?.hasApprovedPlan ? `${hoursLabel(worked.data.workedHours)} saat` : '–'} hint={worked.data?.hasApprovedPlan ? `${worked.data.attendedDays} / ${worked.data.plannedDays} gün` : 'Onaylı plan yok'} tone="green" />
         <Tile icon="building" label="Çalıştığı birim" value={p?.currentUnit?.workUnitName ?? 'Atanmadı'} />
         <Tile icon="user" label="Danışman" value={p?.currentAdvisor?.advisorName ?? 'Atanmadı'} />
         <Tile icon="mail" label="Kalan izin hakkı" value={b ? `${b.remaining} gün` : '–'} hint={b ? `${b.year} yılı, ${b.limit} gün üzerinden` : undefined} tone="green" />

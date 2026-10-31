@@ -151,7 +151,7 @@ public static class DatabaseSeeder
             new StudentCourseDay { StudentProfile = mehmet, DayOfWeek = DayOfWeek.Tuesday, Session = CourseSession.FullDay },
             new StudentCourseDay { StudentProfile = mehmet, DayOfWeek = DayOfWeek.Thursday, Session = CourseSession.Afternoon });
 
-        // İzinler: günlük onaylı, saatlik onaylı (4 saat = 0,5 gün), onay bekleyen sağlık izni.
+        // İzinler: günlük onaylı, saatlik onaylı (3,75 saat = 0,5 gün), onay bekleyen sağlık izni.
         db.LeaveRequests.AddRange(
             new LeaveRequest
             {
@@ -163,7 +163,7 @@ public static class DatabaseSeeder
             new LeaveRequest
             {
                 StudentProfile = mehmet, Type = LeaveType.Excuse, Status = LeaveStatus.Approved,
-                StartDate = D(2026, 9, 23), EndDate = D(2026, 9, 23), Hours = 4, DaysCounted = 0.5m, Reason = "Resmî işlem",
+                StartDate = D(2026, 9, 23), EndDate = D(2026, 9, 23), Hours = 3.75m, DaysCounted = 0.5m, Reason = "Resmî işlem",
                 AppliedOn = D(2026, 9, 21), ReviewedByUser = admin, ReviewedAt = new DateTime(2026, 9, 21, 14, 0, 0, DateTimeKind.Utc)
             },
             new LeaveRequest
@@ -273,7 +273,7 @@ public static class DatabaseSeeder
             new LeaveRequest
             {
                 StudentProfile = mehmet, Type = LeaveType.Excuse, Status = LeaveStatus.Pending,
-                StartDate = D(2026, 11, 17), EndDate = D(2026, 11, 17), Hours = 4, DaysCounted = 0.5m, Reason = "Resmî randevu",
+                StartDate = D(2026, 11, 17), EndDate = D(2026, 11, 17), Hours = 3.75m, DaysCounted = 0.5m, Reason = "Resmî randevu",
                 AppliedOn = D(2026, 10, 22)
             });
 
