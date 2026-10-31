@@ -78,7 +78,7 @@ veriyi yükleyip bu sınıfa verir. Kurallar:
 - Hafta sonu, resmî tatil ve programa katılım dışındaki günler seçilemez.
 - Dersli gün (öğrencinin beyan ettiği haftanın günleri) açıklama notuyla seçilebilir.
 - Sınav dönemiyle kesişen haftalarda en az 1 gün şartı aranmaz.
-- Çalışılan her gün tam gündür; günlük çalışma süresi 8 saattir, yarım gün yoktur.
+- Çalışılan her gün tam gündür; günlük çalışma süresi 7,5 saattir, yarım gün yoktur.
 - Öğrenci planı ilgili ayın bir önceki ayının başından, ayın `EditDeadlineDay`. gününe kadar düzenler.
   Reddedilen plan süre bitse de düzeltilebilir, onaylanan plan öğrenci tarafından değiştirilemez.
 - Fakülte yönetimi her zaman öğrenci adına düzeltme yapabilir; düzeltilen plan yeniden onaya düşer.
@@ -124,7 +124,7 @@ Hesaplamalar `LeaveDayCounter` ve `LeaveBalanceCalculator` sınıflarında, veri
 
 - Tüm raporlar aynı biçimde (`ReportTable`: başlık, sütunlar, satırlar) döner. Ekran bu tabloyu çizer; CSV ve Excel dosyası aynı tablodan üretilir. Böylece ekranda görünen ile dışa aktarılan her zaman aynıdır ve filtreler ikisinde de aynı çalışır.
 - Rapor türleri: aylık çalışma (öğrenci/bölüm/fakülte filtresiyle, planlanan-gerçekleşen karşılaştırması ve toplam saat), yıllık çalışma saati, izin ve devamsızlık, danışman bazında öğrenci ve görev, aktif/pasif öğrenci listesi, izin sınırına yaklaşanlar, ilişik kesme değerlendirmesi gerektirenler, aylık öğrenci dökümü.
-- Çalışma saati: onaylı plandaki günlerden devam kaydı olanların toplamı, her gün 8 saat (`WorkFigures`, saf sınıf). Günlük saat ayardadır (`WorkPlan:DailyHours`).
+- Çalışma saati: onaylı plandaki günlerden devam kaydı olanların toplamı, her gün 7,5 saat (`WorkFigures`, saf sınıf). Günlük saat ayardadır (`WorkPlan:DailyHours`).
 - Kapsam: bölüm başkanı kendi bölümünü, danışman kendi öğrencilerini görür; kullanıcının gönderdiği bölüm/danışman filtresi bu kapsamı genişletemez.
 - Aylık döküm (T.C. kimlik no ve IBAN içerir) yalnızca fakülte yönetimine açıktır; görüntülenmesi ve her dışa aktarma denetim kaydına yazılır.
 - `TerminationReview` listesi yalnızca inceleme içindir. İlişik kesme **kararını** fakülte yönetimi `POST /api/terminations` ile gerekçeyle kaydeder; bu işlem tek işlemde karar kaydını yazar ve öğrencinin katılımını sonlandırır. Karar anındaki izin ve devamsızlık sayıları kayda alınır, kayıt değiştirilmez veya silinmez.

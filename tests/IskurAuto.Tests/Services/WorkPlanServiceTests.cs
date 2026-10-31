@@ -39,11 +39,11 @@ public class WorkPlanServiceTests
 
         Assert.Equal(WorkPlanStatus.Pending, plan.Status);
         Assert.Equal(4, plan.PlannedDays);
-        Assert.Equal(32m, plan.PlannedHours);
+        Assert.Equal(30m, plan.PlannedHours);
     }
 
     [Fact]
-    public async Task SaveMyPlan_EveryPlannedDayIsAnEightHourDay()
+    public async Task SaveMyPlan_EveryPlannedDayIsASevenAndAHalfHourDay()
     {
         var (db, _) = StudentSession();
         using var _ = db;
@@ -51,8 +51,8 @@ public class WorkPlanServiceTests
 
         var plan = await scope.WorkPlans.SaveMyPlanAsync(ValidPlan());
 
-        Assert.All(plan.Days, d => Assert.Equal(8m, d.Hours));
-        Assert.Equal(plan.PlannedDays * 8m, plan.PlannedHours);
+        Assert.All(plan.Days, d => Assert.Equal(7.5m, d.Hours));
+        Assert.Equal(plan.PlannedDays * 7.5m, plan.PlannedHours);
     }
 
     [Fact]

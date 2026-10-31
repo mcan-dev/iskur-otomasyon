@@ -119,7 +119,7 @@ Belge her raporun hem ekranda hem Excel/CSV olarak, aynı filtrelerle alınması
 Plan, devam, izin ve devamsızlık kayıtları zaten saklı ve silinmiyor. Rapor bunlardan her seferinde hesaplandığı için geçmiş bir ay sorgulandığında da o günkü kayıtlarla doğru sonuç verir ve ayrı bir tabloyla senkron tutma derdi olmaz.
 
 ### Çalışma saati nasıl hesaplanıyor?
-Öğrencinin onaylı planındaki günlerden devam kaydı olanlar sayılır, her gün tam gündür. Sonuç günlük saatle çarpılır (ayarda, varsayılan 8). Plan dışı bir güne elle yazılan kayıt saate eklenmez: belge planlanan ile gerçekleşenin karşılaştırılmasını istiyor ve plansız çalışma bu karşılaştırmayı bozardı.
+Öğrencinin onaylı planındaki günlerden devam kaydı olanlar sayılır, her gün tam gündür. Sonuç günlük saatle çarpılır (ayarda, varsayılan 7,5: İŞKUR programında haftada 3 gün ve en fazla 22,5 saat çalışılır). Plan dışı bir güne elle yazılan kayıt saate eklenmez: belge planlanan ile gerçekleşenin karşılaştırılmasını istiyor ve plansız çalışma bu karşılaştırmayı bozardı.
 
 ### Excel dosyası neden kütüphanesiz yazılıyor?
 Yalnızca başlıklı bir tablo gerekiyor. Dış kütüphane eklemek bağımlılık, lisans ve sürüm yükü getirirdi. .xlsx zaten bir zip içindeki küçük XML dosyalarıdır; yazıcı kısa ve testle doğrulanıyor. Biçimlendirme veya formül gerekirse o noktada kütüphaneye geçilebilir.

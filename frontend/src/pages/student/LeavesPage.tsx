@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { api, ApiError } from '../../api/client';
 import type { Leave, LeaveBalance, LeaveResult } from '../../api/types';
 import { Alert, Badge, Card, Empty, Field, Stat } from '../../components/ui';
-import { fmtDate, leaveStatusLabels, leaveTone, todayIso } from '../../format';
+import { fmtDate, hoursLabel, leaveStatusLabels, leaveTone, todayIso } from '../../format';
 import { useLoad } from '../../useLoad';
 
 export default function LeavesPage() {
@@ -77,7 +77,7 @@ function LeaveItem({ leave, onChanged }: { leave: Leave; onChanged: () => void }
         <Badge tone={leaveTone[leave.status]}>{leaveStatusLabels[leave.status]}</Badge>
       </div>
       <p className="muted small">
-        {leave.hours ? `${leave.hours} saat` : `${leave.daysCounted} gün`} · Başvuru {fmtDate(leave.appliedOn)}
+        {leave.hours ? `${hoursLabel(leave.hours)} saat` : `${leave.daysCounted} gün`} · Başvuru {fmtDate(leave.appliedOn)}
       </p>
       <p>{leave.reason}</p>
       {leave.reviewNote && <p className="muted small">İnceleme notu: {leave.reviewNote}</p>}

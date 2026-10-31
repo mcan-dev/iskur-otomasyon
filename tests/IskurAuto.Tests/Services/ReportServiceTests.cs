@@ -107,9 +107,9 @@ public class ReportServiceTests
         Assert.Equal(5m, Cell(table, "Mehmet Öztürk", "Planlanan Gün"));
         Assert.Equal(1m, Cell(table, "Mehmet Öztürk", "Gerçekleşen Gün"));
         Assert.Equal(3m, Cell(table, "Mehmet Öztürk", "Kayıt Yok"));       // 1, 6 ve 14 Ekim
-        Assert.Equal(8m, Cell(table, "Mehmet Öztürk", "Çalışma Saati"));
+        Assert.Equal(7.5m, Cell(table, "Mehmet Öztürk", "Çalışma Saati"));
         Assert.Equal(0m, Cell(table, "Elif Yıldız", "Çalışma Saati"));
-        Assert.Equal(8m, Cell(table, "TOPLAM", "Çalışma Saati"));
+        Assert.Equal(7.5m, Cell(table, "TOPLAM", "Çalışma Saati"));
     }
 
     [Fact]
@@ -201,9 +201,9 @@ public class ReportServiceTests
 
         var table = await ReportAsync(f, ReportKind.YearlyWork, new ReportQuery { Year = 2026 });
 
-        Assert.Equal(8m, Cell(table, "Mehmet Öztürk", "Eki (saat)"));
+        Assert.Equal(7.5m, Cell(table, "Mehmet Öztürk", "Eki (saat)"));
         Assert.Equal(0m, Cell(table, "Mehmet Öztürk", "Kas (saat)"));
-        Assert.Equal(8m, Cell(table, "Mehmet Öztürk", "Toplam Saat"));
+        Assert.Equal(7.5m, Cell(table, "Mehmet Öztürk", "Toplam Saat"));
         Assert.Equal(1m, Cell(table, "Mehmet Öztürk", "Gerçekleşen Gün"));
     }
 
@@ -296,7 +296,7 @@ public class ReportServiceTests
         Assert.Equal("Bilgisayar Mühendisliği", row[3]);
         Assert.Equal("Bilgisayar Laboratuvarı", row[4]);
         Assert.Equal("Ekim 2026", row[5]);
-        Assert.Equal(8m, row[9]);
+        Assert.Equal(7.5m, row[9]);
 
         using var verify = f.Db.NewContext();
         Assert.True(await verify.AuditLogs.AnyAsync(a => a.Action == AuditActions.ReportViewed));

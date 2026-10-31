@@ -22,10 +22,10 @@ public class WorkFiguresTests
     {
         var plan = Plan(WorkPlanStatus.Approved, 6, 14, 20);
 
-        var figures = WorkFigures.Compute(plan, Dates(6, 14), Array.Empty<LeaveRequest>(), Dates(), Today, dailyHours: 8);
+        var figures = WorkFigures.Compute(plan, Dates(6, 14), Array.Empty<LeaveRequest>(), Dates(), Today, dailyHours: 7.5m);
 
         Assert.Equal(2m, figures.AttendedDays);
-        Assert.Equal(16m, figures.Hours);
+        Assert.Equal(15m, figures.Hours);
         Assert.Equal(3m, figures.PlannedDays);
         Assert.Equal(1m, figures.MissingDays);
     }

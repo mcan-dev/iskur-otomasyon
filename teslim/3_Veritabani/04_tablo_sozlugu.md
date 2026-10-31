@@ -229,7 +229,7 @@ Vize ve final dönemleri (bu haftalarda haftalık en az 1 gün şartı aranmaz).
 
 ### WorkPlanDays
 
-Bir planda seçilen çalışma günleri. Her gün 8 saattir.
+Bir planda seçilen çalışma günleri. Her gün 7,5 saattir.
 
 | Alan | Tür | Boş olabilir | Anahtar |
 |---|---|---|---|
