@@ -75,3 +75,6 @@ export const reportKinds: { id: string; label: string; needsMonth?: boolean; fac
   { id: 'TerminationReview', label: 'İlişik kesme incelemesi', noAdvisor: true },
   { id: 'MonthlyStatement', label: 'Ay sonu dökümü (TC ve IBAN içerir)', needsMonth: true, facultyOnly: true },
 ];
+
+/** Saat değerini Türkçe ondalık ayracıyla yazar: 7.5 → "7,5". */
+export const hoursLabel = (h?: number | null): string => String(Math.round((h ?? 0) * 100) / 100).replace('.', ',');

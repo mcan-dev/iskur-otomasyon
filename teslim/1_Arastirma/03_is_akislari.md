@@ -24,7 +24,7 @@ Her atama tarihli bir satırdır; değiştirilince eski satır kapanır, geçmi�
 ```mermaid
 flowchart TD
     A[Öğrenci ay ve yılı seçer] --> B[Takvim açılır:<br/>yeşil uygun, kırmızı tatil, sarı ders/sınav, gri kapalı]
-    B --> C[Çalışacağı günleri seçer<br/>her gün 8 saat]
+    B --> C[Çalışacağı günleri seçer<br/>her gün 7,5 saat]
     C --> D{Kurallar}
     D -- "Haftada 1-3 gün değil<br/>(sınav haftası hariç)" --> X[Uyarı, kaydedilmez]
     D -- Tatil / hafta sonu seçili --> X
@@ -110,7 +110,7 @@ flowchart TD
     D --> H[Ay sonu dökümü<br/>yalnızca fakülte sekreterliği:<br/>TC, ad, IBAN, bölüm, birim, ay-yıl,<br/>planlanan ve gerçekleşen gün, saat, izin]
 ```
 
-Çalışma saati = onaylı plandaki günlerden devam kaydı olanların sayısı × 8 saat.
+Çalışma saati = onaylı plandaki günlerden devam kaydı olanların sayısı × 7,5 saat.
 
 ## 7. Görev ve değerlendirme
 

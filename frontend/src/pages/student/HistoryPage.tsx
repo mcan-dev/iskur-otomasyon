@@ -3,7 +3,7 @@ import { api } from '../../api/client';
 import type { Absence, Attendance, AttendanceComparison, Leave, WorkPlan } from '../../api/types';
 import { Alert, Badge, Card, Empty, MonthPicker } from '../../components/ui';
 import {
-  fmtDate, fmtDateTime, leaveStatusLabels, leaveTone, monthYear, outcomeLabels, outcomeTone, planStatusLabels, planTone,
+  fmtDate, fmtDateTime, hoursLabel, leaveStatusLabels, leaveTone, monthYear, outcomeLabels, outcomeTone, planStatusLabels, planTone,
 } from '../../format';
 import { useLoad } from '../../useLoad';
 
@@ -68,8 +68,8 @@ function Summary() {
             <div className="tile-card tone-bg-green">
               <div>
                 <span className="tile-label">Çalışılan saat</span>
-                <strong className="tile-value">{c.workedHours} saat</strong>
-                <span className="tile-hint">Günlük {c.dailyHours} saat</span>
+                <strong className="tile-value">{hoursLabel(c.workedHours)} saat</strong>
+                <span className="tile-hint">Günlük {hoursLabel(c.dailyHours)} saat</span>
               </div>
             </div>
             <div className="tile-card">
@@ -95,7 +95,7 @@ function Summary() {
                   <td>{fmtDate(d.date)}</td>
                   <td>{weekdayName(d.date)}</td>
                   <td><Badge tone={outcomeTone[d.outcome]}>{outcomeLabels[d.outcome]}</Badge></td>
-                  <td>{d.outcome === 'Attended' ? `${c.dailyHours} saat` : '–'}</td>
+                  <td>{d.outcome === 'Attended' ? `${hoursLabel(c.dailyHours)} saat` : '–'}</td>
                 </tr>
               ))}
             </tbody>
@@ -140,7 +140,7 @@ function Leaves({ year }: { year: number }) {
         {leaves.data.map((l) => (
           <tr key={l.id}>
             <td>{fmtDate(l.startDate)}{l.startDate !== l.endDate && ` – ${fmtDate(l.endDate)}`}</td>
-            <td>{l.hours ? `${l.hours} saat` : `${l.daysCounted} gün`}</td>
+            <td>{l.hours ? `${hoursLabel(l.hours)} saat` : `${l.daysCounted} gün`}</td>
             <td>{l.reason}</td>
             <td><Badge tone={leaveTone[l.status]}>{leaveStatusLabels[l.status]}</Badge></td>
           </tr>

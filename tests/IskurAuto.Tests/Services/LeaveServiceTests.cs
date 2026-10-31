@@ -89,12 +89,12 @@ public class LeaveServiceTests
         var (db, _) = StudentSession();
         using var _ = db;
         var request = Leave(3, 3);
-        request.Hours = 2;
+        request.Hours = 3.75m;
         using var scope = db.NewScope();
 
         var result = await scope.Leaves.RequestAsync(request);
 
-        Assert.Equal(0.25m, result.Leave.DaysCounted);
+        Assert.Equal(0.5m, result.Leave.DaysCounted);
     }
 
     [Fact]
@@ -138,7 +138,7 @@ public class LeaveServiceTests
         await Assert.ThrowsAsync<DomainValidationException>(() => scope.Leaves.RequestAsync(hourlyRange));
 
         var hourlyFullDay = Leave(3, 3);
-        hourlyFullDay.Hours = 8;
+        hourlyFullDay.Hours = 7.5m;
         await Assert.ThrowsAsync<DomainValidationException>(() => scope.Leaves.RequestAsync(hourlyFullDay));
     }
 

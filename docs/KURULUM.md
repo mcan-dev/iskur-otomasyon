@@ -40,7 +40,7 @@ Ayarlar `src/IskurAuto.API/appsettings.json` içindedir. Gizli değerler dosyaya
 | `Storage:DocumentsPath` | `App_Data/documents` | İzin belgelerinin saklandığı klasör. Yoksa oluşturulur; dosyalar rastgele adla yazılır. |
 | `WorkPlan:MinDaysPerWeek` / `MaxDaysPerWeek` | 1 / 3 | Haftalık çalışma günü sınırı. |
 | `WorkPlan:EditDeadlineDay` | 5 | Plan düzeltmesi için ayın son günü. |
-| `WorkPlan:DailyHours` | 8 | Günlük çalışma süresi (saat). Çalışılan her gün tam gündür, yarım gün yoktur. |
+| `WorkPlan:DailyHours` | 7,5 | Günlük çalışma süresi (saat). İŞKUR programında haftada 3 gün ve en fazla 22,5 saat çalışılır. Çalışılan her gün tam gündür, yarım gün yoktur. |
 | `Bootstrap:AdminEmail` / `AdminPassword` | boş | Sistemde hiç Fakülte Sekreterliği hesabı yoksa ilk yönetici bununla oluşturulur. |
 
 Genel izin hakkı ve uyarı eşiği dosyada değil veritabanındadır; Fakülte Sekreterliği hesabıyla

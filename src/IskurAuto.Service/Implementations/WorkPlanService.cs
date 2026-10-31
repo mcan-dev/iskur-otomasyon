@@ -242,6 +242,7 @@ public class WorkPlanService : IWorkPlanService
             PlanStatus = plan?.Status,
             CanEdit = student.IsActive && CanStudentEdit(plan, year, month),
             EditDeadline = DeadlineOf(year, month),
+            DailyHours = _settings.DailyHours,
             Days = planMonth.ToCalendar(plan)
         };
     }

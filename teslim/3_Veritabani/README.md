@@ -39,7 +39,7 @@ Development ortamında, veritabanı boşken uygulama ilk açılışta örnek ver
 - **Aynı öğrencinin farklı ay ve yılları:** Mehmet Öztürk için Eylül 2025, Ekim 2025, Eylül 2026 ve Ekim 2026 planları ayrı satırlardır.
 - **Geçmişin korunması:** Mehmet'in birimi Kütüphane'den Bilgisayar Laboratuvarı'na, danışmanı Hakan Polat'tan Zeynep Arslan'a geçmiştir; eski satırların bitiş tarihi yazılıdır.
 - **Plan durumları:** Onaylanmış, onay bekleyen ve gerekçeyle reddedilmiş plan birer örnekle vardır.
-- **İzin:** Günlük, saatlik (4 saat = 0,5 gün hak düşer) ve onay bekleyen sağlık izni.
+- **İzin:** Günlük, saatlik (3,75 saat = 0,5 gün hak düşer; saat, günlük süreye bölünür) ve onay bekleyen sağlık izni.
 - **Devam, görev, bildirim:** Karekodla devam kayıtları, değerlendirmesi olan görev, açık görev, devamsızlık bildirimi.
 - **Programdan ayrılan öğrenci:** Kerem Aydın'ın katılımı sona ermiş, ilişik kesme kararı kayıtlıdır; geçmiş kayıtları durur.
 - **Filtre denemesi:** Üç bölümde öğrenci vardır; bölüm başkanı yalnızca kendi bölümünü, danışman yalnızca kendi öğrencilerini görür.

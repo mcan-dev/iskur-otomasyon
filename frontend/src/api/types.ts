@@ -121,6 +121,7 @@ export interface PlanCalendar {
   planStatus?: PlanStatus | null;
   canEdit: boolean;
   editDeadline: string;
+  dailyHours: number;
   days: CalendarDay[];
 }
 
