@@ -92,7 +92,7 @@ dotnet test
 - QR oturumunun gizli anahtarı veritabanında düz saklanır (imza doğrulaması için gerekli); yanıtlarda hiçbir zaman dönmez.
 - Karekod bir öğrenciden diğerine fotoğrafla iletilebilir; jeton yaklaşık 60 saniye geçerli olduğu ve her öğrenci oturum başına tek kayıt oluşturabildiği için etkisi sınırlıdır. Konum doğrulaması yok.
 - Planlı ama devamı olmayan gün otomatik devamsızlık sayılmaz; karşılaştırmada "kayıt yok" olarak görünür, devamsızlığı fakülte yönetimi girer.
-- Çalışma saati yalnızca onaylı plandaki günlerde, devam kaydı olan günler için hesaplanır; plan dışı güne yazılan kayıt saate eklenmez. Çalışılan her gün tam gündür (günlük 8 saat), yarım gün yoktur.
+- Çalışma saati yalnızca onaylı plandaki günlerde, devam kaydı olan günler için hesaplanır; plan dışı güne yazılan kayıt saate eklenmez. Çalışılan her gün tam gündür (günlük 7,5 saat), yarım gün yoktur.
 - Raporlar tek istekte tüm eşleşen öğrenciyi okur; birkaç yüz öğrenci için uygundur, çok büyük hacimde sayfalama gerekir.
 - Excel dosyası basit bir tablodur (biçimlendirme, formül yok). CSV dosyası Türkçe Excel için noktalı virgülle ayrılır.
 - Arama, SQL Server'ın varsayılan (büyük/küçük harfe duyarsız) harmanlamasıyla yapılır; farklı bir harmanlama seçilirse arama davranışı değişir.

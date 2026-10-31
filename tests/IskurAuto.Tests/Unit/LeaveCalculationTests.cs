@@ -59,7 +59,7 @@ public class LeaveDayCounterTests
 
     [Fact]
     public void Count_HourlyLeave_IsFractionOfFullDay()
-        => Assert.Equal(0.5m, LeaveDayCounter.Count(Nov(3), Nov(3), 4m, NoHolidays, [], Settings));
+        => Assert.Equal(0.5m, LeaveDayCounter.Count(Nov(3), Nov(3), 3.75m, NoHolidays, [], Settings));
 }
 
 public class LeaveBalanceCalculatorTests

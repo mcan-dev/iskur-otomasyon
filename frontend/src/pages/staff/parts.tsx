@@ -3,7 +3,7 @@ import { api, ApiError } from '../../api/client';
 import type { Absence, Leave, WorkPlan } from '../../api/types';
 import { Alert, Badge, Empty, Field, Modal } from '../../components/ui';
 import {
-  fmtDate, fmtDateTime, leaveStatusLabels, leaveTone, monthYear, planStatusLabels, planTone,
+  fmtDate, fmtDateTime, hoursLabel, leaveStatusLabels, leaveTone, monthYear, planStatusLabels, planTone,
 } from '../../format';
 
 const msg = (err: unknown, fallback: string) => (err instanceof ApiError ? err.message : fallback);
@@ -59,7 +59,7 @@ export function PlanItem({ plan, canReview, onChanged, showStudent = true }: { p
       </div>
       <p className="muted small">
         {showStudent && plan.departmentName ? `${plan.departmentName} · ` : ''}
-        {plan.plannedDays} gün · {plan.plannedHours} saat · Son kayıt {fmtDateTime(plan.lastSavedAt)}
+        {plan.plannedDays} gün · {hoursLabel(plan.plannedHours)} saat · Son kayıt {fmtDateTime(plan.lastSavedAt)}
       </p>
       <p>
         {plan.days.map((d) => fmtDate(d.date).slice(0, 5)).join(', ')}
@@ -112,7 +112,7 @@ export function LeaveTable({ leaves, canReview, onChanged, showStudent = true }:
             <tr key={l.id}>
               {showStudent && <td>{l.studentName}<div className="muted small">{l.departmentName}</div></td>}
               <td>{fmtDate(l.startDate)}{l.startDate !== l.endDate && ` – ${fmtDate(l.endDate)}`}</td>
-              <td>{l.hours ? `${l.hours} saat` : `${l.daysCounted} gün`}</td>
+              <td>{l.hours ? `${hoursLabel(l.hours)} saat` : `${l.daysCounted} gün`}</td>
               <td>
                 {l.reason}
                 {l.reviewNote && <div className="muted small">Not: {l.reviewNote}</div>}

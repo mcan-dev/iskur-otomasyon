@@ -17,5 +17,5 @@ Kaynak kodun kendisi depo kökündeki `src/` (arka yüz), `frontend/` (arayüz) 
 
 ## Proje kararları
 
-Gereksinim belgesindeki "yarım gün çalışma" seçeneği uygulanmamıştır. Günlük çalışma süresi **8 saattir**
+Gereksinim belgesindeki "yarım gün çalışma" seçeneği uygulanmamıştır. Günlük çalışma süresi **7,5 saattir** (İŞKUR programında haftada 3 gün, en fazla 22,5 saat)
 ve bir güne plan yapıldıysa o gün tam gün sayılır. Veritabanı olarak **Microsoft SQL Server** kullanılmıştır.

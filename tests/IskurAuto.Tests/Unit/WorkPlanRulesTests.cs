@@ -165,8 +165,8 @@ public class WorkPlanRulesTests
 public class WorkPlanSettingsTests
 {
     [Fact]
-    public void DailyHours_DefaultsToEight()
-        => Assert.Equal(8m, new WorkPlanSettings().DailyHours);
+    public void DailyHours_DefaultsToSevenAndAHalf()
+        => Assert.Equal(7.5m, new WorkPlanSettings().DailyHours);
 }
 
 public class WorkPlanCalendarTests

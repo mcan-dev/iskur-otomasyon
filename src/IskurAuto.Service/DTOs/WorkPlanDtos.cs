@@ -103,6 +103,8 @@ public class WorkPlanCalendarDto
     public WorkPlanStatus? PlanStatus { get; set; }
     public bool CanEdit { get; set; }
     public DateOnly EditDeadline { get; set; }
+    /// <summary>Çalışılan her günün saat karşılığı (ayardan gelir).</summary>
+    public decimal DailyHours { get; set; }
     public List<CalendarDayDto> Days { get; set; } = new();
 }
 
