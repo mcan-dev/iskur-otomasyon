@@ -148,15 +148,17 @@ public class ReportServiceTests
         Assert.Equal(new[] { "Elif Yıldız", "TOPLAM" }, Names(passive));
     }
 
-    [Fact]
-    public async Task Reports_FollowTheRoleScope()
+    [Theory]
+    [InlineData(UserRole.DepartmentHead)]
+    [InlineData(UserRole.Advisor)]
+    public async Task Reports_AreOnlyForTheFacultyOffice(UserRole role)
     {
         using var f = await CreateAsync();
-        var anotherDepartment = new ReportQuery { Year = 2026, Month = 10, DepartmentId = f.Seed.YmId };
+        f.Db.Current.As(role, f.Seed.HeadId, f.Seed.BmId);
+        using var scope = f.Db.NewScope();
 
-        var head = await ReportAsync(f, ReportKind.MonthlyWork, anotherDepartment, UserRole.DepartmentHead);
-        Assert.Equal(new[] { "Mehmet Öztürk", "TOPLAM" }, Names(head));      // istenen bölüm kapsamı aşamaz
-
+        foreach (var kind in Enum.GetValues<ReportKind>())
+            await Assert.ThrowsAsync<ForbiddenException>(() => scope.Reports.GetAsync(kind, new ReportQuery { Year = 2026, Month = 10 }));
     }
 
     [Fact]
@@ -336,20 +338,5 @@ public class ReportServiceTests
 
         using var verify = f.Db.NewContext();
         Assert.Equal(2, await verify.AuditLogs.CountAsync(a => a.Action == AuditActions.ReportExported));
-    }
-
-    [Fact]
-    public async Task Export_AppliesTheSameScopeAsTheScreen()
-    {
-        using var f = await CreateAsync();
-        f.Db.Current.As(UserRole.DepartmentHead, f.Seed.HeadId, f.Seed.BmId);
-        using var scope = f.Db.NewScope();
-
-        var csv = await scope.Reports.ExportAsync(ReportKind.MonthlyWork,
-            new ReportQuery { Year = 2026, Month = 10, DepartmentId = f.Seed.YmId }, ReportFormat.Csv);
-
-        var text = Encoding.UTF8.GetString(csv.Content);
-        Assert.Contains("Mehmet Öztürk", text);
-        Assert.DoesNotContain("Elif Yıldız", text);
     }
 }

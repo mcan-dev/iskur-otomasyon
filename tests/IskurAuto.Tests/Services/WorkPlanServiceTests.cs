@@ -351,7 +351,7 @@ public class WorkPlanServiceTests
 
         using var verify = db.NewContext();
         var log = await verify.AuditLogs.SingleAsync(a => a.Action == AuditActions.WorkPlanSaved);
-        Assert.Equal("2026-11, 4 gün", log.Details);
+        Assert.Equal("Kasım 2026 planı gönderildi, 4 gün seçildi", log.Details);
     }
 }
 

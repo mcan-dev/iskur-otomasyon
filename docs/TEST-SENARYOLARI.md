@@ -68,7 +68,7 @@ Jetonun 30 saniyede değişmesi, tolerans penceresinin dışında geçersizleşm
 | `AttendanceComparerTests` | 6 | `Unit/AttendanceComparerTests.cs` |
 
 ### Raporların doğruluğu
-Aylık/yıllık saat hesabı, plan dışı gün ve onaysız planın saate eklenmemesi, filtreler, rol kapsamı, sınıra yaklaşan ve ilişik kesme değerlendirmesi gerektiren listeler, aylık dökümün içeriği ve erişimi, CSV ve Excel dosyalarının biçimi, dışa aktarmanın denetlenmesi, ilişik kesme kararının öğrenciyi pasifleştirmesi ve geçmişi koruması.
+Aylık/yıllık saat hesabı, plan dışı gün ve onaysız planın saate eklenmemesi, filtreler, raporların yalnızca fakülte sekreterliğine açık olması, sınıra yaklaşan ve ilişik kesme değerlendirmesi gerektiren listeler, aylık dökümün içeriği ve erişimi, CSV ve Excel dosyalarının biçimi, dışa aktarmanın denetlenmesi, ilişik kesme kararının öğrenciyi pasifleştirmesi ve geçmişi koruması.
 
 | Test sınıfı | Test sayısı | Dosya |
 |---|---|---|

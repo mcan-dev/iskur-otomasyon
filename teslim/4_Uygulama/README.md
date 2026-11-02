@@ -50,11 +50,11 @@ Parola hepsi için `Demo1234!` (yalnızca Development ortamı, boş veritabanın
 | E-posta | Rol |
 |---|---|
 | sekreter@teknoloji.edu.tr | Fakülte Sekreterliği / Dekanlık |
-| baskan.bm@teknoloji.edu.tr | Bölüm Başkanı |
+| baskan.bm@teknoloji.edu.tr | Bölüm Başkanı (Bilgisayar) |
 | danisman.bm@teknoloji.edu.tr | Danışman |
 | ogrenci@teknoloji.edu.tr | Öğrenci |
-| ogrenci2@teknoloji.edu.tr | Öğrenci (Yazılım Müh.) |
+| ogrenci2@teknoloji.edu.tr | Öğrenci (Makine Müh.) |
 | bekleyen.danisman@teknoloji.edu.tr | Onay bekleyen danışman (pasif; fakülte "Tanımlar ve Hesaplar" ekranından aktif eder) |
 
 Örnek veri (çok aylı planlar, izin, devam, görev, ilişik kesme) uygulama ilk açıldığında kendiliğinden yüklenir; ayrıntı [3_Veritabani/README.md](../3_Veritabani/README.md).
-Daha fazla demo hesap: burak.sahin@, selin.celik@ (öğrenci), danisman.mak@, danisman2.bm@ (danışman) – hepsi `@teknoloji.edu.tr`.
+Daha fazla demo hesap: burak.sahin@, selin.celik@, ahmet.kilic@, fatma.gunes@ (öğrenci), danisman.mak@, danisman.mek@, danisman.met@, danisman2.bm@ (danışman), baskan.eem@, baskan.mak@, baskan.mek@, baskan.met@ (bölüm başkanı) – hepsi `@teknoloji.edu.tr`.

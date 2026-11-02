@@ -60,7 +60,7 @@ public static class WorkPlanMappers
                 DayBlock.OutsideProgram => (CalendarColor.Red, "Program dışı"),
                 _ when chosen is not null && lesson => (CalendarColor.Yellow, "Seçildi, dersli gün"),
                 _ when chosen is not null => (CalendarColor.Green, "Seçildi"),
-                _ when lesson => (CalendarColor.Yellow, "Dersli gün, seçilirse açıklama gerekir"),
+                _ when lesson => (CalendarColor.Yellow, "Dersli gün"),
                 _ => (CalendarColor.Gray, "Boş gün, henüz seçilmedi")
             };
 

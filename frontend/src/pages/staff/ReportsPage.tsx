@@ -1,16 +1,15 @@
 import { useState } from 'react';
 import { api, ApiError } from '../../api/client';
-import type { Department, ReportTable, User } from '../../api/types';
-import { useAuth } from '../../auth/AuthContext';
+import type { Department, ReportTable, StudentSummary, User } from '../../api/types';
+import StudentPicker from '../../components/StudentPicker';
 import { Alert, Card, Empty, Field } from '../../components/ui';
 import { monthName, reportKinds } from '../../format';
 import { useLoad } from '../../useLoad';
 import { Filters } from './parts';
 
 export default function ReportsPage() {
-  const { user } = useAuth();
-  const role = user?.role;
-  const kinds = reportKinds.filter((k) => !(k.facultyOnly && role !== 'FacultyAdmin') && !(k.noAdvisor && role === 'Advisor'));
+  // Raporlar yalnızca fakülte sekreterliği / dekanlık hesabında açılır.
+  const kinds = reportKinds;
 
   const now = new Date();
   const [kind, setKind] = useState(kinds[0].id);
@@ -19,13 +18,14 @@ export default function ReportsPage() {
   const [departmentId, setDepartmentId] = useState('');
   const [advisorId, setAdvisorId] = useState('');
   const [active, setActive] = useState('');
+  const [student, setStudent] = useState<StudentSummary | null>(null);
   const [error, setError] = useState('');
 
   const current = kinds.find((k) => k.id === kind) ?? kinds[0];
   const needsYear = kind !== 'StudentList';
 
-  const departments = useLoad(() => (role === 'FacultyAdmin' ? api.get<Department[]>('/api/departments') : Promise.resolve([])), []);
-  const advisors = useLoad(() => (role !== 'Advisor' ? api.get<User[]>('/api/users?role=Advisor') : Promise.resolve([])), []);
+  const departments = useLoad(() => api.get<Department[]>('/api/departments'), []);
+  const advisors = useLoad(() => api.get<User[]>('/api/users?role=Advisor'), []);
 
   const query = new URLSearchParams();
   if (needsYear) query.set('year', String(year));
@@ -33,6 +33,7 @@ export default function ReportsPage() {
   if (departmentId) query.set('departmentId', departmentId);
   if (advisorId) query.set('advisorUserId', advisorId);
   if (active) query.set('isActive', active);
+  if (student) query.set('studentId', String(student.id));
   const qs = query.toString();
 
   const report = useLoad(() => api.get<ReportTable>(`/api/reports/${kind}?${qs}`), [kind, qs]);
@@ -64,7 +65,7 @@ export default function ReportsPage() {
             </select>
           </Field>
         )}
-        {role === 'FacultyAdmin' && (
+        {(
           <Field label="Bölüm">
             <select value={departmentId} onChange={(e) => setDepartmentId(e.target.value)}>
               <option value="">Tümü</option>
@@ -72,7 +73,7 @@ export default function ReportsPage() {
             </select>
           </Field>
         )}
-        {role !== 'Advisor' && (
+        {(
           <Field label="Danışman">
             <select value={advisorId} onChange={(e) => setAdvisorId(e.target.value)}>
               <option value="">Tümü</option>
@@ -88,6 +89,11 @@ export default function ReportsPage() {
           </select>
         </Field>
       </Filters>
+
+      <div style={{ margin: '4px 0 12px' }}>
+        <span className="muted small">Öğrenci bazında rapor için öğrenci seçin (boşsa tüm öğrenciler):</span>
+        <StudentPicker value={student} onChange={setStudent} />
+      </div>
 
       <div className="row" style={{ marginBottom: 12 }}>
         <button className="btn" onClick={() => save('Xlsx')} disabled={!report.data}>Excel olarak indir</button>
