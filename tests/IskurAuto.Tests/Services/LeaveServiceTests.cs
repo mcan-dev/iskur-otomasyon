@@ -84,20 +84,6 @@ public class LeaveServiceTests
     }
 
     [Fact]
-    public async Task Request_HourlyLeave_CountsFractionOfDay()
-    {
-        var (db, _) = StudentSession();
-        using var _ = db;
-        var request = Leave(3, 3);
-        request.Hours = 3.75m;
-        using var scope = db.NewScope();
-
-        var result = await scope.Leaves.RequestAsync(request);
-
-        Assert.Equal(0.5m, result.Leave.DaysCounted);
-    }
-
-    [Fact]
     public async Task Request_OverLimit_IsAllowedButWarns()
     {
         var (db, _) = StudentSession();
@@ -123,7 +109,7 @@ public class LeaveServiceTests
     }
 
     [Fact]
-    public async Task Request_CannotSpanTwoYears_OrMixHoursWithMultipleDays()
+    public async Task Request_CannotSpanTwoYears()
     {
         var (db, _) = StudentSession();
         using var _ = db;
@@ -132,14 +118,6 @@ public class LeaveServiceTests
         var acrossYears = Leave(2, 6);
         acrossYears.EndDate = new DateOnly(2027, 1, 4);
         await Assert.ThrowsAsync<DomainValidationException>(() => scope.Leaves.RequestAsync(acrossYears));
-
-        var hourlyRange = Leave(2, 3);
-        hourlyRange.Hours = 2;
-        await Assert.ThrowsAsync<DomainValidationException>(() => scope.Leaves.RequestAsync(hourlyRange));
-
-        var hourlyFullDay = Leave(3, 3);
-        hourlyFullDay.Hours = 7.5m;
-        await Assert.ThrowsAsync<DomainValidationException>(() => scope.Leaves.RequestAsync(hourlyFullDay));
     }
 
     [Fact]

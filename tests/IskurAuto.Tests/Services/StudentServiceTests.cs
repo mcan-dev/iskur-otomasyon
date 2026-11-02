@@ -91,7 +91,7 @@ public class StudentVisibilityTests
         using var scope = db.NewScope();
         Assert.Equal(2, (await scope.Students.SearchAsync(new StudentSearchQuery { IsActive = true })).TotalCount);
         Assert.Equal(0, (await scope.Students.SearchAsync(new StudentSearchQuery { IsActive = false })).TotalCount);
-        Assert.Equal(1, (await scope.Students.SearchAsync(new StudentSearchQuery { Text = "2024000002" })).TotalCount);
+        Assert.Equal(1, (await scope.Students.SearchAsync(new StudentSearchQuery { Text = "240000002" })).TotalCount);
         Assert.Equal(0, (await scope.Students.SearchAsync(new StudentSearchQuery { Text = "%" })).TotalCount);   // joker değil, düz karakter
     }
 

@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { api, ApiError } from '../../api/client';
-import type { Leave, LeaveBalance, LeaveResult } from '../../api/types';
+import type { Leave, LeaveBalance, LeaveResult, LeaveType } from '../../api/types';
 import { Alert, Badge, Card, Empty, Field, Stat } from '../../components/ui';
-import { fmtDate, hoursLabel, leaveStatusLabels, leaveTone, todayIso } from '../../format';
+import { fmtDate, leaveStatusLabels, leaveTone, leaveTypeLabels, todayIso } from '../../format';
 import { useLoad } from '../../useLoad';
 
 export default function LeavesPage() {
@@ -77,7 +77,7 @@ function LeaveItem({ leave, onChanged }: { leave: Leave; onChanged: () => void }
         <Badge tone={leaveTone[leave.status]}>{leaveStatusLabels[leave.status]}</Badge>
       </div>
       <p className="muted small">
-        {leave.hours ? `${hoursLabel(leave.hours)} saat` : `${leave.daysCounted} gün`} · Başvuru {fmtDate(leave.appliedOn)}
+        {leaveTypeLabels[leave.type]} · {leave.daysCounted} gün · Başvuru {fmtDate(leave.appliedOn)}
       </p>
       <p>{leave.reason}</p>
       {leave.reviewNote && <p className="muted small">İnceleme notu: {leave.reviewNote}</p>}
@@ -106,29 +106,36 @@ function LeaveItem({ leave, onChanged }: { leave: Leave; onChanged: () => void }
 
 function NewLeave({ onCreated }: { onCreated: (r: LeaveResult) => void }) {
   const today = todayIso();
+  const [type, setType] = useState<LeaveType>('Excuse');
   const [start, setStart] = useState(today);
   const [end, setEnd] = useState(today);
-  const [hours, setHours] = useState('');
   const [reason, setReason] = useState('');
   const [description, setDescription] = useState('');
   const [error, setError] = useState<ApiError | null>(null);
+  const [localError, setLocalError] = useState('');
+  const [done, setDone] = useState('');
   const [busy, setBusy] = useState(false);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    setDone('');
+    setLocalError('');
+    if (!start || !end) return setLocalError('Başlangıç ve bitiş tarihini seçin.');
+    if (end < start) return setLocalError('Bitiş tarihi başlangıçtan önce olamaz.');
+    if (reason.trim().length < 3) return setLocalError('Gerekçe en az 3 karakter olmalıdır.');
     setBusy(true);
     try {
       const result = await api.post<LeaveResult>('/api/leaves/me', {
+        type,
         startDate: start,
         endDate: end,
-        hours: start === end && hours ? Number(hours.replace(',', '.')) : null,
         reason: reason.trim(),
         description: description.trim() || null,
       });
       setReason('');
       setDescription('');
-      setHours('');
+      setDone('İzin talebiniz gönderildi; onay bekliyor.');
       onCreated(result);
     } catch (err) {
       setError(err instanceof ApiError ? err : new ApiError(0, 'Talep oluşturulamadı.'));
@@ -141,25 +148,34 @@ function NewLeave({ onCreated }: { onCreated: (r: LeaveResult) => void }) {
     const key = error && Object.keys(error.fieldErrors).find((k) => k.toLowerCase() === name.toLowerCase());
     return key && error ? error.fieldErrors[key][0] : undefined;
   };
-  const hasFields = error && Object.keys(error.fieldErrors).length > 0;
+  // Alan altında gösterilemeyen her hata (ör. izin türü) üstte uyarı olarak da listelenir.
+  const shown = ['startdate', 'enddate', 'reason'];
+  const otherErrors = error
+    ? Object.entries(error.fieldErrors).filter(([k]) => !shown.includes(k.toLowerCase())).flatMap(([, v]) => v)
+    : [];
 
   return (
-    <Card title="Yeni izin talebi">
-      <form onSubmit={submit}>
-        {error && !hasFields && <Alert>{error.message}</Alert>}
+    <Card title="Yeni izin talebi" subtitle="İzinler gün bazında alınır.">
+      <form onSubmit={submit} noValidate>
+        {done && <Alert kind="info">{done}</Alert>}
+        {localError && <Alert>{localError}</Alert>}
+        {error && Object.keys(error.fieldErrors).length === 0 && <Alert>{error.message}</Alert>}
+        {otherErrors.length > 0 && <Alert>{otherErrors.join(' ')}</Alert>}
+        <Field label="İzin türü">
+          <select value={type} onChange={(e) => setType(e.target.value as LeaveType)}>
+            {(Object.keys(leaveTypeLabels) as LeaveType[]).map((k) => (
+              <option key={k} value={k}>{leaveTypeLabels[k]}</option>
+            ))}
+          </select>
+        </Field>
         <Field label="Başlangıç" error={fieldMsg('startDate')}>
-          <input type="date" value={start} onChange={(e) => { setStart(e.target.value); if (e.target.value > end) setEnd(e.target.value); }} required />
+          <input type="date" value={start} onChange={(e) => { setStart(e.target.value); if (e.target.value > end) setEnd(e.target.value); }} />
         </Field>
         <Field label="Bitiş" error={fieldMsg('endDate')}>
-          <input type="date" value={end} min={start} onChange={(e) => setEnd(e.target.value)} required />
+          <input type="date" value={end} min={start} onChange={(e) => setEnd(e.target.value)} />
         </Field>
-        {start === end && (
-          <Field label="Saat (saatlik izin için)" error={fieldMsg('hours')} hint="Boş bırakırsanız tam gün sayılır.">
-            <input inputMode="decimal" value={hours} onChange={(e) => setHours(e.target.value)} placeholder="Örn: 2" />
-          </Field>
-        )}
         <Field label="Gerekçe" error={fieldMsg('reason')}>
-          <input value={reason} onChange={(e) => setReason(e.target.value)} maxLength={300} required />
+          <input value={reason} onChange={(e) => setReason(e.target.value)} maxLength={300} />
         </Field>
         <Field label="Açıklama (isteğe bağlı)">
           <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} maxLength={1000} />

@@ -105,6 +105,9 @@ public class WorkPlanCalendarDto
     public DateOnly EditDeadline { get; set; }
     /// <summary>Çalışılan her günün saat karşılığı (ayardan gelir).</summary>
     public decimal DailyHours { get; set; }
+    public int MinDaysPerWeek { get; set; }
+    public int MaxDaysPerWeek { get; set; }
+    public int MaxDaysPerMonth { get; set; }
     public List<CalendarDayDto> Days { get; set; } = new();
 }
 

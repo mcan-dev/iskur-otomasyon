@@ -31,9 +31,11 @@ public static class DatabaseSeeder
         if (await db.Departments.AnyAsync()) return;   // veri varsa dokunma
 
         var bm = new Department { Name = "Bilgisayar Mühendisliği", Code = "BM" };
-        var ym = new Department { Name = "Yazılım Mühendisliği", Code = "YM" };
         var eem = new Department { Name = "Elektrik-Elektronik Mühendisliği", Code = "EEM" };
-        db.Departments.AddRange(bm, ym, eem);
+        var mak = new Department { Name = "Makine Mühendisliği", Code = "MAK" };
+        var mek = new Department { Name = "Mekatronik Mühendisliği", Code = "MEK" };
+        var met = new Department { Name = "Metalurji ve Malzeme Mühendisliği", Code = "MET" };
+        db.Departments.AddRange(bm, eem, mak, mek, met);
 
         db.Holidays.AddRange(
             new Holiday { Date = new DateOnly(2026, 10, 29), Name = "Cumhuriyet Bayramı" },
@@ -55,18 +57,18 @@ public static class DatabaseSeeder
         var head = new User { FullName = "Prof. Dr. Mehmet Demir", Email = "baskan.bm@teknoloji.edu.tr", PasswordHash = Hash(), Role = UserRole.DepartmentHead, Department = bm };
         var advisor = new User { FullName = "Dr. Öğr. Üyesi Zeynep Arslan", Email = "danisman.bm@teknoloji.edu.tr", PasswordHash = Hash(), Role = UserRole.Advisor, Department = bm };
         var oldAdvisor = new User { FullName = "Dr. Öğr. Üyesi Hakan Polat", Email = "danisman2.bm@teknoloji.edu.tr", PasswordHash = Hash(), Role = UserRole.Advisor, Department = bm };
-        var advisorYm = new User { FullName = "Dr. Öğr. Üyesi Can Aksoy", Email = "danisman.ym@teknoloji.edu.tr", PasswordHash = Hash(), Role = UserRole.Advisor, Department = ym };
+        var advisorMak = new User { FullName = "Dr. Öğr. Üyesi Can Aksoy", Email = "danisman.mak@teknoloji.edu.tr", PasswordHash = Hash(), Role = UserRole.Advisor, Department = mak };
         // Onay bekleyen başvuru örneği: pasif hesap, fakülte sekreterliği aktif edene kadar giriş yapamaz.
         var pending = new User { FullName = "Dr. Öğr. Üyesi Deniz Kara", Email = "bekleyen.danisman@teknoloji.edu.tr", PhoneNumber = "05361112233", PasswordHash = Hash(), Role = UserRole.Advisor, Department = eem, IsActive = false };
-        db.Users.AddRange(admin, head, advisor, oldAdvisor, advisorYm, pending);
+        db.Users.AddRange(admin, head, advisor, oldAdvisor, advisorMak, pending);
 
         var start = clock.Today.AddDays(-60);
 
         // Mehmet 2025 Eylül'den beri programda: önceki yıl ve aylara ait kayıtları da olsun.
         var mehmet = NewStudent("Mehmet Öztürk", "ogrenci@teknoloji.edu.tr", "05321234567",
-            "12345678950", "TR400006200000000000000001", "2023000001", bm, 2023, new DateOnly(2025, 9, 1), Hash());
+            "12345678950", "TR400006200000000000000001", "230000001", bm, 2023, new DateOnly(2025, 9, 1), Hash());
         var elif = NewStudent("Elif Yıldız", "ogrenci2@teknoloji.edu.tr", "05329876543",
-            "23456789138", "TR130006200000000000000002", "2024000002", ym, 2024, start, Hash());
+            "23456789138", "TR130006200000000000000002", "240000002", mak, 2024, start, Hash());
         db.StudentProfiles.AddRange(mehmet, elif);
 
         // Mehmet'in birim ve danışman geçmişi: eski satırlar kapalı, güncel olan açık.
@@ -76,9 +78,9 @@ public static class DatabaseSeeder
         mehmet.AdvisorAssignments.Add(new AdvisorAssignment { AdvisorUser = advisor, StartDate = new DateOnly(2026, 3, 1), AssignedByUser = head });
 
         elif.UnitAssignments.Add(new StudentUnitAssignment { WorkUnit = kutuphane, StartDate = start, AssignedByUser = admin });
-        elif.AdvisorAssignments.Add(new AdvisorAssignment { AdvisorUser = advisorYm, StartDate = start, AssignedByUser = admin });
+        elif.AdvisorAssignments.Add(new AdvisorAssignment { AdvisorUser = advisorMak, StartDate = start, AssignedByUser = admin });
 
-        SeedHistory(db, admin, advisor, advisorYm, head, mehmet, elif, bm, ym, eem, dekanlik, hashFactory: Hash);
+        SeedHistory(db, admin, advisor, advisorMak, head, mehmet, elif, bm, mak, eem, dekanlik, hashFactory: Hash);
 
         await db.SaveChangesAsync();
 
@@ -91,18 +93,18 @@ public static class DatabaseSeeder
     /// Örnek geçmiş: aynı öğrencinin farklı ay ve yıllardaki planları, izin, devam, görev ve ilişik kesme kaydı.
     /// Vize gösteriminde "aylar ve yıllar birbirinden ayrı kayıtlardır" görülebilsin diye eklenir.
     /// </summary>
-    private static void SeedHistory(IskurAutoDbContext db, User admin, User advisor, User advisorYm, User head, StudentProfile mehmet, StudentProfile elif,
-        Department bm, Department ym, Department eem, WorkUnit dekanlik, Func<string> hashFactory)
+    private static void SeedHistory(IskurAutoDbContext db, User admin, User advisor, User advisorMak, User head, StudentProfile mehmet, StudentProfile elif,
+        Department bm, Department mak, Department eem, WorkUnit dekanlik, Func<string> hashFactory)
     {
         static DateOnly D(int y, int m, int d) => new(y, m, d);
 
         // Bu ekler fakülte genelindeki filtreleri (bölüm, danışman, durum) denemek içindir.
         var burak = NewStudent("Burak Şahin", "burak.sahin@teknoloji.edu.tr", "05331112233",
-            "10000000146", "TR560006200000000000000003", "2025000003", bm, 2025, D(2026, 2, 1), hashFactory());
+            "10000000146", "TR560006200000000000000003", "250000003", bm, 2025, D(2026, 2, 1), hashFactory());
         var selin = NewStudent("Selin Çelik", "selin.celik@teknoloji.edu.tr", "05344445566",
-            "11111111110", "TR780006200000000000000004", "2026000004", eem, 2026, D(2026, 9, 15), hashFactory());
+            "11111111110", "TR780006200000000000000004", "260000004", eem, 2026, D(2026, 9, 15), hashFactory());
         var kerem = NewStudent("Kerem Aydın", "kerem.aydin@teknoloji.edu.tr", "05355556677",
-            "10000000278", "TR900006200000000000000005", "2023000005", bm, 2023, D(2025, 9, 1), hashFactory());
+            "10000000278", "TR900006200000000000000005", "230000005", bm, 2023, D(2025, 9, 1), hashFactory());
         db.StudentProfiles.AddRange(burak, selin, kerem);
 
         burak.UnitAssignments.Add(new StudentUnitAssignment { WorkUnit = dekanlik, StartDate = D(2026, 2, 1), AssignedByUser = admin });
@@ -151,7 +153,7 @@ public static class DatabaseSeeder
             new StudentCourseDay { StudentProfile = mehmet, DayOfWeek = DayOfWeek.Tuesday, Session = CourseSession.FullDay },
             new StudentCourseDay { StudentProfile = mehmet, DayOfWeek = DayOfWeek.Thursday, Session = CourseSession.Afternoon });
 
-        // İzinler: günlük onaylı, saatlik onaylı (3,75 saat = 0,5 gün), onay bekleyen sağlık izni.
+        // İzinler: onaylı gün izinleri ve onay bekleyen sağlık izni.
         db.LeaveRequests.AddRange(
             new LeaveRequest
             {
@@ -163,7 +165,7 @@ public static class DatabaseSeeder
             new LeaveRequest
             {
                 StudentProfile = mehmet, Type = LeaveType.Excuse, Status = LeaveStatus.Approved,
-                StartDate = D(2026, 9, 23), EndDate = D(2026, 9, 23), Hours = 3.75m, DaysCounted = 0.5m, Reason = "Resmî işlem",
+                StartDate = D(2026, 9, 23), EndDate = D(2026, 9, 23), DaysCounted = 1, Reason = "Resmî işlem",
                 AppliedOn = D(2026, 9, 21), ReviewedByUser = admin, ReviewedAt = new DateTime(2026, 9, 21, 14, 0, 0, DateTimeKind.Utc)
             },
             new LeaveRequest
@@ -201,7 +203,7 @@ public static class DatabaseSeeder
         CheckIn(elif, elifOct, 19); CheckIn(elif, elifOct, 21);
         CheckIn(mehmet, mehmetOct, 7);
 
-        SeedExtras(db, admin, advisor, advisorYm, head, mehmet, elif, burak, selin, kerem, mehmetOct, elifOct, sessions);
+        SeedExtras(db, admin, advisor, advisorMak, head, mehmet, elif, burak, selin, kerem, mehmetOct, elifOct, sessions);
 
         // Görev ve değerlendirme: tamamlanmış bir görev (notuyla) ve açık bir görev.
         var done = new StudentTask
@@ -230,7 +232,7 @@ public static class DatabaseSeeder
     /// izinlerin tüm durumları, geri alınmış devamsızlık, okunmuş/okunmamış bildirim, iptal edilmiş devam,
     /// elle eklenmiş devam, tamamlanmamış görev, öğrenciye özel izin hakkı ve denetim izi.
     /// </summary>
-    private static void SeedExtras(IskurAutoDbContext db, User admin, User advisor, User advisorYm, User head,
+    private static void SeedExtras(IskurAutoDbContext db, User admin, User advisor, User advisorMak, User head,
         StudentProfile mehmet, StudentProfile elif, StudentProfile burak, StudentProfile selin, StudentProfile kerem,
         MonthlyWorkPlan mehmetOct, MonthlyWorkPlan elifOct, Dictionary<int, AttendanceSession> sessions)
     {
@@ -273,7 +275,7 @@ public static class DatabaseSeeder
             new LeaveRequest
             {
                 StudentProfile = mehmet, Type = LeaveType.Excuse, Status = LeaveStatus.Pending,
-                StartDate = D(2026, 11, 17), EndDate = D(2026, 11, 17), Hours = 3.75m, DaysCounted = 0.5m, Reason = "Resmî randevu",
+                StartDate = D(2026, 11, 17), EndDate = D(2026, 11, 17), DaysCounted = 1, Reason = "Resmî randevu",
                 AppliedOn = D(2026, 10, 22)
             });
 
@@ -333,7 +335,7 @@ public static class DatabaseSeeder
         db.StudentTasks.AddRange(missed, new StudentTask
         {
             StudentProfile = elif, Title = "Yazılım laboratuvarı kurulum listesi", Description = "Laboratuvar bilgisayarlarına kurulacak programların listesi.",
-            AssignedDate = D(2026, 10, 12), DueDate = D(2026, 10, 30), AssignedByUser = advisorYm
+            AssignedDate = D(2026, 10, 12), DueDate = D(2026, 10, 30), AssignedByUser = advisorMak
         });
 
         db.ExamPeriods.Add(new ExamPeriod { Name = "2025-2026 Bahar dönemi final sınavları", StartDate = D(2026, 6, 8), EndDate = D(2026, 6, 26) });

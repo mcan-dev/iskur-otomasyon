@@ -34,7 +34,28 @@ export default function PlanPage() {
   const cal = calendar.data;
   const canEdit = cal?.canEdit ?? false;
 
+  function weekKey(date: string): string {
+    const d = new Date(date + 'T00:00:00');
+    d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+    return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+  }
+
   function toggle(date: string) {
+    if (!cal) return;
+    if (!picked.has(date)) {
+      const maxWeek = cal.maxDaysPerWeek;
+      const maxMonth = cal.maxDaysPerMonth;
+      if (picked.size >= maxMonth) {
+        setMessage({ kind: 'warn', text: `Bir ayda en fazla ${maxMonth} gün seçilebilir.` });
+        return;
+      }
+      const inWeek = [...picked].filter((x) => weekKey(x) === weekKey(date)).length;
+      if (inWeek >= maxWeek) {
+        setMessage({ kind: 'warn', text: `Bir haftada en fazla ${maxWeek} gün seçilebilir.` });
+        return;
+      }
+    }
+    setMessage(null);
     setPicked((p) => {
       const copy = new Set(p);
       if (copy.has(date)) copy.delete(date);
@@ -55,7 +76,7 @@ export default function PlanPage() {
       });
       calendar.reload();
       plan.reload();
-      setMessage({ kind: 'info', text: 'Plan kaydedildi ve onaya gönderildi.' });
+      setMessage({ kind: 'info', text: 'Planınız onaya gönderildi. Onay bekleniyor; bu süreçte değişiklik yapılamaz.' });
     } catch (err) {
       setMessage(failure(err, 'Plan kaydedilemedi.'));
     } finally {
@@ -69,7 +90,7 @@ export default function PlanPage() {
   return (
     <div className="two-col">
       <div className="stack">
-        <Card title="Aylık çalışma planı" subtitle="Çalışmak istediğiniz günleri seçin. Haftada en az 1, en fazla 3 gün seçilebilir.">
+        <Card title="Aylık çalışma planı" subtitle={cal ? `Çalışmak istediğiniz günleri seçin. Haftada en az ${cal.minDaysPerWeek}, en fazla ${cal.maxDaysPerWeek} gün; ayda en fazla ${cal.maxDaysPerMonth} gün seçilebilir.` : 'Çalışmak istediğiniz günleri seçin.'}>
           <div className="row between" style={{ marginBottom: 12 }}>
             <MonthPicker year={year} month={month} onChange={(y, m) => { setYear(y); setMonth(m); }} />
             {status && <Badge tone={planTone[status]}>{planStatusLabels[status]}</Badge>}
@@ -77,7 +98,9 @@ export default function PlanPage() {
 
           {calendar.error && <Alert>{calendar.error}</Alert>}
           {message && <Alert kind={message.kind}>{message.text}{message.iban && <> <Link to="/profil">Profilime git</Link></>}</Alert>}
-          {cal && !canEdit && <Alert kind="info">Bu ay için plan değiştirilemez (son düzeltme günü: {fmtDate(cal.editDeadline)}).</Alert>}
+          {cal && status === 'Pending' && <Alert kind="info">Planınız onaya gönderildi ve onay bekliyor. Onay sürecinde değişiklik yapılamaz; reddedilirse yeniden seçim yapabilirsiniz.</Alert>}
+          {cal && status === 'Approved' && <Alert kind="info">Planınız onaylandı; değiştirilemez.</Alert>}
+          {cal && !canEdit && status !== 'Pending' && status !== 'Approved' && <Alert kind="info">Bu ay için plan gönderilemez (plan, ayın {fmtDate(cal.editDeadline)} tarihine kadar gönderilebilir; bir önceki ayın başından itibaren açılır).</Alert>}
           {status === 'Rejected' && plan.data?.reviewNote && <Alert kind="warn">Planınız reddedildi: {plan.data.reviewNote}</Alert>}
 
           <div className="cal" style={{ marginTop: 12 }}>
@@ -120,7 +143,7 @@ export default function PlanPage() {
           </label>
           <div className="row">
             <button className="btn primary" disabled={!canEdit || busy || picked.size === 0} onClick={save}>
-              {busy ? 'Kaydediliyor…' : 'Planı Kaydet'}
+              {busy ? 'Gönderiliyor…' : 'Planı Gönder'}
             </button>
             <span className="muted">{picked.size} gün seçildi · {hoursLabel(picked.size * (cal?.dailyHours ?? 0))} saat</span>
           </div>

@@ -103,8 +103,10 @@ public class AuthService : IAuthService
             errors.Add(nameof(request.Iban), "IBAN geçersiz. TR ile başlayan, 26 haneli geçerli bir IBAN giriniz.");
         if (!InputNormalizer.IsValidMobile(phone))
             errors.Add(nameof(request.PhoneNumber), "Geçerli bir cep telefonu numarası giriniz (örn. 0532 123 45 67).");
+        if (studentNumber.Length is < 3 or > 9)
+            errors.Add(nameof(request.StudentNumber), "Öğrenci numarası 3 ile 9 karakter arasında olmalıdır.");
         if (request.RegistrationYear > _clock.Today.Year)
-            errors.Add(nameof(request.RegistrationYear), "Kayıt yılı gelecekte olamaz.");
+            errors.Add(nameof(request.RegistrationYear), "Kayıt yılı içinde bulunulan yıldan sonra olamaz.");
 
         var department = await _departments.GetByIdAsync(request.DepartmentId);
         if (department is null || !department.IsActive)

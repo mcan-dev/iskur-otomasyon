@@ -50,7 +50,7 @@ public static class AttendanceComparer
         IReadOnlySet<DateOnly> absenceDates,
         DateOnly today)
     {
-        var fullDayLeaves = approvedLeaves.Where(l => l.Hours is null).ToList();
+        var fullDayLeaves = approvedLeaves.ToList();
 
         var results = plannedDays
             .OrderBy(d => d.Date)

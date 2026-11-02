@@ -56,7 +56,7 @@ public class WorkPlanServiceTests
     }
 
     [Fact]
-    public async Task SaveMyPlan_Twice_UpdatesSamePlanAndRemovesDroppedDays()
+    public async Task SaveMyPlan_WhileWaitingForApproval_IsRejectedAndKeepsOriginalDays()
     {
         var (db, _) = StudentSession();
         using var _ = db;
@@ -64,13 +64,13 @@ public class WorkPlanServiceTests
         using (var scope = db.NewScope())
             await scope.WorkPlans.SaveMyPlanAsync(ValidPlan());
         using (var scope = db.NewScope())
-            await scope.WorkPlans.SaveMyPlanAsync(NovemberPlan(4, 10, 17, 24));
+            await Assert.ThrowsAsync<ConflictException>(() => scope.WorkPlans.SaveMyPlanAsync(NovemberPlan(4, 10, 17, 24)));
 
         using var verify = db.NewContext();
         var plan = await verify.WorkPlans.Include(p => p.Days).SingleAsync();
-        Assert.Equal(4, plan.Days.Count);
-        Assert.DoesNotContain(plan.Days, d => d.Date == new DateOnly(2026, 11, 3));
-        Assert.Contains(plan.Days, d => d.Date == new DateOnly(2026, 11, 4));
+        Assert.Equal(WorkPlanStatus.Pending, plan.Status);
+        Assert.Contains(plan.Days, d => d.Date == new DateOnly(2026, 11, 3));
+        Assert.DoesNotContain(plan.Days, d => d.Date == new DateOnly(2026, 11, 4));
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public class WorkPlanServiceTests
     }
 
     [Fact]
-    public async Task SaveMyPlan_LessonDayNeedsNote_AfterCourseDaysAreDeclared()
+    public async Task SaveMyPlan_LessonDayNeedsNoExplanation()
     {
         var (db, _) = StudentSession();
         using var _ = db;
@@ -100,13 +100,8 @@ public class WorkPlanServiceTests
             await scope.CourseDays.SetMineAsync(new CourseDaysRequest { Days = [new CourseDayDto { Day = DayOfWeek.Tuesday }] });
 
         using (var scope = db.NewScope())
-            await Assert.ThrowsAsync<DomainValidationException>(() => scope.WorkPlans.SaveMyPlanAsync(ValidPlan()));
-
-        var request = ValidPlan();
-        request.Days.ForEach(d => d.Note = "Boş günüm yok");
-        using (var scope = db.NewScope())
         {
-            var plan = await scope.WorkPlans.SaveMyPlanAsync(request);
+            var plan = await scope.WorkPlans.SaveMyPlanAsync(ValidPlan());
             Assert.All(plan.Days, d => Assert.True(d.IsLessonDay));
         }
     }
@@ -257,8 +252,11 @@ public class WorkPlanServiceTests
         using (var scope = db.NewScope())
         {
             var calendar = await scope.WorkPlans.GetMyCalendarAsync(2026, 11);
-            Assert.True(calendar.CanEdit);
+            Assert.False(calendar.CanEdit);   // onaya gönderildi, onay bekliyor
             Assert.Equal(new DateOnly(2026, 11, 5), calendar.EditDeadline);
+            Assert.Equal(1, calendar.MinDaysPerWeek);
+            Assert.Equal(3, calendar.MaxDaysPerWeek);
+            Assert.Equal(14, calendar.MaxDaysPerMonth);
             Assert.Equal(WorkPlanStatus.Pending, calendar.PlanStatus);
             Assert.Equal(30, calendar.Days.Count);
             Assert.Equal(CalendarColor.Green, calendar.Days.Single(d => d.Date == new DateOnly(2026, 11, 3)).Color);
