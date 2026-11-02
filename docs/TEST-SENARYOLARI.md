@@ -1,6 +1,6 @@
 # Test senaryoları
 
-Belgenin 9. maddesindeki test başlıkları ve bunları karşılayan otomatik testler. Toplam 275 test yöntemi vardır; `[Theory]` testlerinin her veri satırı ayrı çalıştığı için `dotnet test` çıktısındaki sayı daha yüksektir.
+Belgenin 9. maddesindeki test başlıkları ve bunları karşılayan otomatik testler. Toplam 273 test yöntemi vardır; `[Theory]` testlerinin her veri satırı ayrı çalıştığı için `dotnet test` çıktısındaki sayı daha yüksektir.
 
 ```bash
 dotnet test                                         # hepsi
@@ -20,7 +20,7 @@ T.C. kimlik no ve IBAN algoritması, telefon ve ad normalleştirme, parola kural
 | `IbanValidatorTests` | 3 | `Unit/ValidationTests.cs` |
 | `PasswordPolicyTests` | 2 | `Unit/ValidationTests.cs` |
 | `InputNormalizerTests` | 4 | `Unit/ValidationTests.cs` |
-| `AuthServiceTests` | 16 | `Services/AuthServiceTests.cs` |
+| `AuthServiceTests` | 17 | `Services/AuthServiceTests.cs` |
 | `PasswordResetServiceTests` | 7 | `Services/PasswordResetServiceTests.cs` |
 | `DatabaseConstraintTests` | 8 | `Services/AdminAndDatabaseTests.cs` |
 
@@ -42,7 +42,7 @@ Haftada 1-3 gün, ayda en fazla 14 gün, haftanın perşembesinin düştüğü a
 
 | Test sınıfı | Test sayısı | Dosya |
 |---|---|---|
-| `WorkPlanRulesTests` | 14 | `Unit/WorkPlanRulesTests.cs` |
+| `WorkPlanRulesTests` | 15 | `Unit/WorkPlanRulesTests.cs` |
 | `WorkPlanSettingsTests` | 1 | `Unit/WorkPlanRulesTests.cs` |
 | `WorkPlanCalendarTests` | 4 | `Unit/WorkPlanRulesTests.cs` |
 | `WorkPlanServiceTests` | 17 | `Services/WorkPlanServiceTests.cs` |
@@ -53,9 +53,9 @@ Plan varsa planlı günlerin, yoksa hafta içi günlerin sayılması, tatillerin
 
 | Test sınıfı | Test sayısı | Dosya |
 |---|---|---|
-| `LeaveDayCounterTests` | 6 | `Unit/LeaveCalculationTests.cs` |
+| `LeaveDayCounterTests` | 5 | `Unit/LeaveCalculationTests.cs` |
 | `LeaveBalanceCalculatorTests` | 13 | `Unit/LeaveCalculationTests.cs` |
-| `LeaveServiceTests` | 19 | `Services/LeaveServiceTests.cs` |
+| `LeaveServiceTests` | 18 | `Services/LeaveServiceTests.cs` |
 | `AbsenceServiceTests` | 6 | `Services/LeaveServiceTests.cs` |
 
 ### Karekod geçerliliği
@@ -65,7 +65,7 @@ Jetonun 30 saniyede değişmesi, tolerans penceresinin dışında geçersizleşm
 |---|---|---|
 | `QrTokenTests` | 10 | `Unit/QrTokenTests.cs` |
 | `AttendanceServiceTests` | 32 | `Services/AttendanceServiceTests.cs` |
-| `AttendanceComparerTests` | 6 | `Unit/AttendanceComparerTests.cs` |
+| `AttendanceComparerTests` | 5 | `Unit/AttendanceComparerTests.cs` |
 
 ### Raporların doğruluğu
 Aylık/yıllık saat hesabı, plan dışı gün ve onaysız planın saate eklenmemesi, filtreler, raporların yalnızca fakülte sekreterliğine açık olması, sınıra yaklaşan ve ilişik kesme değerlendirmesi gerektiren listeler, aylık dökümün içeriği ve erişimi, CSV ve Excel dosyalarının biçimi, dışa aktarmanın denetlenmesi, ilişik kesme kararının öğrenciyi pasifleştirmesi ve geçmişi koruması.
@@ -73,7 +73,7 @@ Aylık/yıllık saat hesabı, plan dışı gün ve onaysız planın saate eklenm
 | Test sınıfı | Test sayısı | Dosya |
 |---|---|---|
 | `WorkFiguresTests` | 4 | `Unit/WorkFiguresTests.cs` |
-| `ReportServiceTests` | 16 | `Services/ReportServiceTests.cs` |
+| `ReportServiceTests` | 15 | `Services/ReportServiceTests.cs` |
 | `ReportFileWriterTests` | 11 | `Unit/ReportFileWriterTests.cs` |
 | `TerminationServiceTests` | 6 | `Services/TerminationServiceTests.cs` |
 
