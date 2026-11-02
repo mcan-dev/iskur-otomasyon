@@ -28,10 +28,10 @@ flowchart TD
     C --> D{Kurallar}
     D -- "Haftada 1-3 gün değil<br/>(sınav haftası hariç)" --> X[Uyarı, kaydedilmez]
     D -- Tatil / hafta sonu seçili --> X
-    D -- "Dersli gün seçili,<br/>açıklama yok" --> X
+    D -- "Ayda 14 günden fazla" --> X
     D -- Uygun --> E[Plan kaydedilir: durum Bekliyor]
     X --> C
-    E --> F[Düzeltme son gününe kadar<br/>öğrenci planı değiştirebilir]
+    E --> F[Onay beklerken öğrenci<br/>planı değiştiremez]
     F --> G{Fakülte sekreterliği}
     G -- Onaylar --> H[Plan Onaylandı, kilitlenir]
     G -- Gerekçeyle reddeder --> I[Öğrenci yeni plan girer]
@@ -57,7 +57,7 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    A[Öğrenci izin formunu açar] --> B[Tarih aralığı veya saat, tür,<br/>gerekçe, varsa belge]
+    A[Öğrenci izin formunu açar] --> B[Tür, başlangıç ve bitiş günü,<br/>gerekçe, varsa belge]
     B --> C[Sistem gün sayısını hesaplar:<br/>planlı günler, tatiller düşülür]
     C --> D[Kalan izin hakkı ve uyarılar formda gösterilir]
     D --> E[Talep Bekliyor durumunda kaydedilir]

@@ -122,6 +122,9 @@ export interface PlanCalendar {
   canEdit: boolean;
   editDeadline: string;
   dailyHours: number;
+  minDaysPerWeek: number;
+  maxDaysPerWeek: number;
+  maxDaysPerMonth: number;
   days: CalendarDay[];
 }
 
@@ -162,7 +165,6 @@ export interface Leave {
   status: LeaveStatus;
   startDate: string;
   endDate: string;
-  hours?: number | null;
   daysCounted: number;
   reason: string;
   description?: string | null;

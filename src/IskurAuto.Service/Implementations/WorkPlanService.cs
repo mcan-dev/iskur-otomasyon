@@ -243,6 +243,9 @@ public class WorkPlanService : IWorkPlanService
             CanEdit = student.IsActive && CanStudentEdit(plan, year, month),
             EditDeadline = DeadlineOf(year, month),
             DailyHours = _settings.DailyHours,
+            MinDaysPerWeek = _settings.MinDaysPerWeek,
+            MaxDaysPerWeek = _settings.MaxDaysPerWeek,
+            MaxDaysPerMonth = _settings.MaxDaysPerMonth,
             Days = planMonth.ToCalendar(plan)
         };
     }
@@ -265,6 +268,8 @@ public class WorkPlanService : IWorkPlanService
     {
         if (plan?.Status == WorkPlanStatus.Approved)
             throw new ConflictException("Onaylanmış plan değiştirilemez.");
+        if (plan?.Status == WorkPlanStatus.Pending)
+            throw new ConflictException("Plan onaya gönderildi; onay beklerken değiştirilemez. Reddedilirse yeniden seçim yapabilirsiniz.");
 
         if (!CanStudentEdit(plan, year, month))
             throw new ConflictException("Bu ay için plan düzenleme süresi dolmuş veya henüz başlamamış.");
@@ -272,7 +277,8 @@ public class WorkPlanService : IWorkPlanService
 
     private bool CanStudentEdit(MonthlyWorkPlan? plan, int year, int month)
     {
-        if (plan?.Status == WorkPlanStatus.Approved) return false;
+        // Gönderilen plan (onay bekleyen veya onaylı) öğrenci tarafından değiştirilemez; yalnızca reddedilirse yeniden seçilir.
+        if (plan?.Status is WorkPlanStatus.Approved or WorkPlanStatus.Pending) return false;
         if (plan?.Status == WorkPlanStatus.Rejected) return true;
 
         var today = _clock.Today;

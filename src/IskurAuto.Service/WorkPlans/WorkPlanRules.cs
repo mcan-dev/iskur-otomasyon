@@ -77,6 +77,7 @@ public static class WorkPlanRules
 
         CheckDays(month, days, errors);
         CheckWeeks(month, days, settings, errors);
+        CheckMonth(month, days, settings, errors);
 
         return errors;
     }
@@ -104,8 +105,6 @@ public static class WorkPlanRules
 
             if (reason is not null)
                 errors.Add($"{Format(day.Date)} {reason} çalışma günü olarak seçilemez.");
-            else if (month.IsLessonDay(day.Date) && string.IsNullOrWhiteSpace(day.Note))
-                errors.Add($"{Format(day.Date)} dersli bir gün; seçmek için açıklama yazmalısınız.");
         }
     }
 
@@ -131,6 +130,13 @@ public static class WorkPlanRules
             if (belongsToMonth && hasSelectableDay && !isExamWeek && selected < settings.MinDaysPerWeek)
                 errors.Add($"{label}: en az {settings.MinDaysPerWeek} gün seçilmelidir.");
         }
+    }
+
+    private static void CheckMonth(PlanMonth month, IReadOnlyCollection<PlannedDay> days, WorkPlanSettings settings, List<string> errors)
+    {
+        var selected = days.Select(d => d.Date).Distinct().Count(d => d >= month.First && d <= month.Last);
+        if (selected > settings.MaxDaysPerMonth)
+            errors.Add($"Bir ayda en fazla {settings.MaxDaysPerMonth} gün seçilebilir.");
     }
 
     // Hafta, perşembe gününün düştüğü aya sayılır; ay sınırındaki yarım hafta iki planda birden zorunlu olmaz.

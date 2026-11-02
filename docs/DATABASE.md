@@ -47,7 +47,7 @@ erDiagram
     StudentCourseDay { int Id int StudentProfileId int DayOfWeek enum Session }
     MonthlyWorkPlan { int Id int StudentProfileId int Year int Month enum Status string StudentNote datetime LastSavedAt int ReviewedByUserId datetime ReviewedAt string ReviewNote }
     WorkPlanDay { int Id int MonthlyWorkPlanId date Date bool IsLessonDay string Note }
-    LeaveRequest { int Id int StudentProfileId enum Type enum Status date StartDate date EndDate decimal Hours decimal DaysCounted string Reason date AppliedOn int ReviewedByUserId datetime ReviewedAt string ReviewNote string DocumentStoredName }
+    LeaveRequest { int Id int StudentProfileId enum Type enum Status date StartDate date EndDate decimal DaysCounted string Reason date AppliedOn int ReviewedByUserId datetime ReviewedAt string ReviewNote string DocumentStoredName }
     Absence { int Id int StudentProfileId date Date enum Type string Note int RecordedByUserId datetime RevokedAt string RevokeReason }
     AttendanceSession { int Id date Date time StartTime time EndTime string Title int DepartmentId string SecretKey int CreatedByUserId datetime ClosedAt }
     AttendanceRecord { int Id int StudentProfileId int AttendanceSessionId date Date datetime CheckedInAt int WorkPlanDayId bool IsManual string ManualReason int CreatedByUserId datetime VoidedAt int VoidedByUserId string VoidReason }
@@ -88,7 +88,7 @@ Raporlar için ayrı tablo yoktur; hepsi yukarıdaki kayıtlardan istek anında 
 - Varsayılan bağlantı: `Server=(localdb)\MSSQLLocalDB;Database=IskurAuto;Trusted_Connection=True;TrustServerCertificate=True` (Visual Studio ile gelen LocalDB). Kurumsal sunucuda `ConnectionStrings:IskurAutoDb` ile değiştirilir.
 - Hiçbir ilişkide cascade delete yoktur; kayıtlar silinmez, tarihçe tutulur.
 - "Açık dönem tek olsun" (`EndDate IS NULL`), "iptal edilmemiş kayıt tek olsun" (`VoidedAt IS NULL`, `RevokedAt IS NULL`) kuralları filtreli benzersiz indekslerle veritabanında da güvence altındadır.
-- Ondalık alanlar (`Hours`, `DaysCounted`, `LeaveDaysUsed`) `decimal(5,2)` tutulur.
+- Ondalık alanlar (`DaysCounted`, `LeaveDaysUsed`) `decimal(5,2)` tutulur.
 - Tablo alanlarının tam listesi `teslim/3_Veritabani/04_tablo_sozlugu.md` içindedir.
 
 ## Migration

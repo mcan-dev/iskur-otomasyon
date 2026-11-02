@@ -8,7 +8,6 @@ namespace IskurAuto.Tests.Unit;
 
 public class LeaveDayCounterTests
 {
-    private static readonly WorkPlanSettings Settings = new();
     private static readonly IReadOnlySet<DateOnly> NoHolidays = new HashSet<DateOnly>();
 
     private static DateOnly Nov(int day) => new(2026, 11, day);
@@ -23,14 +22,14 @@ public class LeaveDayCounterTests
 
     [Fact]
     public void Count_WithoutPlan_CountsEveryWeekday()
-        => Assert.Equal(5m, LeaveDayCounter.Count(Nov(2), Nov(6), null, NoHolidays, [], Settings));
+        => Assert.Equal(5m, LeaveDayCounter.Count(Nov(2), Nov(6), NoHolidays, []));
 
     [Fact]
     public void Count_SkipsWeekendsAndHolidays()
     {
         var holidays = new HashSet<DateOnly> { Nov(4) };
 
-        Assert.Equal(4m, LeaveDayCounter.Count(Nov(2), Nov(8), null, holidays, [], Settings));
+        Assert.Equal(4m, LeaveDayCounter.Count(Nov(2), Nov(8), holidays, []));
     }
 
     [Fact]
@@ -38,7 +37,7 @@ public class LeaveDayCounterTests
     {
         var plans = new[] { Plan(3, 5) };
 
-        Assert.Equal(2m, LeaveDayCounter.Count(Nov(2), Nov(6), null, NoHolidays, plans, Settings));
+        Assert.Equal(2m, LeaveDayCounter.Count(Nov(2), Nov(6), NoHolidays, plans));
     }
 
     [Fact]
@@ -46,7 +45,7 @@ public class LeaveDayCounterTests
     {
         var plans = new[] { Plan(10) };
 
-        Assert.Equal(0m, LeaveDayCounter.Count(Nov(2), Nov(6), null, NoHolidays, plans, Settings));
+        Assert.Equal(0m, LeaveDayCounter.Count(Nov(2), Nov(6), NoHolidays, plans));
     }
 
     [Fact]
@@ -54,12 +53,8 @@ public class LeaveDayCounterTests
     {
         var plans = new[] { Plan(3) };
 
-        Assert.Equal(2m, LeaveDayCounter.Count(new DateOnly(2026, 12, 1), new DateOnly(2026, 12, 2), null, NoHolidays, plans, Settings));
+        Assert.Equal(2m, LeaveDayCounter.Count(new DateOnly(2026, 12, 1), new DateOnly(2026, 12, 2), NoHolidays, plans));
     }
-
-    [Fact]
-    public void Count_HourlyLeave_IsFractionOfFullDay()
-        => Assert.Equal(0.5m, LeaveDayCounter.Count(Nov(3), Nov(3), 3.75m, NoHolidays, [], Settings));
 }
 
 public class LeaveBalanceCalculatorTests

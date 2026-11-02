@@ -36,13 +36,12 @@ public class LeaveService : ILeaveService
     private readonly IClock _clock;
     private readonly IAuditService _audit;
     private readonly ICurrentUser _current;
-    private readonly WorkPlanSettings _workSettings;
 
     public LeaveService(
         ILeaveRepository leaves, IAbsenceRepository absences, IStudentRepository students,
         IHolidayRepository holidays, IWorkPlanRepository plans, IDocumentStore documents,
         ILeavePolicyProvider policies, IUnitOfWork uow, IClock clock, IAuditService audit,
-        ICurrentUser current, WorkPlanSettings workSettings)
+        ICurrentUser current)
     {
         _leaves = leaves;
         _absences = absences;
@@ -55,7 +54,6 @@ public class LeaveService : ILeaveService
         _clock = clock;
         _audit = audit;
         _current = current;
-        _workSettings = workSettings;
     }
 
     public async Task<LeaveBalanceDto> GetMyBalanceAsync(int year, CancellationToken ct = default)
@@ -90,7 +88,7 @@ public class LeaveService : ILeaveService
 
         var days = await CountDaysAsync(student.Id, request, ct);
         if (days <= 0)
-            throw new DomainValidationException(nameof(request.StartDate), "Seçilen aralıkta izin kullanılacak bir çalışma günü yok.");
+            throw new DomainValidationException(nameof(request.StartDate), "Seçilen aralıkta izin kullanılacak bir gün yok (hafta sonu, resmî tatil veya çalışma planınızda olmayan günler sayılmaz).");
 
         var leave = new LeaveRequest
         {
@@ -98,7 +96,6 @@ public class LeaveService : ILeaveService
             Type = request.Type,
             StartDate = request.StartDate,
             EndDate = request.EndDate,
-            Hours = request.Hours,
             DaysCounted = days,
             Reason = request.Reason.Trim(),
             Description = request.Description?.Trim(),
@@ -297,14 +294,6 @@ public class LeaveService : ILeaveService
         if (string.IsNullOrWhiteSpace(request.Reason))
             errors.Add(nameof(request.Reason), "İzin gerekçesi yazmalısınız.");
 
-        if (request.Hours is not null)
-        {
-            if (request.StartDate != request.EndDate)
-                errors.Add(nameof(request.Hours), "Saatlik izin yalnızca tek gün için alınabilir.");
-            if (request.Hours >= _workSettings.DailyHours)
-                errors.Add(nameof(request.Hours), "Saatlik izin tam gün süresinden kısa olmalıdır; tam gün için saat girmeyin.");
-        }
-
         errors.ThrowIfAny();
     }
 
@@ -314,7 +303,7 @@ public class LeaveService : ILeaveService
             .Select(h => h.Date).ToHashSet();
         var plans = await _plans.GetPlansInRangeAsync(studentId, request.StartDate, request.EndDate, ct);
 
-        return LeaveDayCounter.Count(request.StartDate, request.EndDate, request.Hours, holidays, plans, _workSettings);
+        return LeaveDayCounter.Count(request.StartDate, request.EndDate, holidays, plans);
     }
 
     private async Task<LeaveBalanceDto> BalanceAsync(int studentId, int year, CancellationToken ct)

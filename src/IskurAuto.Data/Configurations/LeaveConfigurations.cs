@@ -17,7 +17,6 @@ public class LeaveRequestConfiguration : IEntityTypeConfiguration<LeaveRequest>
         b.Property(x => x.DocumentFileName).HasMaxLength(255);
         b.Property(x => x.DocumentStoredName).HasMaxLength(100);
         b.Property(x => x.DocumentContentType).HasMaxLength(100);
-        b.Property(x => x.Hours).HasPrecision(5, 2);
         b.Property(x => x.DaysCounted).HasPrecision(5, 2);
         b.Ignore(x => x.HasDocument);
 

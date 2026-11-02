@@ -1,4 +1,4 @@
-import type { CourseSession, LeaveStatus, PlanStatus, PlannedDayOutcome, TaskStatus, TerminationBasis } from './api/types';
+import type { CourseSession, LeaveStatus, LeaveType, PlanStatus, PlannedDayOutcome, TaskStatus, TerminationBasis } from './api/types';
 
 const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
 export const monthName = (m: number) => months[m - 1] ?? '';
@@ -30,6 +30,7 @@ export const todayIso = () => isoDate(new Date());
 
 export const planStatusLabels: Record<PlanStatus, string> = { Pending: 'Onay bekliyor', Approved: 'Onaylandı', Rejected: 'Reddedildi' };
 export const leaveStatusLabels: Record<LeaveStatus, string> = { Pending: 'Onay bekliyor', Approved: 'Onaylandı', Rejected: 'Reddedildi', Cancelled: 'İptal edildi' };
+export const leaveTypeLabels: Record<LeaveType, string> = { Excuse: 'Mazeret izni', Health: 'Sağlık izni', Other: 'Diğer' };
 export const courseSessionLabels: Record<CourseSession, string> = { FullDay: 'Tam gün', Morning: 'Öğleden önce', Afternoon: 'Öğleden sonra' };
 export const taskStatusLabels: Record<TaskStatus, string> = { Open: 'Açık', Completed: 'Tamamlandı', NotCompleted: 'Tamamlanmadı' };
 export const outcomeLabels: Record<PlannedDayOutcome, string> = {
