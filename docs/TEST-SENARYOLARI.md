@@ -38,7 +38,7 @@ Rol kontrolü ve kapsam: bölüm başkanı yalnızca kendi bölümünü, danış
 Rol ve kapsam senaryoları diğer sınıflarda da modül bazında vardır: `*_IsForbidden`, `*_FollowTheRoleScope`, `*_OutsideTheScope_LooksLikeNotFound`, `OnlyStudentsCanCheckIn`, `OnlyTheFacultyOfficeRecordsDecisions`, `MonthlyStatement_IsOnlyForTheFacultyOffice`.
 
 ### Çalışma günü sınırları
-Haftada 1-3 gün, haftanın perşembesinin düştüğü aya sayılması, hafta sonu/tatil/program dışı günün seçilememesi, dersli günde açıklama zorunluluğu, sınav haftasında alt sınırın aranmaması, her günün 7,5 saat sayılması, düzeltme süresi, onaylı planın kilitlenmesi.
+Haftada 1-3 gün, ayda en fazla 14 gün, haftanın perşembesinin düştüğü aya sayılması, hafta sonu/tatil/program dışı günün seçilememesi, dersli günün açıklamasız seçilebilmesi, sınav haftasında alt sınırın aranmaması, her günün 7,5 saat sayılması, düzeltme süresi, onaya gönderilen veya onaylanan planın öğrenci tarafından değiştirilememesi (reddedilirse yeniden seçilebilmesi).
 
 | Test sınıfı | Test sayısı | Dosya |
 |---|---|---|
@@ -49,7 +49,7 @@ Haftada 1-3 gün, haftanın perşembesinin düştüğü aya sayılması, hafta s
 | `CourseDayAndCalendarServiceTests` | 5 | `Services/WorkPlanServiceTests.cs` |
 
 ### İzin hesaplamaları
-Plan varsa planlı günlerin, yoksa hafta içi günlerin sayılması, tatillerin düşülmesi, saatlik izin, yıl sınırı, çakışan talep, sınır uyarıları (yaklaşma, aşma, bekleyen talepler), izin ve devamsızlığın tek haktan düşmesi, öğrenciye özel izin hakkı, geri alınan kaydın bakiyeye etkisi.
+Plan varsa planlı günlerin, yoksa hafta içi günlerin sayılması, tatillerin düşülmesi, yıl sınırı, çakışan talep, sınır uyarıları (yaklaşma, aşma, bekleyen talepler), izin ve devamsızlığın tek haktan düşmesi, öğrenciye özel izin hakkı, geri alınan kaydın bakiyeye etkisi.
 
 | Test sınıfı | Test sayısı | Dosya |
 |---|---|---|
@@ -104,7 +104,7 @@ Otomatik testler servis katmanını sınar. Arayüz bağlandıktan sonra aşağ�
 | 1 | Yeni öğrenci kayıt formunu geçersiz TC ve IBAN ile gönder | Tüm hatalar alanlarıyla birlikte tek seferde gösterilir |
 | 2 | Öğrenci olarak giriş yap, bir ay için 4 gün seç, 1. haftada 0 gün bırak | Kayıt reddedilir, hangi haftanın eksik olduğu yazılır |
 | 3 | Aynı ayda hafta sonu ve resmî tatil günü seçmeyi dene | Gün seçilemez, takvimde kırmızı ve etiketle gösterilir |
-| 4 | Plan kaydet, fakülte hesabıyla onayla, öğrenciyle tekrar düzenlemeyi dene | Öğrenci düzenleyemez; fakülte düzeltince plan "bekliyor"a döner |
+| 4 | Planı gönder; onay beklerken öğrenciyle değiştirmeyi dene; fakülte hesabıyla onayla veya reddet | Gönderilen plan değiştirilemez; reddedilirse öğrenci yeniden seçer, onaylanırsa kilitli kalır |
 | 5 | 10 günden fazla izin iste | Talep alınır, uyarı gösterilir; fakülte ekranında belirgin işaretlenir |
 | 6 | İzin talebine 5 MB'tan büyük belge ya da .exe yükle | Reddedilir |
 | 7 | Fakülte hesabıyla karekod oturumu aç, ekranı izle | Karekod yaklaşık her 30 saniyede değişir |

@@ -12,8 +12,8 @@ public class AttendanceComparerTests
     private static WorkPlanDay Day(int day)
         => new() { Date = new DateOnly(2026, 10, day) };
 
-    private static LeaveRequest Leave(int from, int to, decimal? hours = null)
-        => new() { StartDate = new DateOnly(2026, 10, from), EndDate = new DateOnly(2026, 10, to), Hours = hours, Status = LeaveStatus.Approved };
+    private static LeaveRequest Leave(int from, int to)
+        => new() { StartDate = new DateOnly(2026, 10, from), EndDate = new DateOnly(2026, 10, to), Status = LeaveStatus.Approved };
 
     private static HashSet<DateOnly> Dates(params int[] days)
         => days.Select(d => new DateOnly(2026, 10, d)).ToHashSet();
@@ -56,13 +56,6 @@ public class AttendanceComparerTests
     {
         var result = AttendanceComparer.Compare(new[] { Day(5) }, Dates(5), new[] { Leave(5, 5) }, Dates(), Today);
         Assert.Equal(PlannedDayOutcome.Attended, OutcomeOf(result, 5));
-    }
-
-    [Fact]
-    public void HourlyLeave_DoesNotExcuseTheWholeDay()
-    {
-        var result = AttendanceComparer.Compare(new[] { Day(5) }, Dates(), new[] { Leave(5, 5, hours: 2) }, Dates(), Today);
-        Assert.Equal(PlannedDayOutcome.Missing, OutcomeOf(result, 5));
     }
 
     [Fact]

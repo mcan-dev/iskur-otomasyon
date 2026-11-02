@@ -12,7 +12,7 @@ public class StudentProfileConfiguration : IEntityTypeConfiguration<StudentProfi
 
         b.Property(x => x.NationalId).IsRequired().HasMaxLength(11).IsFixedLength();
         b.Property(x => x.Iban).IsRequired().HasMaxLength(26);
-        b.Property(x => x.StudentNumber).IsRequired().HasMaxLength(20);
+        b.Property(x => x.StudentNumber).IsRequired().HasMaxLength(9);
 
         // Belge madde 9: "Mükerrer öğrenci kayıtlarını önlemek için benzersizlik kontrolleri".
         b.HasIndex(x => x.NationalId).IsUnique();

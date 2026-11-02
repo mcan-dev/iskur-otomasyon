@@ -140,7 +140,7 @@ function Leaves({ year }: { year: number }) {
         {leaves.data.map((l) => (
           <tr key={l.id}>
             <td>{fmtDate(l.startDate)}{l.startDate !== l.endDate && ` – ${fmtDate(l.endDate)}`}</td>
-            <td>{l.hours ? `${hoursLabel(l.hours)} saat` : `${l.daysCounted} gün`}</td>
+            <td>{l.daysCounted} gün</td>
             <td>{l.reason}</td>
             <td><Badge tone={leaveTone[l.status]}>{leaveStatusLabels[l.status]}</Badge></td>
           </tr>

@@ -112,7 +112,7 @@ export function LeaveTable({ leaves, canReview, onChanged, showStudent = true }:
             <tr key={l.id}>
               {showStudent && <td>{l.studentName}<div className="muted small">{l.departmentName}</div></td>}
               <td>{fmtDate(l.startDate)}{l.startDate !== l.endDate && ` – ${fmtDate(l.endDate)}`}</td>
-              <td>{l.hours ? `${hoursLabel(l.hours)} saat` : `${l.daysCounted} gün`}</td>
+              <td>{l.daysCounted} gün</td>
               <td>
                 {l.reason}
                 {l.reviewNote && <div className="muted small">Not: {l.reviewNote}</div>}

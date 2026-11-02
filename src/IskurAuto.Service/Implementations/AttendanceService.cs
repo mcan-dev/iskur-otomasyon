@@ -358,7 +358,7 @@ public class AttendanceService : IAttendanceService
             Year = date.Year,
             Status = LeaveStatus.Approved
         }, ct);
-        return leaves.Any(l => l.Hours is null && l.StartDate <= date && date <= l.EndDate);
+        return leaves.Any(l => l.StartDate <= date && date <= l.EndDate);
     }
 
     private async Task<AttendanceComparisonDto> CompareAsync(StudentProfile student, int year, int month, CancellationToken ct)

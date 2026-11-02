@@ -81,7 +81,7 @@ Tüm kullanıcı hesapları (öğrenci ve personel). Rol bu tabloda tutulur.
 | UserId | int | Hayır | FK → Users |
 | NationalId | nchar(11) | Hayır |  |
 | Iban | nvarchar(26) | Hayır |  |
-| StudentNumber | nvarchar(20) | Hayır |  |
+| StudentNumber | nvarchar(9) | Hayır |  |
 | DepartmentId | int | Hayır | FK → Departments |
 | RegistrationYear | int | Hayır |  |
 | LeaveDayAllowance | int | Evet |  |
@@ -257,7 +257,6 @@ Bir planda seçilen çalışma günleri. Her gün 7,5 saattir.
 | Status | nvarchar(20) | Hayır |  |
 | StartDate | date | Hayır |  |
 | EndDate | date | Hayır |  |
-| Hours | decimal(5,2) | Evet |  |
 | DaysCounted | decimal(5,2) | Hayır |  |
 | Reason | nvarchar(300) | Hayır |  |
 | Description | nvarchar(1000) | Evet |  |

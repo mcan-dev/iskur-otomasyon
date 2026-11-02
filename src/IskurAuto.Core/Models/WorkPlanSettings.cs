@@ -8,6 +8,9 @@ public class WorkPlanSettings
 
     public int MaxDaysPerWeek { get; set; } = 3;
 
+    /// <summary>Bir ayda seçilebilecek en fazla çalışma günü sayısı.</summary>
+    public int MaxDaysPerMonth { get; set; } = 14;
+
     /// <summary>Plan, ait olduğu ayın bu gününe kadar öğrenci tarafından düzeltilebilir.</summary>
     public int EditDeadlineDay { get; set; } = 5;
 

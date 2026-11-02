@@ -76,8 +76,8 @@ export default function Register() {
           <Field label="T.C. Kimlik No" error={fieldError('nationalId')} hint="11 haneli kimlik numaranız">
             <input value={form.nationalId} onChange={(e) => set('nationalId', e.target.value.replace(/\D/g, '').slice(0, 11))} inputMode="numeric" required />
           </Field>
-          <Field label="Öğrenci Numarası" error={fieldError('studentNumber')}>
-            <input value={form.studentNumber} onChange={(e) => set('studentNumber', e.target.value)} required />
+          <Field label="Öğrenci Numarası" error={fieldError('studentNumber')} hint="En fazla 9 karakter">
+            <input value={form.studentNumber} onChange={(e) => set('studentNumber', e.target.value.slice(0, 9))} maxLength={9} required />
           </Field>
           <Field label="Bölüm" error={fieldError('departmentId')}>
             <select value={form.departmentId} onChange={(e) => set('departmentId', Number(e.target.value))} required>
@@ -90,7 +90,7 @@ export default function Register() {
             </select>
           </Field>
           <Field label="Kayıt Yılı" error={fieldError('registrationYear')}>
-            <input type="number" value={form.registrationYear} onChange={(e) => set('registrationYear', Number(e.target.value))} required />
+            <input type="number" min={2000} max={new Date().getFullYear()} value={form.registrationYear} onChange={(e) => set('registrationYear', Math.min(Number(e.target.value), new Date().getFullYear()))} required />
           </Field>
           <Field label="Cep Telefonu" error={fieldError('phoneNumber')} hint="11 hane, örn. 05321234567">
             <PhoneInput value={form.phoneNumber} onChange={(v) => set('phoneNumber', v)} required />

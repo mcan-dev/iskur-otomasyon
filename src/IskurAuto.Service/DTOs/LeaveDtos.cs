@@ -11,10 +11,6 @@ public class CreateLeaveRequest
 
     public DateOnly EndDate { get; set; }
 
-    /// <summary>Saatlik izinde, tek gün için izin süresi.</summary>
-    [Range(0.5, 24)]
-    public decimal? Hours { get; set; }
-
     [Required, StringLength(300, MinimumLength = 3)]
     public string Reason { get; set; } = string.Empty;
 
@@ -40,7 +36,6 @@ public class LeaveDto
     public LeaveStatus Status { get; set; }
     public DateOnly StartDate { get; set; }
     public DateOnly EndDate { get; set; }
-    public decimal? Hours { get; set; }
     public decimal DaysCounted { get; set; }
     public string Reason { get; set; } = string.Empty;
     public string? Description { get; set; }
