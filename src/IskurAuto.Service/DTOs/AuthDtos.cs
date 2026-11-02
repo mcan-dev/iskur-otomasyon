@@ -78,7 +78,7 @@ public class StudentRegistrationRequest
     [StringLength(40)]
     public string Iban { get; set; } = string.Empty;
 
-    [Required, StringLength(20, MinimumLength = 3)]
+    [Required, StringLength(9, MinimumLength = 3, ErrorMessage = "Öğrenci numarası en fazla 9 karakter olabilir.")]
     public string StudentNumber { get; set; } = string.Empty;
 
     [Range(1, int.MaxValue)]

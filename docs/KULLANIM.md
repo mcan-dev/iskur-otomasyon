@@ -18,11 +18,12 @@ Uç noktaların listesi için [API.md](API.md) dosyasına bakın.
 2. **Profil:** Telefon ve IBAN bilgisi kendi ekranından güncellenir.
 3. **Ders günleri:** Dersli günler elle işaretlenir ve her gün için öğleden önce, öğleden sonra ya da tam gün seçilir; takvimde bu günler ve ders zamanı ayrıca görünür. IBAN kaydedilmeden gün seçimi ve plan kaydedilemez; Kaydet'e basınca "IBAN'ı giriniz" uyarısı çıkar ve Profilim sayfasına yönlendirir.
 4. **Aylık plan:**
-   - Her hafta için 1 ile 3 gün seçilir. Hafta, perşembe gününün düştüğü aya sayılır.
+   - Her hafta için 1 ile 3 gün, bir ay için en fazla 14 gün seçilir; sınırlar aşılacak seçim ekranda engellenir ve uyarı verilir. Hafta, perşembe gününün düştüğü aya sayılır.
    - Takvimde tatiller, sınav dönemleri ve ders günleri renkle işaretlidir.
-   - Plan düzeltme için son gün ayarlardan belirlenir (varsayılan 5). Kaydedilen plan Fakülte Sekreterliği tarafından onaylanır veya gerekçeyle reddedilir.
+   - Ders günleri takvimde işaretlidir ancak dersli günü seçmek için açıklama gerekmez.
+   - Plan, ayın ayarlardan belirlenen gününe kadar (varsayılan 5) gönderilebilir. "Planı Gönder"den sonra plan yalnızca onay bekler ve öğrenci tarafından değiştirilemez; Fakülte Sekreterliği onaylar veya gerekçeyle reddeder. Reddedilirse öğrenci günleri yeniden seçip gönderir.
    - Plan durumu ve geçmiş planlar listeden izlenir.
-5. **İzin:** Talep tarih aralığı veya saat ile açılır. Tek bir izin hakkı vardır (varsayılan yılda 10 gün); onaylı izinler ve fakültenin girdiği devamsızlıklar aynı haktan düşer, mazeretli/mazeretsiz ayrımı yoktur. Kalan hak ve uyarılar talebin yanıtında görünür.
+5. **İzin:** Talep izin türü, başlangıç ve bitiş tarihi (gün bazında) ile açılır. Tek bir izin hakkı vardır (varsayılan yılda 10 gün); onaylı izinler ve fakültenin girdiği devamsızlıklar aynı haktan düşer, mazeretli/mazeretsiz ayrımı yoktur. Kalan hak ve uyarılar talebin yanıtında görünür.
    Rapor gibi belgeler PDF, JPG veya PNG (en çok 5 MB) olarak eklenir. Onaylanmadan önce talep iptal edilebilir.
 6. **Devam:** Çalışma günü başında, fakülte ekranındaki karekod telefonla okutulur. Karekod her 30 saniyede yenilenir;
    eski görüntü çalışmaz. Okutma reddedilirse sebep ekranda yazar (oturum kapalı, bugün planda yok, izinli vb.).
@@ -71,7 +72,7 @@ Fakültedeki tüm kayıtları görür ve yönetir.
 
 | Durum | Ne yapılır |
 |---|---|
-| Öğrenci planı kaydedemiyor | Haftalık 1-3 gün kuralına ve düzeltme son gününe bakın; hata mesajı ihlal edilen kuralı açıklar. |
+| Öğrenci planı kaydedemiyor | Haftalık 1-3 gün, aylık 14 gün sınırına ve gönderim son gününe bakın; onay bekleyen plan değiştirilemez; hata mesajı ihlal edilen kuralı açıklar. |
 | Karekod reddedildi | Mesajdaki sebebe bakın. Okutma sırasında ekrandaki kod güncel olmalı; öğrenci o gün için onaylı planda olmalı. |
 | Yanlış devamsızlık girildi | Fakülte Sekreterliği kaydı gerekçeyle geri alır. |
 | Öğrenci danışman değiştirdi | Bölüm başkanı veya Fakülte Sekreterliği yeni danışmanı atar; eski görevler eski danışmanın kaydı olarak kalır. |

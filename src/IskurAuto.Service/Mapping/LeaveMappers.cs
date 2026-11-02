@@ -16,7 +16,6 @@ public static class LeaveMappers
         Status = l.Status,
         StartDate = l.StartDate,
         EndDate = l.EndDate,
-        Hours = l.Hours,
         DaysCounted = l.DaysCounted,
         Reason = l.Reason,
         Description = l.Description,

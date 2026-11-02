@@ -109,23 +109,28 @@ public class WorkPlanRulesTests
     }
 
     [Fact]
-    public void Validate_LessonDayWithoutNote_IsRejected()
+    public void Validate_LessonDayWithoutNote_IsAllowed()
     {
         var days = new[] { Day(3), Day(10), Day(17), Day(24) };
 
-        var errors = WorkPlanRules.Validate(November(lessonDays: [DayOfWeek.Tuesday]), days, Settings);
-
-        Assert.Equal(4, errors.Count);
-        Assert.All(errors, e => Assert.Contains("açıklama", e));
+        Assert.Empty(WorkPlanRules.Validate(November(lessonDays: [DayOfWeek.Tuesday]), days, Settings));
     }
 
     [Fact]
-    public void Validate_LessonDayWithNote_IsAllowed()
+    public void Validate_MoreThanMonthlyLimit_IsRejected()
     {
-        var days = new[] { Day(3, "Boş günüm yok"), Day(10, "Boş günüm yok"), Day(17, "Boş günüm yok"), Day(24, "Boş günüm yok") };
+        var settings = new WorkPlanSettings { MaxDaysPerMonth = 4 };
+        var days = new[] { Day(3), Day(4), Day(10), Day(17), Day(24) };
 
-        Assert.Empty(WorkPlanRules.Validate(November(lessonDays: [DayOfWeek.Tuesday]), days, Settings));
+        var errors = WorkPlanRules.Validate(November(), days, settings);
+
+        var error = Assert.Single(errors);
+        Assert.Contains("Bir ayda en fazla 4 gün", error);
     }
+
+    [Fact]
+    public void Validate_DefaultMonthlyLimitIsFourteen()
+        => Assert.Equal(14, Settings.MaxDaysPerMonth);
 
     [Fact]
     public void Validate_DayOutsideProgramPeriod_IsRejected()

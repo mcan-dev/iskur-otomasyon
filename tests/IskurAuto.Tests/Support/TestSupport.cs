@@ -190,7 +190,7 @@ public sealed class TestScope : IDisposable
         var policy = new LeavePolicyService(new SystemSettingRepository(context), context, audit, db.Current);
         LeaveSettings = policy;
         Leaves = new LeaveService(leaveRepository, absenceRepository, students, holidays, new WorkPlanRepository(context),
-            db.Documents, policy, context, db.Clock, audit, db.Current, db.WorkPlanSettings);
+            db.Documents, policy, context, db.Clock, audit, db.Current);
         Absences = new AbsenceService(absenceRepository, students, context, db.Clock, audit, db.Current);
         Attendance = new AttendanceService(new AttendanceSessionRepository(context), new AttendanceRecordRepository(context),
             students, new WorkPlanRepository(context), leaveRepository, absenceRepository, context, db.Clock, audit, db.Current, db.WorkPlanSettings);
@@ -242,8 +242,8 @@ public static class TestData
         var advisor = new User { FullName = "Zeynep Arslan", Email = "advisor@test.local", PasswordHash = hash, Role = UserRole.Advisor, Department = bm };
         var advisorYm = new User { FullName = "Can Er", Email = "advisor.ym@test.local", PasswordHash = hash, Role = UserRole.Advisor, Department = ym };
 
-        var mehmet = NewStudent("Mehmet Öztürk", "mehmet@test.local", "12345678950", "TR400006200000000000000001", "2023000001", bm, hash, start);
-        var elif = NewStudent("Elif Yıldız", "elif@test.local", "23456789138", "TR130006200000000000000002", "2024000002", ym, hash, start);
+        var mehmet = NewStudent("Mehmet Öztürk", "mehmet@test.local", "12345678950", "TR400006200000000000000001", "230000001", bm, hash, start);
+        var elif = NewStudent("Elif Yıldız", "elif@test.local", "23456789138", "TR130006200000000000000002", "240000002", ym, hash, start);
 
         mehmet.UnitAssignments.Add(new StudentUnitAssignment { WorkUnit = lab, StartDate = start, AssignedByUser = admin });
         mehmet.AdvisorAssignments.Add(new AdvisorAssignment { AdvisorUser = advisor, StartDate = start, AssignedByUser = head });

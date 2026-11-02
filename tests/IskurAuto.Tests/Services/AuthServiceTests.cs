@@ -18,7 +18,7 @@ public class AuthServiceTests
         PhoneNumber = "0 (532) 111 22 33",
         NationalId = "34567891238",
         Iban = "tr83 0006 2000 0000 0000 0000 03",
-        StudentNumber = "2025000003",
+        StudentNumber = "250000003",
         DepartmentId = departmentId,
         RegistrationYear = 2025
     };
@@ -40,7 +40,7 @@ public class AuthServiceTests
         using var verify = db.NewContext();
         var profile = await verify.StudentProfiles
             .Include(s => s.User).Include(s => s.Participations)
-            .SingleAsync(s => s.StudentNumber == "2025000003");
+            .SingleAsync(s => s.StudentNumber == "250000003");
 
         Assert.Equal(UserRole.Student, profile.User.Role);
         Assert.Equal("Yeni Öğrenci", profile.User.FullName);          // boşluklar düzeltildi
@@ -99,7 +99,7 @@ public class AuthServiceTests
         {
             case "email": request.Email = "mehmet@test.local"; break;
             case "nationalId": request.NationalId = "12345678950"; break;
-            case "studentNumber": request.StudentNumber = "2023000001"; break;
+            case "studentNumber": request.StudentNumber = "230000001"; break;
         }
 
         using var scope = db.NewScope();
