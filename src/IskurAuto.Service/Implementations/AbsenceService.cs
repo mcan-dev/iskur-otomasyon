@@ -58,7 +58,8 @@ public class AbsenceService : IAbsenceService
 
         await using var tx = await _uow.BeginTransactionAsync(ct);
         await _uow.SaveChangesAsync(ct);
-        await _audit.RecordAsync(AuditActions.AbsenceRecorded, nameof(Absence), absence.Id, ct: ct);
+        await _audit.RecordAsync(AuditActions.AbsenceRecorded, nameof(Absence), absence.Id,
+            $"{absence.Date:dd.MM.yyyy} tarihli devamsızlık", ct: ct);
         await _uow.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
 

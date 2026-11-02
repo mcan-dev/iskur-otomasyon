@@ -76,7 +76,7 @@ public class ReportService : IReportService
 
         if (kind == ReportKind.MonthlyStatement)
         {
-            await _audit.RecordAsync(AuditActions.ReportViewed, nameof(ReportKind), details: $"{kind}; {table.Rows.Count} satır", ct: ct);
+            await _audit.RecordAsync(AuditActions.ReportViewed, nameof(ReportKind), details: $"{TurkishText.Report(kind)}; {table.Rows.Count} satır", ct: ct);
             await _uow.SaveChangesAsync(ct);
         }
 
@@ -88,7 +88,7 @@ public class ReportService : IReportService
         var table = await GetAsync(kind, query, ct);
 
         await _audit.RecordAsync(AuditActions.ReportExported, nameof(ReportKind),
-            details: $"{kind}; {format}; {table.Rows.Count} satır", ct: ct);
+            details: $"{TurkishText.Report(kind)}; {(format == ReportFormat.Csv ? "CSV" : "Excel")}; {table.Rows.Count} satır", ct: ct);
         await _uow.SaveChangesAsync(ct);
 
         var period = query.Year is int year ? $"-{year}{(query.Month is int m ? $"-{m:00}" : "")}" : "";
@@ -102,21 +102,8 @@ public class ReportService : IReportService
 
     // ── Yetki ve kapsam ──────────────────────────────────────────────────────
 
-    private void Authorize(ReportKind kind)
-    {
-        switch (kind)
-        {
-            case ReportKind.MonthlyStatement:    // T.C. kimlik no ve IBAN içerir
-                _current.RequireRole(UserRole.FacultyAdmin);
-                break;
-            case ReportKind.TerminationReview:
-                _current.RequireRole(UserRole.FacultyAdmin, UserRole.DepartmentHead);
-                break;
-            default:
-                _current.RequireRole(UserRole.FacultyAdmin, UserRole.DepartmentHead);
-                break;
-        }
-    }
+    // Raporların tamamı (ay sonu dökümü dahil) yalnızca fakülte sekreterliği / dekanlık içindir.
+    private void Authorize(ReportKind kind) => _current.RequireRole(UserRole.FacultyAdmin);
 
     private static void Validate(ReportKind kind, ReportQuery query)
     {
@@ -130,7 +117,7 @@ public class ReportService : IReportService
         errors.ThrowIfAny();
     }
 
-    /// <summary>Kullanıcının seçtiği filtreler, rolün kapsamını genişletemez; kapsam sonradan zorla yazılır.</summary>
+    /// <summary>Kullanıcının seçtiği filtrelerden öğrenci kapsamı kurulur.</summary>
     private StudentSearchCriteria BuildScope(ReportKind kind, ReportQuery query)
     {
         var scope = new StudentSearchCriteria
@@ -140,17 +127,6 @@ public class ReportService : IReportService
             AdvisorUserId = query.AdvisorUserId,
             IsActive = query.IsActive
         };
-
-        switch (_current.Role)
-        {
-            case UserRole.DepartmentHead:
-                scope.DepartmentId = _current.DepartmentId
-                    ?? throw new ForbiddenException("Hesabınıza bir bölüm atanmamış.");
-                break;
-            case UserRole.Advisor:
-                scope.AdvisorUserId = _current.UserId;
-                break;
-        }
 
         if (kind is ReportKind.NearLeaveLimit or ReportKind.TerminationReview)
             scope.IsActive = true;

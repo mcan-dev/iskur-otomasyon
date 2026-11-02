@@ -110,7 +110,7 @@ public class UserService : IUserService
         await using var tx = await _uow.BeginTransactionAsync(ct);
         await _uow.SaveChangesAsync(ct);
         await _audit.RecordAsync(AuditActions.StaffUserCreated, nameof(User), user.Id,
-            $"Rol={user.Role}", ct: ct);
+            $"Personel hesabı açıldı. Rol: {TurkishText.Role(user.Role)}", ct: ct);
         await _uow.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
 
