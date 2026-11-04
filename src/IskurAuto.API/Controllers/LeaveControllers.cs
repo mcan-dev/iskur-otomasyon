@@ -69,7 +69,7 @@ public class LeavesController : ControllerBase
 
     /// <summary>Talebi onaylar veya gerekçeyle reddeder.</summary>
     [HttpPost("{id:int}/review")]
-    [Authorize(Roles = AppRoles.FacultyAdmin)]
+    [Authorize(Roles = AppRoles.AllStaff)]
     public async Task<ActionResult<LeaveResultDto>> Review(int id, [FromBody] ReviewLeaveRequest request, CancellationToken ct)
         => Ok(await _leaves.ReviewAsync(id, request, ct));
 

@@ -105,7 +105,7 @@ Roller: **Fakülte** = Dekanlık/Fakülte Sekreterliği, **Bölüm Başkanı**, 
 | GET | `/api/leaves/{id}/document` | Giriş yapmış herkes |  |
 | GET | `/api/leaves` | Fakülte, Bölüm Başkanı, Danışman |  |
 | GET | `/api/leaves/{id}` | Giriş yapmış herkes |  |
-| POST | `/api/leaves/{id}/review` | Fakülte | Talebi onaylar veya gerekçeyle reddeder. |
+| POST | `/api/leaves/{id}/review` | Fakülte, Bölüm Başkanı, Danışman | Talebi onaylar veya gerekçeyle reddeder. Bölüm başkanı yalnızca kendi bölümünün, danışman yalnızca kendi öğrencilerinin talebini sonuçlandırır; kapsam dışı talep 404 döner. |
 | GET | `/api/leaves/students/{studentId}/balance` | Fakülte, Bölüm Başkanı, Danışman |  |
 | GET | `/api/leaves/alerts` | Fakülte, Bölüm Başkanı, Danışman | İzin veya devamsızlık sınırına yaklaşan ya da sınırı aşan öğrenciler. |
 

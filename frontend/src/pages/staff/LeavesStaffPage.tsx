@@ -24,7 +24,7 @@ export default function LeavesStaffPage() {
         </div>
         <label className="row">Yıl <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} style={{ width: 90 }} /></label>
       </div>
-      {tab === 'leaves' && <Leaves year={year} canReview={user?.role === 'FacultyAdmin'} />}
+      {tab === 'leaves' && <Leaves year={year} canReview={user?.role !== 'Student'} />}
       {tab === 'absences' && <Absences year={year} canRevoke={user?.role === 'FacultyAdmin'} />}
       {tab === 'alerts' && <Alerts year={year} />}
     </div>

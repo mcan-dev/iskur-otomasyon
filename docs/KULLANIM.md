@@ -34,6 +34,7 @@ Uç noktaların listesi için [API.md](API.md) dosyasına bakın.
 ## Danışman
 
 - Kendi öğrencilerinin planlarını, devamlarını, izinlerini ve çalışma saatlerini görür.
+- **İzin onayı:** Yalnızca kendi öğrencilerinin izin taleplerini onaylar veya gerekçeyle reddeder (İzin Durumu ekranı).
 - **Görev:** Öğrenciye başlık, açıklama ve bitiş tarihiyle görev verir. Sonradan başlık ve tarihler değişmez; durum ve notlar değerlendirme olarak eklenir.
   Görev "Tamamlandı" veya "Tamamlanmadı" olarak işaretlenir. Yalnızca öğrencinin güncel danışmanı değerlendirme yapabilir.
 - **Devamsızlık bildirimi:** Öğrencinin gelmediği veya devamda sorun olan gün için bölüm başkanına bildirim gönderir.
@@ -43,6 +44,7 @@ Uç noktaların listesi için [API.md](API.md) dosyasına bakın.
 
 - Bölümündeki tüm öğrencileri, planları, devamları, izinleri ve devamsızlıkları görür.
 - **Danışman atama:** Öğrencinin danışmanını değiştirir; önceki danışman geçmişte kalır.
+- **İzin onayı:** Bölümündeki öğrencilerin izin taleplerini onaylar veya gerekçeyle reddeder. Başka bölümün talebi görünmez.
 - **Devam oturumu:** Bölümü için devam oturumu açıp kapatır ve karekodu ekranda gösterir.
 - **Görev:** Bölümündeki öğrencilere görev verebilir; danışman notlarını ve görev durumlarını izler.
 - **Bildirimler:** Danışmanlardan gelen devamsızlık bildirimlerini inceler ve okundu olarak işaretler.

@@ -205,7 +205,7 @@ public class LeaveServiceTests
     }
 
     [Fact]
-    public async Task Review_IsOnlyForFacultyAdmin()
+    public async Task Review_DepartmentHead_CanDecideForTheirOwnDepartment()
     {
         var (db, seed) = StudentSession();
         using var _ = db;
@@ -215,9 +215,64 @@ public class LeaveServiceTests
             requested = await scope.Leaves.RequestAsync(Leave(2, 4));
 
         db.Current.As(UserRole.DepartmentHead, seed.HeadId, seed.BmId);
+        using var review = db.NewScope();
+        var result = await review.Leaves.ReviewAsync(requested.Leave.Id, new ReviewLeaveRequest { Approve = true });
+        Assert.Equal(LeaveStatus.Approved, result.Leave.Status);
+        Assert.Equal("Mehmet Demir", result.Leave.ReviewedByName);
+    }
+
+    [Fact]
+    public async Task Review_Advisor_CanDecideOnlyForTheirOwnStudents()
+    {
+        var (db, seed) = StudentSession();
+        using var _ = db;
+
+        LeaveResultDto requested;
         using (var scope = db.NewScope())
-            await Assert.ThrowsAsync<ForbiddenException>(() =>
-                scope.Leaves.ReviewAsync(requested.Leave.Id, new ReviewLeaveRequest { Approve = true }));
+            requested = await scope.Leaves.RequestAsync(Leave(2, 4));
+
+        // Başka bölümün danışmanı: kayıt görünmez.
+        db.Current.As(UserRole.Advisor, seed.AdvisorYmId, seed.YmId);
+        using (var other = db.NewScope())
+            await Assert.ThrowsAsync<NotFoundException>(() =>
+                other.Leaves.ReviewAsync(requested.Leave.Id, new ReviewLeaveRequest { Approve = true }));
+
+        // Öğrencinin kendi danışmanı reddedebilir (gerekçeyle).
+        db.Current.As(UserRole.Advisor, seed.AdvisorId, seed.BmId);
+        using var own = db.NewScope();
+        var result = await own.Leaves.ReviewAsync(requested.Leave.Id, new ReviewLeaveRequest { Approve = false, Note = "Plan günlerine denk geliyor" });
+        Assert.Equal(LeaveStatus.Rejected, result.Leave.Status);
+    }
+
+    [Fact]
+    public async Task Review_DepartmentHeadOfAnotherDepartment_SeesNothing()
+    {
+        var (db, seed) = StudentSession();
+        using var _ = db;
+
+        LeaveResultDto requested;
+        using (var scope = db.NewScope())
+            requested = await scope.Leaves.RequestAsync(Leave(2, 4));
+
+        db.Current.As(UserRole.DepartmentHead, seed.HeadId, seed.YmId);
+        using var review = db.NewScope();
+        await Assert.ThrowsAsync<NotFoundException>(() =>
+            review.Leaves.ReviewAsync(requested.Leave.Id, new ReviewLeaveRequest { Approve = true }));
+    }
+
+    [Fact]
+    public async Task Review_IsNotForStudents()
+    {
+        var (db, _) = StudentSession();
+        using var _ = db;
+
+        LeaveResultDto requested;
+        using (var scope = db.NewScope())
+            requested = await scope.Leaves.RequestAsync(Leave(2, 4));
+
+        using var review = db.NewScope();
+        await Assert.ThrowsAsync<ForbiddenException>(() =>
+            review.Leaves.ReviewAsync(requested.Leave.Id, new ReviewLeaveRequest { Approve = true }));
     }
 
     [Fact]
