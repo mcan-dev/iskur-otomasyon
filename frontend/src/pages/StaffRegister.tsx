@@ -6,10 +6,11 @@ import { Alert, Field, PhoneInput } from '../components/ui';
 import AuthShell from '../layout/AuthShell';
 import { loginTypes } from './Login';
 
-/** Danışman, bölüm başkanı ve fakülte sekreterliği başvurusu. Hesap onaydan sonra açılır. */
+/** Danışman ve bölüm başkanı başvurusu. Hesap fakülte sekreterliği onayından sonra açılır. */
 export default function StaffRegister() {
   const { tur } = useParams();
-  const type = loginTypes.find((t) => t.slug === tur && t.role !== 'Student');
+  // Öğrenci ayrı formdan kaydolur; fakülte sekreterliği hesabı yalnızca mevcut sekreterlik tarafından açılır.
+  const type = loginTypes.find((t) => t.slug === tur && t.role !== 'Student' && t.role !== 'FacultyAdmin');
   const [departments, setDepartments] = useState<Department[]>([]);
   const [form, setForm] = useState({ fullName: '', email: '', phoneNumber: '', password: '', departmentId: '' });
   const [error, setError] = useState<ApiError | null>(null);
@@ -21,7 +22,7 @@ export default function StaffRegister() {
   }, []);
 
   if (!type) return <Navigate to="/giris" replace />;
-  const needsDepartment = type.role !== 'FacultyAdmin';
+  const needsDepartment = true;
   const set = (key: keyof typeof form, value: string) => setForm((f) => ({ ...f, [key]: value }));
   const fieldError = (name: string) => firstError(error, name);
 

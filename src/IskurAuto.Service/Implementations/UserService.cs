@@ -43,7 +43,8 @@ public class UserService : IUserService
         {
             Role = query.Role,
             DepartmentId = query.DepartmentId,
-            IsActive = query.IsActive
+            IsActive = query.IsActive,
+            IsPendingApproval = query.IsPendingApproval
         };
 
         // Bölüm başkanı (örn. danışman seçmek için) yalnızca kendi bölümündeki personeli listeleyebilir.
@@ -129,6 +130,21 @@ public class UserService : IUserService
 
         if (user.Id == _current.UserId && !isActive)
             throw new ConflictException("Kendi hesabınızı pasifleştiremezsiniz.");
+
+        // Başvuru kararı: onay hesabı aktif eder, ret hesabı pasif bırakır; ikisinde de başvuru kapanır.
+        if (user.IsPendingApproval)
+        {
+            if (isActive && user.Role == UserRole.DepartmentHead && user.DepartmentId is int headDept)
+                await EnsureNoActiveHeadAsync(headDept, ct);
+
+            user.IsPendingApproval = false;
+            user.IsActive = isActive;
+            await _audit.RecordAsync(isActive ? AuditActions.UserActivated : AuditActions.UserApplicationRejected,
+                nameof(User), user.Id,
+                $"{user.FullName} ({TurkishText.Role(user.Role)}) başvurusu " + (isActive ? "onaylandı" : "reddedildi"), ct: ct);
+            await _uow.SaveChangesAsync(ct);
+            return user.ToDto();
+        }
 
         if (user.IsActive == isActive)
             return user.ToDto();

@@ -9,6 +9,7 @@ export interface User {
   departmentId?: number | null;
   departmentName?: string | null;
   isActive: boolean;
+  isPendingApproval?: boolean;
 }
 
 export interface LoginResponse {

@@ -1,3 +1,4 @@
+using IskurAuto.Core.Constants;
 using IskurAuto.Core.Entities;
 using IskurAuto.Core.Enums;
 using IskurAuto.Core.Exceptions;
@@ -42,6 +43,90 @@ public class UserServiceTests
         using var scope = db.NewScope();
 
         await Assert.ThrowsAsync<DomainValidationException>(() => scope.Users.CreateStaffAsync(Staff(UserRole.Student, null)));
+    }
+
+    private static async Task<int> RegisterPendingAsync(TestDb db, int departmentId, UserRole role = UserRole.Advisor, string email = "basvuru@test.local")
+    {
+        db.Current.Anonymous();
+        using var scope = db.NewScope();
+        var result = await scope.Auth.RegisterStaffAsync(new StaffRegistrationRequest
+        {
+            FullName = "Başvuru Sahibi", Email = email, Password = "Parola123", PhoneNumber = "05321112233",
+            Role = role, DepartmentId = departmentId
+        });
+        return result.UserId;
+    }
+
+    [Fact]
+    public async Task PendingApplications_AreListedForTheFacultyOffice_AndApprovalActivatesThem()
+    {
+        using var db = new TestDb();
+        var seed = TestData.Seed(db);
+        var userId = await RegisterPendingAsync(db, seed.BmId);
+
+        db.Current.As(UserRole.FacultyAdmin, seed.AdminId);
+        using (var scope = db.NewScope())
+        {
+            var pending = await scope.Users.SearchAsync(new UserSearchQuery { IsPendingApproval = true });
+            var only = Assert.Single(pending);
+            Assert.Equal(userId, only.Id);
+            Assert.True(only.IsPendingApproval);
+
+            var approved = await scope.Users.SetActiveAsync(userId, true);
+            Assert.True(approved.IsActive);
+            Assert.False(approved.IsPendingApproval);
+            Assert.Empty(await scope.Users.SearchAsync(new UserSearchQuery { IsPendingApproval = true }));
+        }
+
+        db.Current.Anonymous();
+        using var login = db.NewScope();
+        var ok = await login.Auth.LoginAsync(new LoginRequest { Email = "basvuru@test.local", Password = "Parola123" });
+        Assert.False(string.IsNullOrEmpty(ok.AccessToken));
+    }
+
+    [Fact]
+    public async Task PendingApplication_CanBeRejected_AndStaysInactive()
+    {
+        using var db = new TestDb();
+        var seed = TestData.Seed(db);
+        var userId = await RegisterPendingAsync(db, seed.BmId);
+
+        db.Current.As(UserRole.FacultyAdmin, seed.AdminId);
+        using (var scope = db.NewScope())
+        {
+            var rejected = await scope.Users.SetActiveAsync(userId, false);
+            Assert.False(rejected.IsActive);
+            Assert.False(rejected.IsPendingApproval);
+            Assert.Empty(await scope.Users.SearchAsync(new UserSearchQuery { IsPendingApproval = true }));
+        }
+
+        using var verify = db.NewContext();
+        Assert.True(await verify.AuditLogs.AnyAsync(a => a.Action == AuditActions.UserApplicationRejected && a.EntityId == userId));
+    }
+
+    [Fact]
+    public async Task DepartmentHeadApplication_CannotBeApprovedWhileAnotherHeadIsActive()
+    {
+        using var db = new TestDb();
+        var seed = TestData.Seed(db);
+        // Test verisinde BM bölümünün aktif bir başkanı zaten var.
+        var userId = await RegisterPendingAsync(db, seed.BmId, UserRole.DepartmentHead, "yeni.baskan@test.local");
+
+        db.Current.As(UserRole.FacultyAdmin, seed.AdminId);
+        using var scope2 = db.NewScope();
+        await Assert.ThrowsAsync<ConflictException>(() => scope2.Users.SetActiveAsync(userId, true));
+    }
+
+    [Fact]
+    public async Task OnlyTheFacultyOffice_CanDecideOnApplications()
+    {
+        using var db = new TestDb();
+        var seed = TestData.Seed(db);
+        var userId = await RegisterPendingAsync(db, seed.BmId);
+
+        db.Current.As(UserRole.DepartmentHead, seed.HeadId, seed.BmId);
+        using var scope = db.NewScope();
+        await Assert.ThrowsAsync<ForbiddenException>(() => scope.Users.SetActiveAsync(userId, true));
     }
 
     [Fact]

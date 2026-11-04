@@ -40,6 +40,34 @@ export default function PlanPage() {
     return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
   }
 
+  /**
+   * Haftada en az `minDaysPerWeek` gün seçilmeyen haftalar. Sunucudaki kuralın aynısı:
+   * hafta perşembe gününün düştüğü aya sayılır; seçilebilir günü olmayan ya da sınav haftası olan hafta aranmaz.
+   */
+  function missingWeeks(): { start: string; end: string; chosen: number }[] {
+    if (!cal || cal.days.length === 0) return [];
+    const first = cal.days[0].date;
+    const last = cal.days[cal.days.length - 1].date;
+    const byWeek = new Map<string, typeof cal.days>();
+    cal.days.forEach((d) => {
+      const k = weekKey(d.date);
+      byWeek.set(k, [...(byWeek.get(k) ?? []), d]);
+    });
+    const result: { start: string; end: string; chosen: number }[] = [];
+    byWeek.forEach((days) => {
+      const monday = new Date(days[0].date + 'T00:00:00');
+      monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+      const thursday = new Date(monday);
+      thursday.setDate(monday.getDate() + 3);
+      const iso = (x: Date) => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
+      if (iso(thursday) < first || iso(thursday) > last) return;
+      if (!days.some((d) => d.isSelectable) || days.some((d) => d.isExamPeriod)) return;
+      const chosen = days.filter((d) => picked.has(d.date)).length;
+      if (chosen < cal.minDaysPerWeek) result.push({ start: days[0].date, end: days[days.length - 1].date, chosen });
+    });
+    return result;
+  }
+
   function toggle(date: string) {
     if (!cal) return;
     if (!picked.has(date)) {
@@ -65,6 +93,10 @@ export default function PlanPage() {
   }
 
   async function save() {
+    if (missing.length > 0) {
+      setMessage({ kind: 'warn', text: `Plan gönderilemedi: ${weeksText(missing)} haftasında en az ${cal?.minDaysPerWeek ?? 1} gün seçmelisiniz.` });
+      return;
+    }
     setBusy(true);
     setMessage(null);
     try {
@@ -84,6 +116,11 @@ export default function PlanPage() {
     }
   }
 
+  const missing = canEdit ? missingWeeks() : [];
+  const weeksText = (list: { start: string; end: string }[]) => list.map((w) => `${shortDate(w.start)}–${shortDate(w.end)}`).join(', ');
+  const shortDate = (iso: string) => `${iso.slice(8)}.${iso.slice(5, 7)}`;
+  const hasExamWeek = !!cal?.days.some((d) => d.isExamPeriod);
+
   const offset = cal && cal.days.length ? (new Date(cal.days[0].date + 'T00:00:00').getDay() + 6) % 7 : 0;
   const status = cal?.planStatus ?? plan.data?.status ?? null;
 
@@ -102,6 +139,15 @@ export default function PlanPage() {
           {cal && status === 'Approved' && <Alert kind="info">Planınız onaylandı; değiştirilemez.</Alert>}
           {cal && !canEdit && status !== 'Pending' && status !== 'Approved' && <Alert kind="info">Bu ay için plan gönderilemez (plan, ayın {fmtDate(cal.editDeadline)} tarihine kadar gönderilebilir; bir önceki ayın başından itibaren açılır).</Alert>}
           {status === 'Rejected' && plan.data?.reviewNote && <Alert kind="warn">Planınız reddedildi: {plan.data.reviewNote}</Alert>}
+
+          {cal && canEdit && missing.length > 0 && (
+            <Alert kind="warn">
+              Her hafta en az {cal.minDaysPerWeek} gün seçmelisiniz. Henüz gün seçmediğiniz hafta{missing.length > 1 ? 'lar' : ''}: <strong>{weeksText(missing)}</strong>.
+            </Alert>
+          )}
+          {cal && canEdit && hasExamWeek && (
+            <Alert kind="info">"Sınav dönemi" etiketli günleri içeren haftalarda en az gün şartı aranmaz; isterseniz yine de gün seçebilirsiniz.</Alert>
+          )}
 
           <div className="cal" style={{ marginTop: 12 }}>
             {headers.map((h) => (
@@ -124,6 +170,7 @@ export default function PlanPage() {
                   <span className="num">{Number(d.date.slice(8))}</span>
                   <span className="lbl">{d.label}</span>
                   {d.lessonSession && <span className="lbl">Ders: {courseSessionLabels[d.lessonSession].toLowerCase()}</span>}
+                  {d.isExamPeriod && d.isSelectable && <span className="lbl exam">Sınav dönemi</span>}
                   {chosen && <span className="lbl">{hoursLabel(cal?.dailyHours)} saat</span>}
                 </div>
               );

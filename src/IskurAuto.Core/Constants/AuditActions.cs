@@ -24,6 +24,7 @@ public static class AuditActions
     public const string StaffUserCreated     = "User.StaffCreated";
     public const string StaffRegistered      = "User.StaffRegistered";
     public const string UserActivated        = "User.Activated";
+    public const string UserApplicationRejected = "User.ApplicationRejected";
     public const string UserDeactivated      = "User.Deactivated";
 
     public const string DepartmentCreated    = "Department.Created";
