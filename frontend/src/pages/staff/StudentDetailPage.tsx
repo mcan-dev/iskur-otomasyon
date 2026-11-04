@@ -49,7 +49,7 @@ export default function StudentDetailPage() {
       </div>
       {s && tab === 'general' && <General student={s} role={user?.role} onChanged={student.reload} />}
       {tab === 'plans' && <Plans studentId={id} canReview={user?.role === 'FacultyAdmin'} />}
-      {s && tab === 'leaves' && <Leaves studentId={id} canReview={user?.role === 'FacultyAdmin'} allowance={s.leaveDayAllowance ?? null} onAllowanceChanged={student.reload} />}
+      {s && tab === 'leaves' && <Leaves studentId={id} canReview canEditAllowance={user?.role === 'FacultyAdmin'} allowance={s.leaveDayAllowance ?? null} onAllowanceChanged={student.reload} />}
       {tab === 'absences' && <Absences studentId={id} canRevoke={user?.role === 'FacultyAdmin'} />}
       {tab === 'attendance' && <Attendance studentId={id} />}
       {tab === 'tasks' && <Tasks studentId={id} />}
@@ -256,7 +256,7 @@ function AllowanceCard({ studentId, allowance, policyLimit, onChanged }: { stude
   );
 }
 
-function Leaves({ studentId, canReview, allowance, onAllowanceChanged }: { studentId: number; canReview: boolean; allowance: number | null; onAllowanceChanged: () => void }) {
+function Leaves({ studentId, canReview, canEditAllowance = false, allowance, onAllowanceChanged }: { studentId: number; canReview: boolean; canEditAllowance?: boolean; allowance: number | null; onAllowanceChanged: () => void }) {
   const [year, setYear] = useState(new Date().getFullYear());
   const leaves = useLoad(() => api.get<Leave[]>(`/api/leaves?studentId=${studentId}&year=${year}`), [studentId, year]);
   const balance = useLoad(() => api.get<LeaveBalance>(`/api/leaves/students/${studentId}/balance?year=${year}`), [studentId, year]);
@@ -272,7 +272,7 @@ function Leaves({ studentId, canReview, allowance, onAllowanceChanged }: { stude
         </div>
       )}
       {b?.warnings.map((w) => <Alert key={w.code} kind="warn">{w.message}</Alert>)}
-      {canReview && b && <AllowanceCard studentId={studentId} allowance={allowance} policyLimit={allowance === null ? b.limit : null} onChanged={() => { onAllowanceChanged(); balance.reload(); }} />}
+      {canEditAllowance && b && <AllowanceCard studentId={studentId} allowance={allowance} policyLimit={allowance === null ? b.limit : null} onChanged={() => { onAllowanceChanged(); balance.reload(); }} />}
       <Card title="İzin talepleri">
         {leaves.error && <Alert>{leaves.error}</Alert>}
         {leaves.data && <LeaveTable leaves={leaves.data} canReview={canReview} showStudent={false} onChanged={() => { leaves.reload(); balance.reload(); }} />}

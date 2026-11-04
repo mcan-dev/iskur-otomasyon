@@ -1,6 +1,6 @@
 # Test senaryoları
 
-Belgenin 9. maddesindeki test başlıkları ve bunları karşılayan otomatik testler. Toplam 279 test yöntemi vardır; `[Theory]` testlerinin her veri satırı ayrı çalıştığı için `dotnet test` çıktısındaki sayı daha yüksektir.
+Belgenin 9. maddesindeki test başlıkları ve bunları karşılayan otomatik testler. Toplam 282 test yöntemi vardır; `[Theory]` testlerinin her veri satırı ayrı çalıştığı için `dotnet test` çıktısındaki sayı daha yüksektir.
 
 ```bash
 dotnet test                                         # hepsi
@@ -55,7 +55,7 @@ Plan varsa planlı günlerin, yoksa hafta içi günlerin sayılması, tatillerin
 |---|---|---|
 | `LeaveDayCounterTests` | 5 | `Unit/LeaveCalculationTests.cs` |
 | `LeaveBalanceCalculatorTests` | 13 | `Unit/LeaveCalculationTests.cs` |
-| `LeaveServiceTests` | 18 | `Services/LeaveServiceTests.cs` |
+| `LeaveServiceTests` | 21 | `Services/LeaveServiceTests.cs` |
 | `AbsenceServiceTests` | 6 | `Services/LeaveServiceTests.cs` |
 
 ### Karekod geçerliliği
@@ -121,7 +121,8 @@ Otomatik testler servis katmanını sınar. Arayüz bağlandıktan sonra aşağ�
 | 18 | Fakülte hesabıyla Hesap Başvuruları ekranını aç, başvuruyu onayla; ana sayfada uyarının kaybolduğuna bak | Hesap aktif olur, kişi giriş yapabilir; reddedilen hesap pasif kalır |
 | 19 | Fakülte sekreterliği giriş sayfasına bak | "Kayıt Ol" düğmesi yoktur; `/kayit/fakulte` adresi giriş türü seçimine döner |
 | 20 | Öğrenciyle sınav dönemi dışındaki bir ayda, bir haftayı boş bırakarak plan gönder | Takvim üstünde boş haftanın tarihleri uyarı olarak görünür; gönderme reddedilir |
-| 21 | Gmail SMTP ayarını yap, kayıtlı öğrencinin e-postasıyla "Parolamı unuttum" de | Gelen kutusuna bağlantı düşer; konsolda "E-posta gönderildi" yazar ([Kurulum](KURULUM.md#e-posta-gmail-ile-parola-sıfırlama)) |
+| 21 | Bölüm başkanı ve danışmanla bir öğrencinin bekleyen izin talebini onayla ya da reddet; başka bölümün başkanıyla aynı talebi aç | Kendi kapsamındakiler sonuçlanır; başka bölümün talebi "bulunamadı" döner |
+| 22 | Gmail SMTP ayarını yap, kayıtlı öğrencinin e-postasıyla "Parolamı unuttum" de | Gelen kutusuna bağlantı düşer; konsolda "E-posta gönderildi" yazar ([Kurulum](KURULUM.md#e-posta-gmail-ile-parola-sıfırlama)) |
 
 ## Bilinen test boşlukları
 

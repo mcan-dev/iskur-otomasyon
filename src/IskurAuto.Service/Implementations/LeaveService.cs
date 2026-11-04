@@ -204,10 +204,15 @@ public class LeaveService : ILeaveService
 
     public async Task<LeaveResultDto> ReviewAsync(int leaveId, ReviewLeaveRequest request, CancellationToken ct = default)
     {
-        _current.RequireRole(UserRole.FacultyAdmin);
+        // Sekreterlik tüm talepleri, bölüm başkanı kendi bölümündekileri, danışman yalnızca kendi öğrencilerinin
+        // taleplerini sonuçlandırır. Kapsam dışı talep "bulunamadı" döner.
+        _current.RequireRole(UserRole.FacultyAdmin, UserRole.DepartmentHead, UserRole.Advisor);
 
         var leave = await _leaves.GetDetailAsync(leaveId, ct)
             ?? throw new NotFoundException("İzin talebi bulunamadı.");
+
+        if (!_current.CanView(leave.StudentProfile))
+            throw new NotFoundException("İzin talebi bulunamadı.");
 
         if (leave.Status != LeaveStatus.Pending)
             throw new ConflictException("Bu talep zaten sonuçlandırılmış.");

@@ -35,7 +35,7 @@ bir sekreterlik hesabı (ya da kurulumdaki ilk yönetici ayarı) ile açılır. 
 | Aylık çalışma planı oluşturma / düzeltme | ● | – | – | ● (öğrenci adına) |
 | Plan onayı / reddi | – | – | – | ● |
 | İzin talebi oluşturma, iptal | ● | – | – | – |
-| İzin onayı / reddi | – | – | – | ● |
+| İzin onayı / reddi | – | ● (kendi öğrencileri) | ● (kendi bölümü) | ● |
 | İzin hakkı ve devamsızlık sınırını belirleme | – | – | – | ● |
 | Devamsızlık kaydı girme / geri alma | – | – | – | ● |
 | Karekod oturumu açma / kapatma | – | – | ● (bölümü için) | ● |
