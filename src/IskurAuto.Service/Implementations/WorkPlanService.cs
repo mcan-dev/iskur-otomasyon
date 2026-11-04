@@ -167,7 +167,7 @@ public class WorkPlanService : IWorkPlanService
         plan.ReviewNote = note;
 
         await _audit.RecordAsync(request.Approve ? AuditActions.WorkPlanApproved : AuditActions.WorkPlanRejected,
-            nameof(MonthlyWorkPlan), plan.Id, ct: ct);
+            nameof(MonthlyWorkPlan), plan.Id, $"{TurkishText.MonthYear(plan.Year, plan.Month)} planı", ct: ct);
         await _uow.SaveChangesAsync(ct);
 
         return (await _plans.GetDetailAsync(planId, ct))!.ToDto(_settings);
@@ -203,7 +203,7 @@ public class WorkPlanService : IWorkPlanService
         await using var tx = await _uow.BeginTransactionAsync(ct);
         await _uow.SaveChangesAsync(ct);
         await _audit.RecordAsync(AuditActions.WorkPlanSaved, nameof(MonthlyWorkPlan), plan.Id,
-            $"{request.Year}-{request.Month:00}, {days.Count} gün", ct: ct);
+            $"{TurkishText.MonthYear(request.Year, request.Month)} planı gönderildi, {days.Count} gün seçildi", ct: ct);
         await _uow.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
 

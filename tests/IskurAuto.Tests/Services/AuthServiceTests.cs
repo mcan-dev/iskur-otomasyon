@@ -2,6 +2,7 @@ using IskurAuto.Core.Constants;
 using IskurAuto.Core.Enums;
 using IskurAuto.Core.Exceptions;
 using IskurAuto.Service.DTOs;
+using IskurAuto.Service.Reports;
 using IskurAuto.Tests.Support;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -50,6 +51,30 @@ public class AuthServiceTests
         var participation = Assert.Single(profile.Participations);
         Assert.Null(participation.EndDate);                           // katılım açık = aktif
         Assert.Equal(db.Clock.Today, participation.StartDate);
+    }
+
+    [Fact]
+    public async Task Register_NewStudent_IsVisibleToFacultyAndDepartmentHead_AndInReports()
+    {
+        using var db = new TestDb();
+        var seed = TestData.Seed(db);
+
+        using (var scope = db.NewScope())
+            await scope.Auth.RegisterStudentAsync(ValidRegistration(seed.BmId));
+
+        db.Current.As(UserRole.FacultyAdmin, seed.AdminId);
+        using (var scope = db.NewScope())
+        {
+            var list = await scope.Students.SearchAsync(new StudentSearchQuery { Text = "250000003" });
+            Assert.Equal(1, list.TotalCount);
+
+            var report = await scope.Reports.GetAsync(ReportKind.StudentList, new ReportQuery());
+            Assert.Contains(report.Rows, r => r.Contains("250000003"));
+        }
+
+        db.Current.As(UserRole.DepartmentHead, seed.HeadId, seed.BmId);
+        using (var scope = db.NewScope())
+            Assert.Equal(1, (await scope.Students.SearchAsync(new StudentSearchQuery { Text = "250000003" })).TotalCount);
     }
 
     [Fact]

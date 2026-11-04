@@ -11,7 +11,7 @@ import AuthShell from '../layout/AuthShell';
 export const loginTypes: { slug: string; role: Role; title: string; text: string; glyph: string }[] = [
   { slug: 'ogrenci', role: 'Student', title: 'Öğrenci', text: 'Çalışma planı, izin, karekodla devam ve görevleriniz', glyph: 'user' },
   { slug: 'danisman', role: 'Advisor', title: 'Danışman Öğretim Elemanı', text: 'Öğrencilerinizin devam, izin ve görev takibi', glyph: 'users' },
-  { slug: 'bolum-baskani', role: 'DepartmentHead', title: 'Bölüm Başkanı', text: 'Bölümünüzdeki öğrenciler, danışman atama ve raporlar', glyph: 'building' },
+  { slug: 'bolum-baskani', role: 'DepartmentHead', title: 'Bölüm Başkanı', text: 'Bölümünüzdeki öğrenciler, danışman atama ve izleme', glyph: 'building' },
   { slug: 'fakulte', role: 'FacultyAdmin', title: 'Fakülte Sekreterliği / Dekanlık', text: 'Fakülte geneli yönetim, onaylar, raporlar ve tanımlar', glyph: 'settings' },
 ];
 
