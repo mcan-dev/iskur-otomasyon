@@ -106,7 +106,7 @@ public class LeaveService : ILeaveService
         await using var tx = await _uow.BeginTransactionAsync(ct);
         await _uow.SaveChangesAsync(ct);
         await _audit.RecordAsync(AuditActions.LeaveRequested, nameof(LeaveRequest), leave.Id,
-            $"{request.StartDate:yyyy-MM-dd} / {request.EndDate:yyyy-MM-dd}, {days:0.##} gün", ct: ct);
+            $"{request.StartDate:dd.MM.yyyy} - {request.EndDate:dd.MM.yyyy} arası, {days:0.##} gün", ct: ct);
         await _uow.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
 
@@ -222,7 +222,8 @@ public class LeaveService : ILeaveService
         leave.ReviewNote = note;
 
         await _audit.RecordAsync(request.Approve ? AuditActions.LeaveApproved : AuditActions.LeaveRejected,
-            nameof(LeaveRequest), leave.Id, ct: ct);
+            nameof(LeaveRequest), leave.Id,
+            $"{leave.StartDate:dd.MM.yyyy} - {leave.EndDate:dd.MM.yyyy} arası, {leave.DaysCounted:0.##} gün", ct: ct);
         await _uow.SaveChangesAsync(ct);
 
         return await ResultAsync(leave.Id, ct);

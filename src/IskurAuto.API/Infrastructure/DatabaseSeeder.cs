@@ -60,7 +60,13 @@ public static class DatabaseSeeder
         var advisorMak = new User { FullName = "Dr. Öğr. Üyesi Can Aksoy", Email = "danisman.mak@teknoloji.edu.tr", PasswordHash = Hash(), Role = UserRole.Advisor, Department = mak };
         // Onay bekleyen başvuru örneği: pasif hesap, fakülte sekreterliği aktif edene kadar giriş yapamaz.
         var pending = new User { FullName = "Dr. Öğr. Üyesi Deniz Kara", Email = "bekleyen.danisman@teknoloji.edu.tr", PhoneNumber = "05361112233", PasswordHash = Hash(), Role = UserRole.Advisor, Department = eem, IsActive = false };
-        db.Users.AddRange(admin, head, advisor, oldAdvisor, advisorMak, pending);
+        var headEem = new User { FullName = "Prof. Dr. Selma Koç", Email = "baskan.eem@teknoloji.edu.tr", PasswordHash = Hash(), Role = UserRole.DepartmentHead, Department = eem };
+        var headMak = new User { FullName = "Prof. Dr. Orhan Tekin", Email = "baskan.mak@teknoloji.edu.tr", PasswordHash = Hash(), Role = UserRole.DepartmentHead, Department = mak };
+        var headMek = new User { FullName = "Prof. Dr. Nilüfer Aydoğan", Email = "baskan.mek@teknoloji.edu.tr", PasswordHash = Hash(), Role = UserRole.DepartmentHead, Department = mek };
+        var headMet = new User { FullName = "Prof. Dr. Kadir Sezer", Email = "baskan.met@teknoloji.edu.tr", PasswordHash = Hash(), Role = UserRole.DepartmentHead, Department = met };
+        var advisorMek = new User { FullName = "Dr. Öğr. Üyesi Burcu Er", Email = "danisman.mek@teknoloji.edu.tr", PasswordHash = Hash(), Role = UserRole.Advisor, Department = mek };
+        var advisorMet = new User { FullName = "Dr. Öğr. Üyesi Tolga Yaman", Email = "danisman.met@teknoloji.edu.tr", PasswordHash = Hash(), Role = UserRole.Advisor, Department = met };
+        db.Users.AddRange(admin, head, advisor, oldAdvisor, advisorMak, pending, headEem, headMak, headMek, headMet, advisorMek, advisorMet);
 
         var start = clock.Today.AddDays(-60);
 
@@ -80,7 +86,7 @@ public static class DatabaseSeeder
         elif.UnitAssignments.Add(new StudentUnitAssignment { WorkUnit = kutuphane, StartDate = start, AssignedByUser = admin });
         elif.AdvisorAssignments.Add(new AdvisorAssignment { AdvisorUser = advisorMak, StartDate = start, AssignedByUser = admin });
 
-        SeedHistory(db, admin, advisor, advisorMak, head, mehmet, elif, bm, mak, eem, dekanlik, hashFactory: Hash);
+        SeedHistory(db, admin, advisor, advisorMak, advisorMek, advisorMet, head, mehmet, elif, bm, eem, mek, met, dekanlik, lab, kutuphane, hashFactory: Hash);
 
         await db.SaveChangesAsync();
 
@@ -93,19 +99,29 @@ public static class DatabaseSeeder
     /// Örnek geçmiş: aynı öğrencinin farklı ay ve yıllardaki planları, izin, devam, görev ve ilişik kesme kaydı.
     /// Vize gösteriminde "aylar ve yıllar birbirinden ayrı kayıtlardır" görülebilsin diye eklenir.
     /// </summary>
-    private static void SeedHistory(IskurAutoDbContext db, User admin, User advisor, User advisorMak, User head, StudentProfile mehmet, StudentProfile elif,
-        Department bm, Department mak, Department eem, WorkUnit dekanlik, Func<string> hashFactory)
+    private static void SeedHistory(IskurAutoDbContext db, User admin, User advisor, User advisorMak, User advisorMek, User advisorMet, User head,
+        StudentProfile mehmet, StudentProfile elif, Department bm, Department eem, Department mek, Department met,
+        WorkUnit dekanlik, WorkUnit lab, WorkUnit kutuphane, Func<string> hashFactory)
     {
         static DateOnly D(int y, int m, int d) => new(y, m, d);
 
         // Bu ekler fakülte genelindeki filtreleri (bölüm, danışman, durum) denemek içindir.
         var burak = NewStudent("Burak Şahin", "burak.sahin@teknoloji.edu.tr", "05331112233",
-            "10000000146", "TR560006200000000000000003", "250000003", bm, 2025, D(2026, 2, 1), hashFactory());
+            "10000000146", "TR830006200000000000000003", "250000003", bm, 2025, D(2026, 2, 1), hashFactory());
         var selin = NewStudent("Selin Çelik", "selin.celik@teknoloji.edu.tr", "05344445566",
-            "11111111110", "TR780006200000000000000004", "260000004", eem, 2026, D(2026, 9, 15), hashFactory());
+            "11111111110", "TR560006200000000000000004", "260000004", eem, 2026, D(2026, 9, 15), hashFactory());
         var kerem = NewStudent("Kerem Aydın", "kerem.aydin@teknoloji.edu.tr", "05355556677",
-            "10000000278", "TR900006200000000000000005", "230000005", bm, 2023, D(2025, 9, 1), hashFactory());
-        db.StudentProfiles.AddRange(burak, selin, kerem);
+            "10000000214", "TR290006200000000000000005", "230000005", bm, 2023, D(2025, 9, 1), hashFactory());
+        // Mekatronik ve Metalurji bölümlerinden de öğrenci bulunsun diye (beş bölümün hepsinde kayıt olur).
+        var ahmet = NewStudent("Ahmet Kılıç", "ahmet.kilic@teknoloji.edu.tr", "05366667788",
+            "10000000382", "TR020006200000000000000006", "250000006", mek, 2025, D(2026, 2, 2), hashFactory());
+        var fatma = NewStudent("Fatma Güneş", "fatma.gunes@teknoloji.edu.tr", "05377778899",
+            "10000000450", "TR720006200000000000000007", "240000007", met, 2024, D(2025, 10, 1), hashFactory());
+        db.StudentProfiles.AddRange(burak, selin, kerem, ahmet, fatma);
+        ahmet.UnitAssignments.Add(new StudentUnitAssignment { WorkUnit = kutuphane, StartDate = D(2026, 2, 2), AssignedByUser = admin });
+        ahmet.AdvisorAssignments.Add(new AdvisorAssignment { AdvisorUser = advisorMek, StartDate = D(2026, 2, 2), AssignedByUser = admin });
+        fatma.UnitAssignments.Add(new StudentUnitAssignment { WorkUnit = lab, StartDate = D(2025, 10, 1), AssignedByUser = admin });
+        fatma.AdvisorAssignments.Add(new AdvisorAssignment { AdvisorUser = advisorMet, StartDate = D(2025, 10, 1), AssignedByUser = admin });
 
         burak.UnitAssignments.Add(new StudentUnitAssignment { WorkUnit = dekanlik, StartDate = D(2026, 2, 1), AssignedByUser = admin });
         burak.AdvisorAssignments.Add(new AdvisorAssignment { AdvisorUser = advisor, StartDate = D(2026, 2, 1), AssignedByUser = admin });
@@ -147,6 +163,9 @@ public static class DatabaseSeeder
         Plan(mehmet, 2026, 9, WorkPlanStatus.Approved, null, null, 7, 9, 14, 16, 21, 23);
         var mehmetOct = Plan(mehmet, 2026, 10, WorkPlanStatus.Approved, "Salı ve perşembe günleri dersim var.", null, 5, 7, 12, 14, 19, 21, 26, 28);
         var elifOct = Plan(elif, 2026, 10, WorkPlanStatus.Pending, "Onay bekliyor.", null, 5, 7, 12, 14, 19, 21);
+        var ahmetOct = Plan(ahmet, 2026, 10, WorkPlanStatus.Approved, null, null, 5, 7, 12, 14, 19, 21);
+        Plan(fatma, 2026, 9, WorkPlanStatus.Approved, null, null, 8, 10, 15, 17, 22, 24);
+        var fatmaOct = Plan(fatma, 2026, 10, WorkPlanStatus.Approved, "Salı günleri dersim var.", null, 5, 7, 12, 14);
         Plan(burak, 2026, 10, WorkPlanStatus.Rejected, null, "Haftada en fazla 3 gün seçilebilir, planı yeniden düzenleyin.", 5, 6, 7, 8, 9);
 
         db.StudentCourseDays.AddRange(
@@ -202,8 +221,10 @@ public static class DatabaseSeeder
         CheckIn(mehmet, mehmetOct, 14); CheckIn(mehmet, mehmetOct, 19); CheckIn(mehmet, mehmetOct, 21);
         CheckIn(elif, elifOct, 19); CheckIn(elif, elifOct, 21);
         CheckIn(mehmet, mehmetOct, 7);
+        foreach (var day in new[] { 5, 7, 12, 14, 19 }) CheckIn(ahmet, ahmetOct, day);
+        CheckIn(fatma, fatmaOct, 5); CheckIn(fatma, fatmaOct, 12);
 
-        SeedExtras(db, admin, advisor, advisorMak, head, mehmet, elif, burak, selin, kerem, mehmetOct, elifOct, sessions);
+        SeedExtras(db, admin, advisor, advisorMak, head, mehmet, elif, burak, selin, kerem, ahmet, mehmetOct, elifOct, sessions);
 
         // Görev ve değerlendirme: tamamlanmış bir görev (notuyla) ve açık bir görev.
         var done = new StudentTask
@@ -233,7 +254,7 @@ public static class DatabaseSeeder
     /// elle eklenmiş devam, tamamlanmamış görev, öğrenciye özel izin hakkı ve denetim izi.
     /// </summary>
     private static void SeedExtras(IskurAutoDbContext db, User admin, User advisor, User advisorMak, User head,
-        StudentProfile mehmet, StudentProfile elif, StudentProfile burak, StudentProfile selin, StudentProfile kerem,
+        StudentProfile mehmet, StudentProfile elif, StudentProfile burak, StudentProfile selin, StudentProfile kerem, StudentProfile ahmet,
         MonthlyWorkPlan mehmetOct, MonthlyWorkPlan elifOct, Dictionary<int, AttendanceSession> sessions)
     {
         static DateOnly D(int y, int m, int d) => new(y, m, d);
@@ -306,20 +327,52 @@ public static class DatabaseSeeder
             IsManual = true, ManualReason = "Telefonu arızalıydı, birimde görüldü.", CreatedByUser = admin
         });
 
-        // Plan yoğunluğu: sıradaki ay için bekleyen planlar
-        MonthlyWorkPlan Pending(StudentProfile s, int year, int month, string? note, params int[] days)
+        // Plan örnekleri: raporlar yalnızca onaylı planı saydığı için Kasım 2026 için onaylı planlar da vardır.
+        MonthlyWorkPlan AddPlan(StudentProfile s, int year, int month, WorkPlanStatus status, string? note, params int[] days)
         {
             var plan = new MonthlyWorkPlan
             {
-                StudentProfile = s, Year = year, Month = month, Status = WorkPlanStatus.Pending, StudentNote = note,
+                StudentProfile = s, Year = year, Month = month, Status = status, StudentNote = note,
                 LastSavedAt = T(year, month - 1, 20, 8)
             };
+            if (status == WorkPlanStatus.Approved)
+            {
+                plan.ReviewedByUser = admin;
+                plan.ReviewedAt = T(year, month - 1, 22, 9);
+            }
             foreach (var d in days) plan.Days.Add(new WorkPlanDay { Date = D(year, month, d), IsLessonDay = s == mehmet && (D(year, month, d).DayOfWeek is DayOfWeek.Tuesday or DayOfWeek.Thursday), Note = null });
             db.WorkPlans.Add(plan);
             return plan;
         }
-        Pending(selin, 2026, 10, "İlk planım.", 6, 8, 13, 15, 20, 22);
-        Pending(mehmet, 2026, 11, null, 3, 5, 17, 19, 24, 26);
+        AddPlan(selin, 2026, 10, WorkPlanStatus.Pending, "İlk planım.", 6, 8, 13, 15, 20, 22);
+        AddPlan(mehmet, 2026, 11, WorkPlanStatus.Approved, null, 3, 5, 17, 19, 24, 26);
+        AddPlan(selin, 2026, 11, WorkPlanStatus.Approved, null, 3, 5, 10, 12, 17, 19);
+        AddPlan(ahmet, 2026, 11, WorkPlanStatus.Approved, null, 4, 6, 11, 13, 18, 20);
+        var burakNov = AddPlan(burak, 2026, 11, WorkPlanStatus.Approved, "Sınav haftalarında da gelebilirim.", 2, 4, 10, 12, 17, 19, 24, 26);
+
+        // 2 Kasım Pazartesi: Burak'ın planlı günü; karekodla devam kaydı yapılmış.
+        var novSession = new AttendanceSession
+        {
+            Date = D(2026, 11, 2), StartTime = new TimeOnly(9, 0), EndTime = new TimeOnly(17, 0),
+            Title = "Günlük devam oturumu", SecretKey = Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(24)),
+            CreatedByUser = admin
+        };
+        db.AttendanceSessions.Add(novSession);
+        db.AttendanceRecords.Add(new AttendanceRecord
+        {
+            StudentProfile = burak, AttendanceSession = novSession, Date = D(2026, 11, 2), CheckedInAt = T(2026, 11, 2, 6, 40),
+            WorkPlanDay = burakNov.Days.First(x => x.Date == D(2026, 11, 2))
+        });
+
+        // Selin izin ve devamsızlık sınırını aştı: 6 gün onaylı izin + 5 gün devamsızlık = 11 / 10 (ilişik kesme incelemesi listesinde görünür).
+        db.LeaveRequests.Add(new LeaveRequest
+        {
+            StudentProfile = selin, Type = LeaveType.Health, Status = LeaveStatus.Approved,
+            StartDate = D(2026, 10, 6), EndDate = D(2026, 10, 13), DaysCounted = 6, Reason = "Grip ve dinlenme",
+            AppliedOn = D(2026, 10, 5), ReviewedByUser = admin, ReviewedAt = T(2026, 10, 5, 13), ReviewNote = "Sağlık raporu ibraz edildi."
+        });
+        foreach (var day in new[] { D(2026, 9, 22), D(2026, 9, 24), D(2026, 9, 29), D(2026, 10, 1), D(2026, 10, 15) })
+            db.Absences.Add(new Absence { StudentProfile = selin, Date = day, Type = AbsenceType.Unexcused, Note = "Çalışma yerine gelmedi.", RecordedByUser = admin });
 
         // Görevler: tamamlanmayan ve açık
         var missed = new StudentTask
@@ -343,13 +396,17 @@ public static class DatabaseSeeder
         // Denetim izi örnekleri
         void Log(DateTime at, User u, string action, string entity, int? id, string? details = null)
             => db.AuditLogs.Add(new AuditLog { OccurredAt = at, UserId = null, UserEmail = u.Email, Action = action, EntityName = entity, EntityId = id, Details = details, IpAddress = "127.0.0.1" });
-        Log(T(2026, 10, 16, 11), admin, "Leave.Rejected", nameof(LeaveRequest), null, "Plan günlerine denk geldi");
-        Log(T(2026, 10, 7, 9), admin, "Absence.Revoked", nameof(Absence), null, "Kayıt hatası");
-        Log(T(2026, 10, 6, 8), admin, "Attendance.Voided", nameof(AttendanceRecord), null, "Yanlış okutma");
-        Log(T(2026, 10, 12, 8), admin, "Attendance.AddedManually", nameof(AttendanceRecord), null, "Telefon arızası");
-        Log(T(2026, 10, 14, 15), advisor, "AbsenceNotice.Sent", nameof(AbsenceNotice), null);
-        Log(T(2026, 10, 3, 9), head, "Student.AdvisorAssigned", nameof(StudentProfile), null, "Burak Şahin");
-        Log(T(2026, 9, 20, 10), admin, "Student.LeaveAllowanceChanged", nameof(StudentProfile), null, "Gün=12");
+        Log(T(2026, 10, 16, 11), admin, "Leave.Rejected", nameof(LeaveRequest), null, "19.10.2026 - 20.10.2026 arası, 2 gün");
+        Log(T(2026, 10, 7, 9), admin, "Absence.Revoked", nameof(Absence), null, "06.10.2026 tarihli devamsızlık");
+        Log(T(2026, 10, 6, 8), admin, "Attendance.Voided", nameof(AttendanceRecord), null, "Başka öğrenci adına okutulan kayıt iptal edildi");
+        Log(T(2026, 10, 12, 8), admin, "Attendance.AddedManually", nameof(AttendanceRecord), null, "Telefonu arızalı olan öğrencinin devamı elle eklendi");
+        Log(T(2026, 10, 14, 15), advisor, "AbsenceNotice.Sent", nameof(AbsenceNotice), null, "14.10.2026 tarihli devamsızlık bildirimi");
+        Log(T(2026, 10, 3, 9), head, "Student.AdvisorAssigned", nameof(StudentProfile), null, "Danışman: Dr. Öğr. Üyesi Zeynep Arslan");
+        Log(T(2026, 9, 20, 10), admin, "Student.LeaveAllowanceChanged", nameof(StudentProfile), null, "Öğrenciye özel izin hakkı 12 gün olarak belirlendi.");
+        Log(T(2026, 10, 22, 9), admin, "WorkPlan.Approved", nameof(MonthlyWorkPlan), null, "Kasım 2026 planı");
+        Log(T(2026, 10, 5, 13), admin, "Leave.Approved", nameof(LeaveRequest), null, "06.10.2026 - 13.10.2026 arası, 6 gün");
+        Log(T(2026, 10, 22, 8), mehmet.User, "Leave.Requested", nameof(LeaveRequest), null, "17.11.2026 - 17.11.2026 arası, 1 gün");
+        Log(T(2026, 11, 2, 9, 40), burak.User, "Attendance.CheckedIn", nameof(AttendanceRecord), null);
         Log(T(2026, 6, 30, 11), admin, "Termination.Recorded", nameof(TerminationDecision), null);
     }
 

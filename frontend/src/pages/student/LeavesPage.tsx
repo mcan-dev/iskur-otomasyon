@@ -181,7 +181,6 @@ function NewLeave({ onCreated }: { onCreated: (r: LeaveResult) => void }) {
           <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} maxLength={1000} />
         </Field>
         <button className="btn primary wide" disabled={busy}>{busy ? 'Gönderiliyor…' : 'Talep Gönder'}</button>
-        <p className="muted small" style={{ marginTop: 8 }}>Belgeyi (PDF, JPG, PNG; en fazla 5 MB) talep oluştuktan sonra listeden ekleyebilirsiniz.</p>
       </form>
     </Card>
   );

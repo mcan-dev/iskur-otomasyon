@@ -46,7 +46,7 @@ Her ekranın gerçek görüntüsü [2_Tasarimlar/ekranlar](../2_Tasarimlar/ekran
 
 ## Bölüm Başkanı
 
-Bölüm Öğrencileri (31), Karekod Devam, İzin ve Devamsızlık, Görevler ve Notlar, Devamsızlık Bildirimleri, Raporlar. Danışman atama
+Bölüm Öğrencileri (31), Karekod Devam, İzin ve Devamsızlık, Görevler ve Notlar, Devamsızlık Bildirimleri. Raporları bölüm başkanı almaz. Danışman atama
 öğrenci detay ekranından yapılır. Görüntü: 30, 31.
 
 ## Danışman

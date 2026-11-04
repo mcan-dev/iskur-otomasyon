@@ -163,8 +163,8 @@ Roller: **Fakülte** = Dekanlık/Fakülte Sekreterliği, **Bölüm Başkanı**, 
 
 | Yöntem | Adres | Kim | Açıklama |
 |---|---|---|---|
-| GET | `/api/reports/{kind}` | Fakülte, Bölüm Başkanı |  |
-| GET | `/api/reports/{kind}/export` | Fakülte, Bölüm Başkanı |  |
+| GET | `/api/reports/{kind}` | Fakülte |  |
+| GET | `/api/reports/{kind}/export` | Fakülte |  |
 
 ## İlişik kesme kararları
 

@@ -66,15 +66,15 @@ export const terminationBasisLabels: Record<TerminationBasis, string> = {
   Other: 'Diğer',
 };
 
-export const reportKinds: { id: string; label: string; needsMonth?: boolean; facultyOnly?: boolean; noAdvisor?: boolean }[] = [
+export const reportKinds: { id: string; label: string; needsMonth?: boolean }[] = [
   { id: 'MonthlyWork', label: 'Aylık çalışma (planlanan / gerçekleşen)', needsMonth: true },
   { id: 'YearlyWork', label: 'Yıllık çalışma saati' },
   { id: 'LeaveAndAbsence', label: 'İzin ve devamsızlık' },
   { id: 'Advisor', label: 'Danışman özeti' },
   { id: 'StudentList', label: 'Öğrenci listesi (aktif / pasif)' },
   { id: 'NearLeaveLimit', label: 'İzin sınırına yaklaşanlar' },
-  { id: 'TerminationReview', label: 'İlişik kesme incelemesi', noAdvisor: true },
-  { id: 'MonthlyStatement', label: 'Ay sonu dökümü (TC ve IBAN içerir)', needsMonth: true, facultyOnly: true },
+  { id: 'TerminationReview', label: 'İlişik kesme incelemesi' },
+  { id: 'MonthlyStatement', label: 'Ay sonu dökümü (TC ve IBAN içerir)', needsMonth: true },
 ];
 
 /** Saat değerini Türkçe ondalık ayracıyla yazar: 7.5 → "7,5". */

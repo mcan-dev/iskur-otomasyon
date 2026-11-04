@@ -11,7 +11,7 @@ namespace IskurAuto.API.Controllers;
 [ApiController]
 [Route("api/reports")]
 [Produces("application/json")]
-[Authorize(Roles = AppRoles.FacultyAdmin + "," + AppRoles.DepartmentHead)]
+[Authorize(Roles = AppRoles.FacultyAdmin)]
 public class ReportsController : ControllerBase
 {
     private readonly IReportService _reports;

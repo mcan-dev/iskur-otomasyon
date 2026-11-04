@@ -47,10 +47,10 @@ Yalnızca Development'ta oluşur, parola `Demo1234!`:
 | Rol | E-posta |
 |---|---|
 | Fakülte Sekreterliği | sekreter@teknoloji.edu.tr |
-| Bölüm Başkanı | baskan.bm@teknoloji.edu.tr |
+| Bölüm Başkanı | baskan.bm@teknoloji.edu.tr (Bilgisayar); baskan.eem@, baskan.mak@, baskan.mek@, baskan.met@ ile diğer bölümler |
 | Danışman | danisman.bm@teknoloji.edu.tr |
-| Öğrenci | ogrenci@teknoloji.edu.tr (en dolu hesap), ogrenci2@, burak.sahin@ (izin hakkına yakın), selin.celik@ (birim/danışman atanmamış) — hepsi @teknoloji.edu.tr |
-| Danışman (diğer) | danisman2.bm@, danisman.mak@ teknoloji.edu.tr |
+| Öğrenci | ogrenci@teknoloji.edu.tr (en dolu hesap), ogrenci2@, burak.sahin@ (izin hakkına yakın, Kasım planı ve bugünkü devamı var), selin.celik@ (izin sınırını aşmış; birim/danışman atanmamış), ahmet.kilic@ (Mekatronik), fatma.gunes@ (Metalurji) — hepsi @teknoloji.edu.tr |
+| Danışman (diğer) | danisman2.bm@, danisman.mak@, danisman.mek@, danisman.met@ teknoloji.edu.tr |
 | Onay bekleyen danışman (giriş yapamaz, fakülte aktif edince girer) | bekleyen.danisman@teknoloji.edu.tr |
 
 Başvuru onayı: Fakülte Sekreterliği girişi, Tanımlar ve Hesaplar, Personel hesapları, ilgili satırda "Aktif yap".

@@ -38,7 +38,6 @@ export const menus: Record<Role, MenuItem[]> = {
     { path: '/izinler', label: 'İzin ve Devamsızlık', icon: 'mail', desc: 'Bölüm izin ve devamsızlık durumu' },
     { path: '/gorevler', label: 'Görevler ve Notlar', icon: 'tasks', desc: 'Görevleri ve değerlendirme notlarını izle' },
     { path: '/bildirimler', label: 'Devamsızlık Bildirimleri', icon: 'bell', desc: 'Danışmanlardan gelen bildirimler' },
-    { path: '/raporlar', label: 'Raporlar', icon: 'report', desc: 'Aylık çalışma, devam ve izin raporları' },
   ],
   Advisor: [
     home,

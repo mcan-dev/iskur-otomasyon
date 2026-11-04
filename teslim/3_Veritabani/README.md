@@ -29,10 +29,10 @@ Development ortamında, veritabanı boşken uygulama ilk açılışta örnek ver
 | E-posta (`@teknoloji.edu.tr`) | Rol |
 |---|---|
 | sekreter@ | Fakülte Sekreterliği / Dekanlık |
-| baskan.bm@ | Bölüm Başkanı (Bilgisayar Müh.) |
+| baskan.bm@, baskan.eem@, baskan.mak@, baskan.mek@, baskan.met@ | Bölüm Başkanı (BM, EEM, MAK, MEK, MET) |
 | danisman.bm@, danisman2.bm@ | Danışman (Bilgisayar Müh.) |
-| danisman.mak@ | Danışman (Makine Müh.) |
-| ogrenci@, ogrenci2@, burak.sahin@, selin.celik@ | Öğrenci |
+| danisman.mak@, danisman.mek@, danisman.met@ | Danışman (Makine, Mekatronik, Metalurji ve Malzeme Müh.) |
+| ogrenci@, ogrenci2@, burak.sahin@, selin.celik@, ahmet.kilic@, fatma.gunes@ | Öğrenci |
 
 Örnek veri şunları gösterecek biçimdedir:
 
@@ -42,7 +42,8 @@ Development ortamında, veritabanı boşken uygulama ilk açılışta örnek ver
 - **İzin:** Onaylı gün izinleri ve onay bekleyen sağlık izni (izinler gün bazındadır).
 - **Devam, görev, bildirim:** Karekodla devam kayıtları, değerlendirmesi olan görev, açık görev, devamsızlık bildirimi.
 - **Programdan ayrılan öğrenci:** Kerem Aydın'ın katılımı sona ermiş, ilişik kesme kararı kayıtlıdır; geçmiş kayıtları durur.
-- **Filtre denemesi:** Birden çok bölümde öğrenci vardır; bölüm başkanı yalnızca kendi bölümünü, danışman yalnızca kendi öğrencilerini görür.
+- **Rapor verisi:** Ekim ve Kasım 2026 için onaylı planlar, devam kayıtları ve izinler vardır; Burak Şahin'in 2 Kasım için devam kaydı bulunur. Selin Çelik izin hakkını aşmıştır (ilişik kesme inceleme listesinde görünür), Burak Şahin hakka yaklaşmıştır.
+- **Filtre denemesi:** Beş bölümün hepsinde öğrenci ve bölüm başkanı vardır; bölüm başkanı yalnızca kendi bölümünü, danışman yalnızca kendi öğrencilerini görür.
 
 ## Yedekleme
 

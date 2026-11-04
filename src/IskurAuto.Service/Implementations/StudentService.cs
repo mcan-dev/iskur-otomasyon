@@ -205,7 +205,7 @@ public class StudentService : IStudentService
         student.LeaveDayAllowance = request.Days;
 
         await _audit.RecordAsync(AuditActions.LeaveAllowanceChanged, nameof(StudentProfile), student.Id,
-            request.Days is int days ? $"Gün={days}" : "Genel hakka döndü", ct: ct);
+            request.Days is int days ? $"Öğrenciye özel izin hakkı {days} gün olarak belirlendi." : "Öğrenci genel izin hakkına döndürüldü.", ct: ct);
         await _uow.SaveChangesAsync(ct);
 
         return student.ToDetail(revealPersonalData: true);
@@ -248,7 +248,7 @@ public class StudentService : IStudentService
         });
 
         await _audit.RecordAsync(AuditActions.UnitAssigned, nameof(StudentProfile), student.Id,
-            $"WorkUnitId={unit.Id}", ct: ct);
+            $"Çalışma birimi: {unit.Name}", ct: ct);
         await _uow.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
 
@@ -295,7 +295,7 @@ public class StudentService : IStudentService
         });
 
         await _audit.RecordAsync(AuditActions.AdvisorAssigned, nameof(StudentProfile), student.Id,
-            $"AdvisorUserId={advisor.Id}", ct: ct);
+            $"Danışman: {advisor.FullName}", ct: ct);
         await _uow.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
 

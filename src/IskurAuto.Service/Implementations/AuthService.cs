@@ -201,7 +201,7 @@ public class AuthService : IAuthService
         await using var tx = await _uow.BeginTransactionAsync(ct);
         await _uow.SaveChangesAsync(ct);
         await _audit.RecordAsync(AuditActions.StaffRegistered, nameof(User), user.Id,
-            $"Rol={user.Role}, onay bekliyor.", actorUserId: user.Id, actorEmail: email, ct: ct);
+            $"Rol: {TurkishText.Role(user.Role)}; fakülte onayı bekliyor.", actorUserId: user.Id, actorEmail: email, ct: ct);
         await _uow.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
 

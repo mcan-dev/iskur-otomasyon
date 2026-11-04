@@ -37,7 +37,7 @@ Uç noktaların listesi için [API.md](API.md) dosyasına bakın.
 - **Görev:** Öğrenciye başlık, açıklama ve bitiş tarihiyle görev verir. Sonradan başlık ve tarihler değişmez; durum ve notlar değerlendirme olarak eklenir.
   Görev "Tamamlandı" veya "Tamamlanmadı" olarak işaretlenir. Yalnızca öğrencinin güncel danışmanı değerlendirme yapabilir.
 - **Devamsızlık bildirimi:** Öğrencinin gelmediği veya devamda sorun olan gün için bölüm başkanına bildirim gönderir.
-- Geçmiş görev ve değerlendirmelere ulaşır. Rapor almaz; raporlar Fakülte Sekreterliği ve Bölüm Başkanına aittir.
+- Geçmiş görev ve değerlendirmelere ulaşır. Rapor almaz; raporlar yalnızca Fakülte Sekreterliği / Dekanlığa aittir.
 
 ## Bölüm başkanı
 
@@ -46,7 +46,6 @@ Uç noktaların listesi için [API.md](API.md) dosyasına bakın.
 - **Devam oturumu:** Bölümü için devam oturumu açıp kapatır ve karekodu ekranda gösterir.
 - **Görev:** Bölümündeki öğrencilere görev verebilir; danışman notlarını ve görev durumlarını izler.
 - **Bildirimler:** Danışmanlardan gelen devamsızlık bildirimlerini inceler ve okundu olarak işaretler.
-- Bölüm, danışman, ay ve yıl filtreleriyle rapor alır, CSV veya Excel olarak indirir.
 
 ## Fakülte Sekreterliği / Dekanlık
 
@@ -60,7 +59,7 @@ Fakültedeki tüm kayıtları görür ve yönetir.
   Genel izin hakkı ayarlardan, belirli bir öğrencinin hakkı ise öğrencinin sayfasındaki İzin sekmesinden ("İzin hakkını düzenle") değiştirilir; fakülte sekreterliği ve dekanlık bu sekmede öğrencinin izin durumunu da görür.
 - **Devamsızlık:** Devamsızlık yalnızca bu rol tarafından girilir. Hatalı kayıt gerekçeyle geri alınır.
 - **Devam oturumu:** Fakülte genelinde veya bir bölüm için oturum açar, karekodu gösterir, elle devam girer veya iptal eder.
-- **Raporlar:** Aylık ve yıllık çalışma, izin ve devamsızlık, danışman, öğrenci listesi, sınıra yaklaşanlar ve
+- **Raporlar (yalnızca bu rolde):** Yıl, ay, bölüm, danışman, öğrenci ve çalışma durumu filtreleriyle aylık ve yıllık çalışma, izin ve devamsızlık, danışman, öğrenci listesi, sınıra yaklaşanlar ve
   ilişik kesme incelemesi raporları ekranda görüntülenir; CSV ve Excel olarak indirilir.
 - **Aylık döküm:** Öğrenci bazında TC, ad soyad, IBAN, birim, planlanan ve gerçekleşen gün, toplam saat ve izinli gün sayısını içerir.
   Yalnızca bu rol görür; her görüntüleme ve indirme denetim kaydına yazılır.
