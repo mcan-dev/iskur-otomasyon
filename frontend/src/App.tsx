@@ -26,6 +26,7 @@ import ProfilePage from './pages/student/ProfilePage';
 import TasksPage from './pages/student/TasksPage';
 import Register from './pages/Register';
 import StaffRegister from './pages/StaffRegister';
+import ApplicationsPage from './pages/staff/ApplicationsPage';
 import ResetPassword from './pages/ResetPassword';
 
 export default function App() {
@@ -50,6 +51,7 @@ export default function App() {
     '/bildirimler': <NoticesPage />,
     '/raporlar': <ReportsPage />,
     '/iliski-kesme': <TerminationsPage />,
+    '/hesap-basvurulari': <ApplicationsPage />,
     '/tanimlar': <DefinitionsPage />,
     '/denetim': <AuditPage />,
   };

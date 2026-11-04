@@ -1,6 +1,6 @@
 # Test senaryoları
 
-Belgenin 9. maddesindeki test başlıkları ve bunları karşılayan otomatik testler. Toplam 273 test yöntemi vardır; `[Theory]` testlerinin her veri satırı ayrı çalıştığı için `dotnet test` çıktısındaki sayı daha yüksektir.
+Belgenin 9. maddesindeki test başlıkları ve bunları karşılayan otomatik testler. Toplam 279 test yöntemi vardır; `[Theory]` testlerinin her veri satırı ayrı çalıştığı için `dotnet test` çıktısındaki sayı daha yüksektir.
 
 ```bash
 dotnet test                                         # hepsi
@@ -20,7 +20,7 @@ T.C. kimlik no ve IBAN algoritması, telefon ve ad normalleştirme, parola kural
 | `IbanValidatorTests` | 3 | `Unit/ValidationTests.cs` |
 | `PasswordPolicyTests` | 2 | `Unit/ValidationTests.cs` |
 | `InputNormalizerTests` | 4 | `Unit/ValidationTests.cs` |
-| `AuthServiceTests` | 17 | `Services/AuthServiceTests.cs` |
+| `AuthServiceTests` | 19 | `Services/AuthServiceTests.cs` |
 | `PasswordResetServiceTests` | 7 | `Services/PasswordResetServiceTests.cs` |
 | `DatabaseConstraintTests` | 8 | `Services/AdminAndDatabaseTests.cs` |
 
@@ -32,13 +32,13 @@ Rol kontrolü ve kapsam: bölüm başkanı yalnızca kendi bölümünü, danış
 | Test sınıfı | Test sayısı | Dosya |
 |---|---|---|
 | `StudentVisibilityTests` | 12 | `Services/StudentServiceTests.cs` |
-| `UserServiceTests` | 7 | `Services/AdminAndDatabaseTests.cs` |
+| `UserServiceTests` | 11 | `Services/AdminAndDatabaseTests.cs` |
 | `DepartmentAndUnitServiceTests` | 4 | `Services/AdminAndDatabaseTests.cs` |
 
 Rol ve kapsam senaryoları diğer sınıflarda da modül bazında vardır: `*_IsForbidden`, `*_FollowTheRoleScope`, `*_OutsideTheScope_LooksLikeNotFound`, `OnlyStudentsCanCheckIn`, `OnlyTheFacultyOfficeRecordsDecisions`, `MonthlyStatement_IsOnlyForTheFacultyOffice`.
 
 ### Çalışma günü sınırları
-Haftada 1-3 gün, ayda en fazla 14 gün, haftanın perşembesinin düştüğü aya sayılması, hafta sonu/tatil/program dışı günün seçilememesi, dersli günün açıklamasız seçilebilmesi, sınav haftasında alt sınırın aranmaması, her günün 7,5 saat sayılması, düzeltme süresi, onaya gönderilen veya onaylanan planın öğrenci tarafından değiştirilememesi (reddedilirse yeniden seçilebilmesi).
+Haftada 1-3 gün, ayda en fazla 14 gün, haftanın perşembesinin düştüğü aya sayılması, hafta sonu/tatil/program dışı günün seçilememesi, dersli günün açıklamasız seçilebilmesi, sınav haftasında alt sınırın aranmaması (seçilmeyen haftanın ekranda uyarıyla gösterilmesi), her günün 7,5 saat sayılması, düzeltme süresi, onaya gönderilen veya onaylanan planın öğrenci tarafından değiştirilememesi (reddedilirse yeniden seçilebilmesi).
 
 | Test sınıfı | Test sayısı | Dosya |
 |---|---|---|
@@ -117,6 +117,11 @@ Otomatik testler servis katmanını sınar. Arayüz bağlandıktan sonra aşağ�
 | 14 | Aylık dökümü bölüm başkanıyla açmayı dene | Yetki yok |
 | 15 | İlişik kesme listesindeki bir öğrenci için karar kaydet | Öğrenci pasif olur, geçmişi durur, karar listede görünür |
 | 16 | Yedekle, veritabanını sil, yedekten geri yükle | Tüm kayıtlar geri gelir ([Kurulum](KURULUM.md#yedekleme-ve-geri-yükleme)) |
+| 17 | Danışman girişinde "Başvuru Yap" ile başvur, sonra aynı bilgilerle girmeyi dene | "Hesabınız aktif değil: başvurunuz onay bekliyor" yazar; yanlış parolada genel "E-posta veya parola hatalı" yazar |
+| 18 | Fakülte hesabıyla Hesap Başvuruları ekranını aç, başvuruyu onayla; ana sayfada uyarının kaybolduğuna bak | Hesap aktif olur, kişi giriş yapabilir; reddedilen hesap pasif kalır |
+| 19 | Fakülte sekreterliği giriş sayfasına bak | "Kayıt Ol" düğmesi yoktur; `/kayit/fakulte` adresi giriş türü seçimine döner |
+| 20 | Öğrenciyle sınav dönemi dışındaki bir ayda, bir haftayı boş bırakarak plan gönder | Takvim üstünde boş haftanın tarihleri uyarı olarak görünür; gönderme reddedilir |
+| 21 | Gmail SMTP ayarını yap, kayıtlı öğrencinin e-postasıyla "Parolamı unuttum" de | Gelen kutusuna bağlantı düşer; konsolda "E-posta gönderildi" yazar ([Kurulum](KURULUM.md#e-posta-gmail-ile-parola-sıfırlama)) |
 
 ## Bilinen test boşlukları
 

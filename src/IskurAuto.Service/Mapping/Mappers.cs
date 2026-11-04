@@ -19,7 +19,8 @@ public static class Mappers
         Role = u.Role.ToString(),
         DepartmentId = u.DepartmentId,
         DepartmentName = u.Department?.Name,
-        IsActive = u.IsActive
+        IsActive = u.IsActive,
+        IsPendingApproval = u.IsPendingApproval
     };
 
     public static DepartmentDto ToDto(this Department d)

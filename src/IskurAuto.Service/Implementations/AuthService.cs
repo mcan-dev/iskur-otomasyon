@@ -50,6 +50,19 @@ public class AuthService : IAuthService
         // saldırgan "bu e-posta kayıtlı mı?" bilgisini süreden çıkaramaz.
         var passwordOk = _hasher.Verify(user?.PasswordHash ?? _hasher.DummyHash, request.Password);
 
+        // Parolası doğru olan ama hesabı aktif olmayan kişiye nedeni söylemek güvenlidir: parolayı zaten biliyor,
+        // yalnızca neden giremediğini öğreniyor. Parola yanlışsa hep aynı genel mesaj verilir.
+        if (user is { IsActive: false } && passwordOk)
+        {
+            await _audit.RecordAsync(AuditActions.LoginFailed, nameof(User), user.Id,
+                user.IsPendingApproval ? "Onay bekleyen hesapla giriş denemesi." : "Pasif hesapla giriş denemesi.",
+                actorUserId: user.Id, actorEmail: email, ct: ct);
+            await _uow.SaveChangesAsync(ct);
+            throw new ForbiddenException(user.IsPendingApproval
+                ? "Hesabınız aktif değil: başvurunuz fakülte sekreterliği onayını bekliyor. Onaylandığında giriş yapabilirsiniz."
+                : "Hesabınız aktif değil. Lütfen fakülte sekreterliği ile iletişime geçin.");
+        }
+
         if (user is null || !passwordOk || !user.IsActive)
         {
             await _audit.RecordAsync(AuditActions.LoginFailed, nameof(User), user?.Id,
@@ -164,8 +177,9 @@ public class AuthService : IAuthService
         var needsDepartment = request.Role is UserRole.DepartmentHead or UserRole.Advisor;
 
         var errors = new ValidationErrors();
-        if (!Enum.IsDefined(request.Role) || request.Role == UserRole.Student)
-            errors.Add(nameof(request.Role), "Rol danışman, bölüm başkanı veya fakülte sekreterliği olmalıdır.");
+        // Fakülte sekreterliği hesabı kendi kendine açılamaz; mevcut bir sekreterlik hesabı tarafından açılır.
+        if (!Enum.IsDefined(request.Role) || request.Role is UserRole.Student or UserRole.FacultyAdmin)
+            errors.Add(nameof(request.Role), "Başvuru yalnızca danışman veya bölüm başkanı için yapılabilir. Fakülte sekreterliği hesapları sekreterlik tarafından açılır.");
         if (fullName.Length < 2)
             errors.Add(nameof(request.FullName), "Ad soyad en az 2 karakter olmalıdır.");
         errors.Add(nameof(request.Password), PasswordPolicy.Validate(request.Password));
@@ -194,7 +208,8 @@ public class AuthService : IAuthService
             Role = request.Role,
             DepartmentId = department?.Id,
             Department = department,
-            IsActive = false
+            IsActive = false,
+            IsPendingApproval = true
         };
         await _users.AddAsync(user);
 

@@ -27,6 +27,7 @@ public class UserSearchCriteria
     public UserRole? Role { get; set; }
     public int? DepartmentId { get; set; }
     public bool? IsActive { get; set; }
+    public bool? IsPendingApproval { get; set; }
 }
 
 public class AuditLogSearchCriteria

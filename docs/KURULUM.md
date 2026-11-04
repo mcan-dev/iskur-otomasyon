@@ -36,7 +36,7 @@ Ayarlar `src/IskurAuto.API/appsettings.json` içindedir. Gizli değerler dosyaya
 | `Cors:AllowedOrigins` | `localhost:3000`, `localhost:5173` | Arayüzün yayınlandığı adres(ler). |
 | `PasswordReset:FrontendBaseUrl` | `http://localhost:5173` | Sıfırlama e-postasındaki bağlantının adresi (arayüzün yayınlandığı adres). |
 | `PasswordReset:TokenMinutes` | 30 | Sıfırlama bağlantısının geçerlilik süresi. |
-| `Smtp:Host`, `Port`, `UseSsl`, `User`, `Password`, `From` | boş | Parola sıfırlama e-postası için posta sunucusu. `Host` boşsa e-posta gönderilmez; Development'ta içeriği (bağlantı dahil) konsola yazılır. |
+| `Smtp:Host`, `Port`, `UseSsl`, `User`, `Password`, `From` | boş | Parola sıfırlama e-postası için posta sunucusu. `Host`, `User` ve `Password` dolu değilse e-posta gönderilmez; Development'ta içeriği (bağlantı dahil) konsola yazılır. Gmail için aşağıdaki bölüme bakın. |
 | `Storage:DocumentsPath` | `App_Data/documents` | İzin belgelerinin saklandığı klasör. Yoksa oluşturulur; dosyalar rastgele adla yazılır. |
 | `WorkPlan:MinDaysPerWeek` / `MaxDaysPerWeek` | 1 / 3 | Haftalık çalışma günü sınırı. |
 | `WorkPlan:MaxDaysPerMonth` | 14 | Bir ayda seçilebilecek en fazla çalışma günü. |
@@ -91,6 +91,36 @@ Betik veritabanını siler, API'yi başlatır ve her rolün her sayfasını dold
 5. Veri klasörünü (`/srv/iskur/data`) uygulama kullanıcısından başkasına açmayın. Veritabanında TC kimlik numarası bulunur.
 
 Demo hesaplar ve Swagger yalnızca Development ortamında etkindir.
+
+## E-posta (Gmail) ile parola sıfırlama
+
+"Parolamı unuttum" e-postası yalnızca SMTP ayarı tam olduğunda gerçekten gönderilir. Ayar yoksa API açılışta
+"E-posta: SMTP ayarı eksik" uyarısı yazar ve e-posta gitmez (Development'ta içerik konsolda görünür).
+
+Gmail ile göndermek için:
+
+1. Gönderen Gmail hesabında **2 Adımlı Doğrulama**'yı açın (Google Hesabı > Güvenlik).
+2. Aynı sayfadan **Uygulama parolaları** bölümünde bir parola üretin (16 karakter). Normal Gmail parolası çalışmaz;
+   sunucu `535 5.7.8 Username and Password not accepted` yanıtı verir.
+3. Değerleri dosyaya yazmadan, API klasöründe user-secrets ile verin:
+
+   ```powershell
+   dotnet user-secrets set "Smtp:Host" "smtp.gmail.com" --project src/IskurAuto.API
+   dotnet user-secrets set "Smtp:Port" "587" --project src/IskurAuto.API
+   dotnet user-secrets set "Smtp:UseSsl" "true" --project src/IskurAuto.API
+   dotnet user-secrets set "Smtp:User" "gonderen.adres@gmail.com" --project src/IskurAuto.API
+   dotnet user-secrets set "Smtp:Password" "abcdefghijklmnop" --project src/IskurAuto.API
+   dotnet user-secrets set "Smtp:From" "gonderen.adres@gmail.com" --project src/IskurAuto.API
+   ```
+
+4. API'yi yeniden başlatın. Açılışta "E-posta: SMTP açık (smtp.gmail.com:587 ...)" satırını görmelisiniz.
+5. Denemek için kayıtlı ve **aktif** bir hesabın e-postasını (örn. kendi Gmail adresinizle kaydolmuş öğrenci) "Parolamı unuttum"
+   ekranına yazın. Başarıda konsolda "E-posta gönderildi" yazar; hata olursa nedeni ("kimlik doğrulamayı kabul etmedi",
+   bağlantı hatası vb.) aynı yerde görünür. Gelen kutusunda yoksa spam klasörüne bakın.
+
+Notlar: Port 465 (örtük SSL) desteklenmez, 587 kullanın. Sistem, kayıtlı olmayan ya da pasif hesaplar için sessizce çıkar
+(bilgi sızdırmamak için); bu yüzden demo hesapların uydurma adreslerine (`@teknoloji.edu.tr`) e-posta gitmez. Bağlantıdaki adres
+`PasswordReset:FrontendBaseUrl` değeridir; arayüzü başka adreste çalıştırıyorsanız onu da değiştirin.
 
 ## Yeni sürüme geçiş
 

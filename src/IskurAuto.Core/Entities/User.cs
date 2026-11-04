@@ -30,6 +30,13 @@ public class User : BaseEntity
 
     public bool IsActive { get; set; } = true;
 
+    /// <summary>
+    /// Danışman ve bölüm başkanının kendi yaptığı kayıt başvurusu henüz karara bağlanmadıysa true.
+    /// Fakülte sekreterliği onayladığında (hesap aktif olur) ya da reddettiğinde false olur.
+    /// Sonradan pasifleştirilen bir hesap "başvuru" sayılmaz.
+    /// </summary>
+    public bool IsPendingApproval { get; set; }
+
     public DateTime? LastLoginAt { get; set; }
 
     // Navigation

@@ -13,7 +13,7 @@ Uç noktaların listesi için [API.md](API.md) dosyasına bakın.
 ## Öğrenci
 
 1. **Kayıt:** İlk kayıt formu herkese açıktır. Bölüm seçilir, TC, öğrenci numarası ve iletişim bilgileri girilir. IBAN kayıtta istenmez; öğrenci profil ekranından kendisi girer (ay sonu dökümü için gereklidir).
-   Personel (danışman, bölüm başkanı, fakülte sekreterliği) de giriş sayfasındaki "Kayıt Ol" düğmesiyle başvurur. Başvuru pasif hesap olarak açılır; Fakülte Sekreterliği "Tanımlar ve Hesaplar" ekranından aktif edince giriş yapılabilir. Fakülte Sekreterliği hesabını doğrudan da açabilir. İlk fakülte hesabı kurulumda tanımlanır (`Bootstrap` ayarları, bkz. KURULUM.md).
+   Danışman ve bölüm başkanı giriş sayfasındaki "Başvuru Yap" düğmesiyle başvurur. Başvuru pasif hesap olarak açılır (giriş denemesinde "Hesabınız aktif değil" yazar); Fakülte Sekreterliği soldaki **Hesap Başvuruları** ekranından başvuruyu onaylar ya da reddeder. Fakülte Sekreterliği hesabı başvuruyla açılamaz: sekreterlik yeni bir sekreterlik hesabını "Tanımlar ve Hesaplar > Personel hesapları" üzerinden açar. İlk fakülte hesabı kurulumda tanımlanır (`Bootstrap` ayarları, bkz. KURULUM.md).
    Hesap ve ilk program katılım dönemi birlikte oluşur.
 2. **Profil:** Telefon ve IBAN bilgisi kendi ekranından güncellenir.
 3. **Ders günleri:** Dersli günler elle işaretlenir ve her gün için öğleden önce, öğleden sonra ya da tam gün seçilir; takvimde bu günler ve ders zamanı ayrıca görünür. IBAN kaydedilmeden gün seçimi ve plan kaydedilemez; Kaydet'e basınca "IBAN'ı giriniz" uyarısı çıkar ve Profilim sayfasına yönlendirir.

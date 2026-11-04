@@ -28,6 +28,7 @@ public class UserRepository : GenericRepository<User>, IUserRepository
         if (criteria.Role.HasValue)         query = query.Where(u => u.Role == criteria.Role.Value);
         if (criteria.DepartmentId.HasValue) query = query.Where(u => u.DepartmentId == criteria.DepartmentId.Value);
         if (criteria.IsActive.HasValue)     query = query.Where(u => u.IsActive == criteria.IsActive.Value);
+        if (criteria.IsPendingApproval.HasValue) query = query.Where(u => u.IsPendingApproval == criteria.IsPendingApproval.Value);
 
         return await query.OrderBy(u => u.FullName).ThenBy(u => u.Id).ToListAsync(ct);
     }

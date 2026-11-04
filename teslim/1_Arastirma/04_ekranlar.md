@@ -12,7 +12,7 @@ Her ekranın gerçek görüntüsü [2_Tasarimlar/ekranlar](../2_Tasarimlar/ekran
 | Bölüm başkanı girişi | `/giris/bolum-baskani` | 05-giris-bolum-baskani.png |
 | Fakülte sekreterliği / dekanlık girişi | `/giris/fakulte` | 06-giris-fakulte.png |
 | Öğrenci kaydı | `/kayit` | 01-ogrenci-kayit.png |
-| Personel kaydı (danışman, bölüm başkanı, fakülte) | `/kayit/danisman`, `/kayit/bolum-baskani`, `/kayit/fakulte` | 07-personel-kayit.png |
+| Personel başvurusu (danışman, bölüm başkanı) | `/kayit/danisman`, `/kayit/bolum-baskani` | 07-personel-kayit.png |
 | Parolamı unuttum, parola sıfırlama | `/parolami-unuttum`, `/sifre-sifirla` | 02-parola-sifirlama.png |
 
 ## Öğrenci
@@ -41,6 +41,7 @@ Her ekranın gerçek görüntüsü [2_Tasarimlar/ekranlar](../2_Tasarimlar/ekran
 | Görevler | `/gorevler` | Görev verme, takip | – |
 | Raporlar | `/raporlar` | Rapor türü ve filtreler, Excel/CSV indirme | 25 |
 | İlişik Kesme | `/iliski-kesme` | Karar listesi ve karar girişi | 26 |
+| Hesap Başvuruları | `/hesap-basvurulari` | Danışman ve bölüm başkanı başvurularını onayla veya reddet | — |
 | Tanımlar ve Hesaplar | `/tanimlar` | Bölüm, birim, personel, tatil, sınav dönemi, izin sınırları | 27 |
 | Denetim Kayıtları | `/denetim` | Kim, ne zaman, ne yaptı | 28 |
 
