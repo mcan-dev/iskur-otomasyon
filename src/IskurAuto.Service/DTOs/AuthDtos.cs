@@ -140,4 +140,7 @@ public class UserDto
     public int? DepartmentId { get; set; }
     public string? DepartmentName { get; set; }
     public bool IsActive { get; set; }
+
+    /// <summary>Kendi başvurusuyla gelen ve sekreterlik kararını bekleyen hesap.</summary>
+    public bool IsPendingApproval { get; set; }
 }

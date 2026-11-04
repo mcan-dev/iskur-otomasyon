@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { api, ApiError } from '../../api/client';
 import type { Department, ExamPeriod, Holiday, LeavePolicy, Role, User, WorkUnit } from '../../api/types';
 import { Alert, Badge, Card, Empty, Field, Modal, PhoneInput } from '../../components/ui';
@@ -199,8 +200,12 @@ function Staff() {
               {users.data.map((u) => (
                 <tr key={u.id}>
                   <td>{u.fullName}</td><td>{u.email}</td><td>{roleLabels[u.role]}</td><td>{u.departmentName ?? '—'}</td>
-                  <td><Badge tone={u.isActive ? 'green' : 'gray'}>{u.isActive ? 'Aktif' : 'Pasif'}</Badge></td>
-                  <td className="right-cell"><button className="btn small" onClick={() => toggle(u)}>{u.isActive ? 'Pasif yap' : 'Aktif yap'}</button></td>
+                  <td><Badge tone={u.isPendingApproval ? 'amber' : u.isActive ? 'green' : 'gray'}>{u.isPendingApproval ? 'Onay bekliyor' : u.isActive ? 'Aktif' : 'Pasif'}</Badge></td>
+                  <td className="right-cell">
+                    {u.isPendingApproval
+                      ? <Link className="btn small" to="/hesap-basvurulari">Başvuruya git</Link>
+                      : <button className="btn small" onClick={() => toggle(u)}>{u.isActive ? 'Pasif yap' : 'Aktif yap'}</button>}
+                  </td>
                 </tr>
               ))}
             </tbody>

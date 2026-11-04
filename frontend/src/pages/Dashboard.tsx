@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
-import type { AbsenceNotice, AttendanceComparison, Leave, LeaveAlert, LeaveBalance, Paged, PlanCalendar, StudentProfileFull, StudentSummary, StudentTask, WorkPlan } from '../api/types';
+import type { User, AbsenceNotice, AttendanceComparison, Leave, LeaveAlert, LeaveBalance, Paged, PlanCalendar, StudentProfileFull, StudentSummary, StudentTask, WorkPlan } from '../api/types';
 import { useAuth } from '../auth/AuthContext';
 import { Alert, Badge } from '../components/ui';
 import { Icon } from '../components/Icon';
@@ -148,6 +148,7 @@ function StaffSummary({ role }: { role: string }) {
   const alerts = useLoad(() => api.get<LeaveAlert[]>(`/api/leaves/alerts?year=${year}`), []);
   const leaves = useLoad(() => api.get<Leave[]>(`/api/leaves?year=${year}&status=Pending`), []);
   const plans = useLoad(() => (role === 'FacultyAdmin' ? api.get<WorkPlan[]>(`/api/work-plans?year=${year}&month=${month}&status=Pending`) : Promise.resolve([] as WorkPlan[])), [role]);
+  const applications = useLoad(() => (role === 'FacultyAdmin' ? api.get<User[]>('/api/users?isPendingApproval=true') : Promise.resolve([] as User[])), [role]);
   const notices = useLoad(() => (role === 'FacultyAdmin' ? Promise.resolve([] as AbsenceNotice[]) : api.get<AbsenceNotice[]>('/api/absence-notices?unreadOnly=true')), [role]);
 
   const a = alerts.data;
@@ -164,6 +165,11 @@ function StaffSummary({ role }: { role: string }) {
         )}
         <Tile icon="alert" label="Sınıra yaklaşan / aşan" value={a ? a.length : '–'} hint="İzin veya devamsızlık sınırı" tone="red" />
       </div>
+      {role === 'FacultyAdmin' && applications.data && applications.data.length > 0 && (
+        <Alert kind="warn">
+          Onayınızı bekleyen {applications.data.length} hesap başvurusu var (danışman / bölüm başkanı). <Link to="/hesap-basvurulari">Başvurulara git</Link>
+        </Alert>
+      )}
       {a && a.length > 0 && (
         <Section title="Sınıra Yaklaşan Öğrenciler" to="/izinler" toLabel="TÜM UYARILAR">
           <div className="scroll-x">

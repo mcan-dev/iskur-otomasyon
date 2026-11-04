@@ -17,9 +17,10 @@ Her rolün kendi giriş sayfası vardır: `/giris/ogrenci`, `/giris/danisman`, `
 Hesap yalnızca kendi rolünün sayfasından girebilir; parola doğru olsa bile başka rolün sayfasından giriş reddedilir.
 Kontrol sunucuda yapılır, yalnızca arayüzde değildir.
 
-Her giriş sayfasında "Kayıt Ol" düğmesi vardır. Öğrenci kaydı hemen aktif olur. Danışman, bölüm başkanı ve fakülte
-sekreterliği başvuruları pasif hesap olarak açılır; fakülte sekreterliği "Tanımlar ve Hesaplar" ekranından hesabı aktif
-edince giriş yapılabilir. Böylece yetkili bir hesap kendi kendine açılamaz.
+Öğrenci, danışman ve bölüm başkanı giriş sayfasından kayıt olur ya da başvurur; fakülte sekreterliği girişinde kayıt
+düğmesi yoktur. Öğrenci kaydı hemen aktif olur. Danışman ve bölüm başkanı başvuruları pasif hesap olarak açılır;
+fakülte sekreterliği "Hesap Başvuruları" ekranından onaylar ya da reddeder. Fakülte sekreterliği hesabı yalnızca mevcut
+bir sekreterlik hesabı (ya da kurulumdaki ilk yönetici ayarı) ile açılır. Böylece yetkili bir hesap kendi kendine açılamaz.
 
 ## İşlem matrisi
 

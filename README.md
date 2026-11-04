@@ -48,12 +48,12 @@ Yalnızca Development'ta oluşur, parola `Demo1234!`:
 |---|---|
 | Fakülte Sekreterliği | sekreter@teknoloji.edu.tr |
 | Bölüm Başkanı | baskan.bm@teknoloji.edu.tr (Bilgisayar); baskan.eem@, baskan.mak@, baskan.mek@, baskan.met@ ile diğer bölümler |
-| Danışman | danisman.bm@teknoloji.edu.tr |
-| Öğrenci | ogrenci@teknoloji.edu.tr (en dolu hesap), ogrenci2@, burak.sahin@ (izin hakkına yakın, Kasım planı ve bugünkü devamı var), selin.celik@ (izin sınırını aşmış; birim/danışman atanmamış), ahmet.kilic@ (Mekatronik), fatma.gunes@ (Metalurji) — hepsi @teknoloji.edu.tr |
-| Danışman (diğer) | danisman2.bm@, danisman.mak@, danisman.mek@, danisman.met@ teknoloji.edu.tr |
-| Onay bekleyen danışman (giriş yapamaz, fakülte aktif edince girer) | bekleyen.danisman@teknoloji.edu.tr |
+| Danışman | danisman.bm@teknoloji.edu.tr (öğrencisi Mehmet, Burak) |
+| Öğrenci | ogrenci@teknoloji.edu.tr (en dolu hesap), ogrenci2@, burak.sahin@ (izin hakkına yakın, Kasım planı ve bugünkü devamı var), selin.celik@ (izin sınırını aşmış, Elektrik-Elektronik), ahmet.kilic@ (Mekatronik), fatma.gunes@ (Metalurji) — hepsi @teknoloji.edu.tr |
+| Danışman (diğer) | danisman2.bm@, danisman.mak@, danisman.eem@, danisman.mek@, danisman.met@ teknoloji.edu.tr |
+| Onay bekleyen danışmanlar (giriş yapamaz, "Hesabınız aktif değil" der; sekreterlik onaylayınca girer) | bekleyen.danisman@, bekleyen.danisman2@teknoloji.edu.tr |
 
-Başvuru onayı: Fakülte Sekreterliği girişi, Tanımlar ve Hesaplar, Personel hesapları, ilgili satırda "Aktif yap".
+Başvuru onayı: Fakülte Sekreterliği girişi, soldaki menüden **Hesap Başvuruları**, satırda "Onayla" veya "Reddet". Ana sayfada bekleyen başvuru varsa uyarı çıkar. Fakülte sekreterliği hesabı kendi kendine başvuruyla açılamaz; ilk hesap kurulumda (`Bootstrap`), sonrakiler "Tanımlar ve Hesaplar > Personel hesapları > Yeni personel" ile açılır.
 
 ## Testler
 

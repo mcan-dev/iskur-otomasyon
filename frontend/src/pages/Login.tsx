@@ -89,9 +89,11 @@ export default function Login() {
         <button className="btn primary wide" disabled={busy}>
           {busy ? 'Giriş yapılıyor…' : 'Giriş Yap'}
         </button>
-        <Link to={type.role === 'Student' ? '/kayit' : `/kayit/${type.slug}`} className="btn wide">
-          Kayıt Ol
-        </Link>
+        {type.role !== 'FacultyAdmin' && (
+          <Link to={type.role === 'Student' ? '/kayit' : `/kayit/${type.slug}`} className="btn wide">
+            {type.role === 'Student' ? 'Kayıt Ol' : 'Başvuru Yap'}
+          </Link>
+        )}
         <p className="muted center small">
           <Link to="/giris">‹ Başka bir giriş türü seç</Link>
         </p>

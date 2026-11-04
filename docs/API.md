@@ -12,7 +12,7 @@ Roller: **Fakülte** = Dekanlık/Fakülte Sekreterliği, **Bölüm Başkanı**, 
 | POST | `/api/auth/login` | Herkese açık | E-posta ve parola ile giriş yapar, JWT erişim jetonu döner. İsteğe bağlı `role` alanı (giriş sayfasının rolü) doluysa hesap rolüyle eşleşmelidir; eşleşmezse 403 döner ve jeton verilmez. |
 | POST | `/api/auth/register-student` | Herkese açık | Öğrenci ilk kayıt formu (belge madde 3). Hesap, profil ve ilk program katılım dönemi birlikte oluşur.  |
 | GET | `/api/auth/me` | Giriş yapmış herkes | Giriş yapmış kullanıcının kendi hesap bilgileri. |
-| POST | `/api/auth/register-staff` | Herkese açık | Danışman, bölüm başkanı veya fakülte sekreterliği başvurusu. Hesap pasif oluşur; fakülte yönetimi `PUT /api/users/{id}/active` ile aktif edince giriş açılır. |
+| POST | `/api/auth/register-staff` | Herkese açık | Danışman veya bölüm başkanı başvurusu (fakülte sekreterliği rolü kabul edilmez). Hesap pasif ve "onay bekliyor" oluşur; fakülte yönetimi `PUT /api/users/{id}/active` ile onaylar (`isActive: true`) ya da reddeder (`false`). |
 | POST | `/api/auth/forgot-password` | Herkese açık | Parola sıfırlama bağlantısını e-postayla gönderir. E-posta kayıtlı olsun olmasın yanıt aynıdır (204). |
 | POST | `/api/auth/reset-password` | Herkese açık | E-postadaki bağlantıdaki jetonla yeni parola belirler. Bağlantı tek kullanımlık ve 30 dakika geçerlidir. |
 | POST | `/api/auth/change-password` | Giriş yapmış herkes | Kendi parolasını değiştirir. |
@@ -35,9 +35,9 @@ Roller: **Fakülte** = Dekanlık/Fakülte Sekreterliği, **Bölüm Başkanı**, 
 
 | Yöntem | Adres | Kim | Açıklama |
 |---|---|---|---|
-| GET | `/api/users` | Fakülte, Bölüm Başkanı | Kullanıcı listesi. Bölüm başkanı yalnızca kendi bölümündekileri görür (danışman seçimi için). |
+| GET | `/api/users` | Fakülte, Bölüm Başkanı | Kullanıcı listesi. `role`, `departmentId`, `isActive`, `isPendingApproval=true` (onay bekleyen başvurular) ile süzülür. Bölüm başkanı yalnızca kendi bölümündekileri görür (danışman seçimi için). |
 | POST | `/api/users` | Fakülte | Personel hesabı oluşturur (Fakülte yönetimi, Bölüm Başkanı veya Danışman). |
-| PUT | `/api/users/{id}/active` | Fakülte | Personel hesabını aktif/pasif yapar (hesap silinmez). |
+| PUT | `/api/users/{id}/active` | Fakülte | Personel hesabını aktif/pasif yapar (hesap silinmez). Onay bekleyen başvuruda `true` onaylar, `false` reddeder. |
 
 ## Bölümler
 

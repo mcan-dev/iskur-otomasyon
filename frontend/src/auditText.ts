@@ -17,6 +17,7 @@ export const auditActions: Record<string, string> = {
   'User.StaffCreated': 'Personel hesabı açıldı',
   'User.StaffRegistered': 'Personel başvurusu yapıldı',
   'User.Activated': 'Hesap aktif edildi',
+  'User.ApplicationRejected': 'Hesap başvurusu reddedildi',
   'User.Deactivated': 'Hesap pasif yapıldı',
   'Department.Created': 'Bölüm eklendi',
   'Department.Updated': 'Bölüm güncellendi',

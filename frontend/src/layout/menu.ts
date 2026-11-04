@@ -28,6 +28,7 @@ export const menus: Record<Role, MenuItem[]> = {
     { path: '/gorevler', label: 'Görevler', icon: 'tasks', desc: 'Öğrencilere görev ver ve takip et' },
     { path: '/raporlar', label: 'Raporlar', icon: 'report', desc: 'Aylık çalışma, devam ve izin raporları' },
     { path: '/iliski-kesme', label: 'İlişik Kesme', icon: 'ban', desc: 'Program ilişiğini kesme kararları' },
+    { path: '/hesap-basvurulari', label: 'Hesap Başvuruları', icon: 'user', desc: 'Danışman ve bölüm başkanı başvurularını onayla' },
     { path: '/tanimlar', label: 'Tanımlar ve Hesaplar', icon: 'settings', desc: 'Bölüm, birim, tatil ve personel hesapları' },
     { path: '/denetim', label: 'Denetim Kayıtları', icon: 'shield', desc: 'Sistemde yapılan işlemlerin izi' },
   ],

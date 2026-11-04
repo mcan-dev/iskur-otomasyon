@@ -180,8 +180,15 @@ public class AuthServiceTests
         }
 
         using var login = db.NewScope();
-        await Assert.ThrowsAsync<AuthenticationFailedException>(() =>
+        var ex = await Assert.ThrowsAsync<ForbiddenException>(() =>
             login.Auth.LoginAsync(new LoginRequest { Email = "yeni.danisman@test.local", Password = "Parola123" }));
+        Assert.Contains("aktif değil", ex.Message);
+        Assert.Contains("onay", ex.Message);
+
+        // Yanlış parolada hesabın varlığı ya da durumu açıklanmaz.
+        using var wrong = db.NewScope();
+        await Assert.ThrowsAsync<AuthenticationFailedException>(() =>
+            wrong.Auth.LoginAsync(new LoginRequest { Email = "yeni.danisman@test.local", Password = "Yanlis123" }));
     }
 
     [Fact]
@@ -200,6 +207,37 @@ public class AuthServiceTests
         Assert.True(e1.Errors.ContainsKey("Role"));
         var e2 = await Assert.ThrowsAsync<DomainValidationException>(() => scope.Auth.RegisterStaffAsync(noDepartment));
         Assert.True(e2.Errors.ContainsKey("DepartmentId"));
+    }
+
+    [Fact]
+    public async Task RegisterStaff_AsFacultyAdmin_IsRejected()
+    {
+        using var db = new TestDb();
+        var seed = TestData.Seed(db);
+        var request = ValidStaff(seed.BmId);
+        request.Role = UserRole.FacultyAdmin;
+        request.DepartmentId = null;
+
+        using var scope = db.NewScope();
+        var ex = await Assert.ThrowsAsync<DomainValidationException>(() => scope.Auth.RegisterStaffAsync(request));
+        Assert.True(ex.Errors.ContainsKey("Role"));
+
+        using var verify = db.NewContext();
+        Assert.False(await verify.Users.AnyAsync(u => u.Email == "yeni.danisman@test.local"));
+    }
+
+    [Fact]
+    public async Task RegisterStaff_MarksTheAccountAsPendingApproval()
+    {
+        using var db = new TestDb();
+        var seed = TestData.Seed(db);
+        using (var scope = db.NewScope())
+            await scope.Auth.RegisterStaffAsync(ValidStaff(seed.BmId));
+
+        using var verify = db.NewContext();
+        var user = await verify.Users.SingleAsync(u => u.Email == "yeni.danisman@test.local");
+        Assert.True(user.IsPendingApproval);
+        Assert.False(user.IsActive);
     }
 
     [Fact]
@@ -275,8 +313,9 @@ public class AuthServiceTests
         }
 
         using var scope = db.NewScope();
-        await Assert.ThrowsAsync<AuthenticationFailedException>(() =>
+        var ex = await Assert.ThrowsAsync<ForbiddenException>(() =>
             scope.Auth.LoginAsync(new LoginRequest { Email = "advisor@test.local", Password = TestData.Password }));
+        Assert.Contains("Hesabınız aktif değil", ex.Message);
     }
 
     [Fact]

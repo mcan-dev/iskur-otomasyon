@@ -236,6 +236,7 @@ textarea { font: inherit; }
 .cal-cell.empty-cell { border: 0; background: none; }
 .cal-cell .num { font-weight: 600; }
 .cal-cell .lbl { font-size: 11px; color: var(--muted); line-height: 1.2; }
+.cal-cell .lbl.exam { color: #8a5a00; font-weight: 600; }
 .cal-cell.Green { border-color: #bfe7d0; cursor: pointer; }
 .cal-cell.Green:hover { border-color: var(--green); }
 .cal-cell.Red { background: #fdf1f1; }

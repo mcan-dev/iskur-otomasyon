@@ -33,7 +33,10 @@ builder.Services.AddSingleton<ITokenService, JwtTokenService>();
 // Parola sıfırlama e-postası: SMTP ayarı varsa gerçekten gönderilir, yoksa kayda yazılır.
 var smtp = builder.Configuration.GetSection(SmtpOptions.SectionName).Get<SmtpOptions>() ?? new SmtpOptions();
 builder.Services.AddSingleton(smtp);
-if (string.IsNullOrWhiteSpace(smtp.Host))
+var smtpReady = !string.IsNullOrWhiteSpace(smtp.Host)
+               && (string.IsNullOrWhiteSpace(smtp.User) || !string.IsNullOrWhiteSpace(smtp.Password))
+               && !(string.IsNullOrWhiteSpace(smtp.From) && string.IsNullOrWhiteSpace(smtp.User));
+if (!smtpReady)
     builder.Services.AddSingleton<IEmailSender, LogEmailSender>();
 else
     builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
@@ -131,6 +134,11 @@ builder.Services.AddSwaggerGen(options =>
 
 // ─── Uygulama hattı (pipeline) — SIRA ÖNEMLİDİR ───────────────────────────
 var app = builder.Build();
+
+if (smtpReady)
+    app.Logger.LogInformation("E-posta: SMTP açık ({Host}:{Port}, SSL={Ssl}). Parola sıfırlama e-postaları gerçekten gönderilir.", smtp.Host, smtp.Port, smtp.UseSsl);
+else
+    app.Logger.LogWarning("E-posta: SMTP ayarı eksik (Smtp:Host/User/Password). E-posta GÖNDERİLMEZ; Development'ta içeriği konsola yazılır. Gmail için docs/KURULUM.md'deki 'E-posta (Gmail)' bölümüne bakın.");
 
 // En dışta: sonraki her aşamadan fırlayan hatayı yakalayıp standart yanıta çevirir.
 app.UseMiddleware<ExceptionHandlingMiddleware>();
