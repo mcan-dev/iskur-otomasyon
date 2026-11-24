@@ -1,39 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, ApiError } from '../../api/client';
-import type { CalendarDay, CourseDay, CourseSession, PlanCalendar, WorkLifetime, WorkPlan } from '../../api/types';
+import type { CourseDay, CourseSession, PlanCalendar, WorkLifetime, WorkPlan } from '../../api/types';
 import { Alert, Badge, Card, MonthPicker, Stat } from '../../components/ui';
 import { courseSessionLabels, fmtDate, fmtDateTime, hoursLabel, planStatusLabels, planTone, weekdays } from '../../format';
 import { useLoad } from '../../useLoad';
+import { dayTone } from '../../planColors';
 
 const headers = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
-
-const isHalfDay = (d: CalendarDay) => d.lessonSession === 'Morning' || d.lessonSession === 'Afternoon';
-
-function weekOf(date: string): string {
-  const d = new Date(date + 'T00:00:00');
-  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-}
-
-/**
- * Hücre rengi (sunucudaki kuralın aynısı, seçim değiştikçe anında güncellenir):
- * yarım gün dersli seçilen gün sarı, boş seçilen gün yeşil; aynı haftada yarım gün dersli gün seçilip
- * tamamen boş bir gün seçilmemişse o boş gün kırmızı. Seçilemeyen günler (hafta sonu, tatil, tam gün ders) kırmızı.
- */
-export function dayTone(d: CalendarDay, picked: Set<string>, days: CalendarDay[]): { cls: string; label: string } {
-  if (!d.isSelectable) return { cls: 'Red', label: d.label };
-  const chosen = picked.has(d.date);
-  if (chosen && isHalfDay(d)) return { cls: 'pickYellow', label: 'Seçildi, yarım gün dersli' };
-  if (chosen) return { cls: 'pickGreen', label: 'Seçildi, boş gün' };
-  const free = !d.lessonSession;
-  if (free) {
-    const week = weekOf(d.date);
-    const halfDayPicked = days.some((x) => weekOf(x.date) === week && picked.has(x.date) && isHalfDay(x));
-    if (halfDayPicked) return { cls: 'warnRed', label: 'Boş gün seçilmedi; bu hafta yarım gün dersli gün seçildi' };
-  }
-  return { cls: 'Gray', label: isHalfDay(d) ? 'Yarım gün dersli gün' : 'Boş gün' };
-}
 
 export default function PlanPage() {
   const now = new Date();
