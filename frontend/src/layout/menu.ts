@@ -37,10 +37,8 @@ export const menus: Record<Role, MenuItem[]> = {
     home,
     { path: '/ogrenciler', label: 'Bölüm Öğrencileri', icon: 'users', desc: 'Bölümünüzdeki öğrenciler ve sorumlu personel atama' },
     { path: '/calisanlar', label: 'Kim Ne Zaman Çalışıyor', icon: 'calendar', desc: 'Günlere göre çalışan öğrenciler ve geçmiş yıllar' },
-    { path: '/mesai-ekrani', label: 'Mesai Karekod Ekranı', icon: 'qr', desc: 'Monitörde sabah ve akşam karekodu' },
-    { path: '/devam-oturumlari', label: 'Karekod Oturumları', icon: 'qr', desc: 'Ek devam oturumu aç, karekodu göster' },
     { path: '/izinler', label: 'İzin ve Devamsızlık', icon: 'mail', desc: 'Bölüm izin ve devamsızlık durumu' },
-    { path: '/gorevler', label: 'Görevler ve Notlar', icon: 'tasks', desc: 'Görevleri ve değerlendirme notlarını izle' },
+    { path: '/gorevler', label: 'Görevler', icon: 'tasks', desc: 'Görevleri ve durumlarını izle' },
     { path: '/bildirimler', label: 'Devamsızlık Bildirimleri', icon: 'bell', desc: 'Sorumlu personelden gelen bildirimler' },
   ],
   Advisor: [

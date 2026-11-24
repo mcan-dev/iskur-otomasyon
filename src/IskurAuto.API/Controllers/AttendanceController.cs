@@ -13,7 +13,7 @@ namespace IskurAuto.API.Controllers;
 [Authorize]
 public class AttendanceController : ControllerBase
 {
-    private const string SessionManagers = AppRoles.FacultyAdmin + "," + AppRoles.DepartmentHead;
+    private const string SessionManagers = AppRoles.FacultyAdmin;   // karekod ve oturumları yalnızca fakülte sekreterliği yönetir
 
     private readonly IAttendanceService _attendance;
     private readonly IAttendanceDisplayService _display;

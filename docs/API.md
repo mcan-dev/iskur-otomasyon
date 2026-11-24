@@ -138,11 +138,11 @@ Tam gün dersli gün çalışma günü olarak seçilemez. Takvim renkleri: yarı
 |---|---|---|---|
 | GET | `/api/attendance/schedule` | Giriş yapmış herkes | Sabah (giriş) ve akşam (çıkış) karekod saatleri. |
 | PUT | `/api/attendance/schedule` | Fakülte | Karekod saatlerini belirler. |
-| GET | `/api/attendance/display` | Fakülte, Bölüm Başkanı | Monitör ekranı: saat aralığı içindeyse fakülte geneli oturumu kendiliğinden açar ve 30 saniyede bir değişen karekodu döner; dışındaysa sıradaki saati yazar. Hafta sonu ve tatilde kapalıdır. |
-| POST | `/api/attendance/sessions` | Fakülte, Bölüm Başkanı | Ek (elle) oturum. |
-| GET | `/api/attendance/sessions` | Fakülte, Bölüm Başkanı |  |
-| POST | `/api/attendance/sessions/{id}/close` | Fakülte, Bölüm Başkanı |  |
-| GET | `/api/attendance/sessions/{id}/qr` | Fakülte, Bölüm Başkanı | Ekranda gösterilecek güncel karekod. `refreshAtUtc` geçince yeniden istenmelidir. |
+| GET | `/api/attendance/display` | Fakülte | Monitör ekranı: saat aralığı içindeyse fakülte geneli oturumu kendiliğinden açar ve 30 saniyede bir değişen karekodu döner; dışındaysa sıradaki saati yazar. Hafta sonu ve tatilde kapalıdır. |
+| POST | `/api/attendance/sessions` | Fakülte | Ek (elle) oturum. |
+| GET | `/api/attendance/sessions` | Fakülte |  |
+| POST | `/api/attendance/sessions/{id}/close` | Fakülte |  |
+| GET | `/api/attendance/sessions/{id}/qr` | Fakülte | Ekranda gösterilecek güncel karekod. `refreshAtUtc` geçince yeniden istenmelidir. |
 | POST | `/api/attendance/check-in` | Öğrenci |  |
 | GET | `/api/attendance/me` | Öğrenci |  |
 | GET | `/api/attendance/me/comparison` | Öğrenci |  |

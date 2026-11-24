@@ -2,6 +2,9 @@
 
 ## Tablolar
 
+Veritabanındaki tablo ve sütun adları Türkçedir (ör. `Kullanicilar.AdSoyad`, `Ogrenciler.SicilNo`, `Izinler.Tarih`). Kodda sınıf adları İngilizce kalır; eşleme `src/IskurAuto.Data/Context/TurkishNaming.cs` dosyasındadır. Aşağıdaki diyagram sınıf adlarını gösterir.
+
+
 ```mermaid
 erDiagram
     Department ||--o{ User : "personel (bölüm başkanı/danışman)"

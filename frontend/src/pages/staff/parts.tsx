@@ -1,7 +1,9 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { api, ApiError } from '../../api/client';
-import type { Absence, Leave, WorkPlan } from '../../api/types';
+import type { Absence, Leave, PlanCalendar, WorkPlan } from '../../api/types';
 import { Alert, Badge, Empty, Field, Modal } from '../../components/ui';
+import { PlanMonthView } from '../../planColors';
+import { useLoad } from '../../useLoad';
 import {
   fmtDate, fmtDateTime, hoursLabel, leaveStatusLabels, leaveTone, monthYear, planStatusLabels, planTone,
 } from '../../format';
@@ -48,9 +50,10 @@ function ReviewModal({ title, onClose, onDone, url }: { title: string; onClose: 
 
 export function PlanItem({ plan, canReview, onChanged, showStudent = true }: { plan: WorkPlan; canReview: boolean; onChanged: () => void; showStudent?: boolean }) {
   const [reviewing, setReviewing] = useState(false);
+  const [open, setOpen] = useState(false);
   return (
     <div className="list-item">
-      <div className="row between">
+      <div className="row between link-row" onClick={() => setOpen((o) => !o)} role="button" title="Aylık takvimi göster">
         <strong>
           {showStudent && plan.studentName ? `${plan.studentName} · ` : ''}
           {monthYear(plan.year, plan.month)}
@@ -71,14 +74,31 @@ export function PlanItem({ plan, canReview, onChanged, showStudent = true }: { p
           {plan.reviewNote && ` · ${plan.reviewNote}`}
         </p>
       )}
-      {canReview && (
-        <button className="btn small" style={{ marginTop: 8 }} onClick={() => setReviewing(true)}>
-          {plan.status === 'Pending' ? 'Onayla / Reddet' : 'Kararı değiştir'}
-        </button>
-      )}
+      {open && plan.studentId && <PlanCalendarPanel studentId={plan.studentId} year={plan.year} month={plan.month} />}
+      <div className="row" style={{ marginTop: 8 }}>
+        {plan.studentId && (
+          <button className="btn small" onClick={() => setOpen((o) => !o)}>{open ? 'Takvimi gizle' : 'Takvimi göster'}</button>
+        )}
+        {canReview && (
+          <button className="btn small" onClick={() => setReviewing(true)}>
+            {plan.status === 'Pending' ? 'Onayla / Reddet' : 'Kararı değiştir'}
+          </button>
+        )}
+      </div>
       {reviewing && (
         <ReviewModal title="Çalışma planını incele" url={`/api/work-plans/${plan.id}/review`} onClose={() => setReviewing(false)} onDone={onChanged} />
       )}
+    </div>
+  );
+}
+
+/** Öğrencinin o ayki takvimi: seçtiği günler ve ders durumuna göre renkler. */
+function PlanCalendarPanel({ studentId, year, month }: { studentId: number; year: number; month: number }) {
+  const cal = useLoad(() => api.get<PlanCalendar>(`/api/work-plans/students/${studentId}/calendar?year=${year}&month=${month}`), [studentId, year, month]);
+  return (
+    <div style={{ marginTop: 12 }}>
+      {cal.error && <Alert>{cal.error}</Alert>}
+      {cal.data && <PlanMonthView days={cal.data.days} />}
     </div>
   );
 }
