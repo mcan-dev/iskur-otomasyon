@@ -11,9 +11,10 @@ namespace IskurAuto.Tests.Services;
 
 public class UserServiceTests
 {
-    private static CreateStaffUserRequest Staff(UserRole role, int? departmentId, string email = "yeni.personel@test.local") => new()
+    private static CreateStaffUserRequest Staff(UserRole role, int? departmentId, string email = "yeni.personel@test.local", string registry = "900001") => new()
     {
         FullName = "Yeni Personel",
+        RegistryNumber = registry,
         Email = email,
         Password = "Parola123",
         Role = role,
@@ -45,88 +46,72 @@ public class UserServiceTests
         await Assert.ThrowsAsync<DomainValidationException>(() => scope.Users.CreateStaffAsync(Staff(UserRole.Student, null)));
     }
 
-    private static async Task<int> RegisterPendingAsync(TestDb db, int departmentId, UserRole role = UserRole.Advisor, string email = "basvuru@test.local")
-    {
-        db.Current.Anonymous();
-        using var scope = db.NewScope();
-        var result = await scope.Auth.RegisterStaffAsync(new StaffRegistrationRequest
-        {
-            FullName = "Başvuru Sahibi", Email = email, Password = "Parola123", PhoneNumber = "05321112233",
-            Role = role, DepartmentId = departmentId
-        });
-        return result.UserId;
-    }
-
     [Fact]
-    public async Task PendingApplications_AreListedForTheFacultyOffice_AndApprovalActivatesThem()
+    public async Task CreateStaff_RequiresUniqueRegistryNumber_AndStaffLogsInWithIt()
     {
         using var db = new TestDb();
         var seed = TestData.Seed(db);
-        var userId = await RegisterPendingAsync(db, seed.BmId);
-
         db.Current.As(UserRole.FacultyAdmin, seed.AdminId);
+
         using (var scope = db.NewScope())
         {
-            var pending = await scope.Users.SearchAsync(new UserSearchQuery { IsPendingApproval = true });
-            var only = Assert.Single(pending);
-            Assert.Equal(userId, only.Id);
-            Assert.True(only.IsPendingApproval);
+            var missing = Staff(UserRole.Advisor, seed.BmId, registry: " ");
+            var ex = await Assert.ThrowsAsync<DomainValidationException>(() => scope.Users.CreateStaffAsync(missing));
+            Assert.True(ex.Errors.ContainsKey("RegistryNumber"));
 
-            var approved = await scope.Users.SetActiveAsync(userId, true);
-            Assert.True(approved.IsActive);
-            Assert.False(approved.IsPendingApproval);
-            Assert.Empty(await scope.Users.SearchAsync(new UserSearchQuery { IsPendingApproval = true }));
+            await Assert.ThrowsAsync<ConflictException>(() => scope.Users.CreateStaffAsync(Staff(UserRole.Advisor, seed.BmId, registry: "300001")));
+
+            var created = await scope.Users.CreateStaffAsync(Staff(UserRole.Advisor, seed.BmId, registry: " 900001 "));
+            Assert.Equal("900001", created.RegistryNumber);
         }
 
         db.Current.Anonymous();
         using var login = db.NewScope();
-        var ok = await login.Auth.LoginAsync(new LoginRequest { Email = "basvuru@test.local", Password = "Parola123" });
+        var ok = await login.Auth.LoginAsync(new LoginRequest { Username = "900001", Password = "Parola123", Role = UserRole.Advisor });
         Assert.False(string.IsNullOrEmpty(ok.AccessToken));
     }
 
     [Fact]
-    public async Task PendingApplication_CanBeRejected_AndStaysInactive()
+    public async Task UpdateStaff_ChangesRegistryNumberAndPassword()
     {
         using var db = new TestDb();
         var seed = TestData.Seed(db);
-        var userId = await RegisterPendingAsync(db, seed.BmId);
-
         db.Current.As(UserRole.FacultyAdmin, seed.AdminId);
+
         using (var scope = db.NewScope())
         {
-            var rejected = await scope.Users.SetActiveAsync(userId, false);
-            Assert.False(rejected.IsActive);
-            Assert.False(rejected.IsPendingApproval);
-            Assert.Empty(await scope.Users.SearchAsync(new UserSearchQuery { IsPendingApproval = true }));
+            var updated = await scope.Users.UpdateStaffAsync(seed.AdvisorId, new UpdateStaffUserRequest
+            {
+                FullName = "Zeynep Arslan", RegistryNumber = "300099", Email = "advisor@test.local",
+                Role = UserRole.Advisor, DepartmentId = seed.BmId, NewPassword = "YeniSifre9"
+            });
+            Assert.Equal("300099", updated.RegistryNumber);
+
+            // Başka bir personelin sicil numarası verilemez.
+            await Assert.ThrowsAsync<ConflictException>(() => scope.Users.UpdateStaffAsync(seed.AdvisorId, new UpdateStaffUserRequest
+            {
+                FullName = "Zeynep Arslan", RegistryNumber = "100001", Email = "advisor@test.local",
+                Role = UserRole.Advisor, DepartmentId = seed.BmId
+            }));
         }
 
-        using var verify = db.NewContext();
-        Assert.True(await verify.AuditLogs.AnyAsync(a => a.Action == AuditActions.UserApplicationRejected && a.EntityId == userId));
+        db.Current.Anonymous();
+        using var login = db.NewScope();
+        await login.Auth.LoginAsync(new LoginRequest { Username = "300099", Password = "YeniSifre9", Role = UserRole.Advisor });
     }
 
     [Fact]
-    public async Task DepartmentHeadApplication_CannotBeApprovedWhileAnotherHeadIsActive()
+    public async Task UpdateStaff_OnlyFacultyAdmin()
     {
         using var db = new TestDb();
         var seed = TestData.Seed(db);
-        // Test verisinde BM bölümünün aktif bir başkanı zaten var.
-        var userId = await RegisterPendingAsync(db, seed.BmId, UserRole.DepartmentHead, "yeni.baskan@test.local");
-
-        db.Current.As(UserRole.FacultyAdmin, seed.AdminId);
-        using var scope2 = db.NewScope();
-        await Assert.ThrowsAsync<ConflictException>(() => scope2.Users.SetActiveAsync(userId, true));
-    }
-
-    [Fact]
-    public async Task OnlyTheFacultyOffice_CanDecideOnApplications()
-    {
-        using var db = new TestDb();
-        var seed = TestData.Seed(db);
-        var userId = await RegisterPendingAsync(db, seed.BmId);
-
         db.Current.As(UserRole.DepartmentHead, seed.HeadId, seed.BmId);
         using var scope = db.NewScope();
-        await Assert.ThrowsAsync<ForbiddenException>(() => scope.Users.SetActiveAsync(userId, true));
+
+        await Assert.ThrowsAsync<ForbiddenException>(() => scope.Users.UpdateStaffAsync(seed.AdvisorId, new UpdateStaffUserRequest
+        {
+            FullName = "X", RegistryNumber = "300001", Email = "advisor@test.local", Role = UserRole.Advisor, DepartmentId = seed.BmId
+        }));
     }
 
     [Fact]
@@ -140,7 +125,7 @@ public class UserServiceTests
         // BM'nin zaten aktif başkanı var → ikincisi reddedilir.
         await Assert.ThrowsAsync<ConflictException>(() => scope.Users.CreateStaffAsync(Staff(UserRole.DepartmentHead, seed.BmId)));
         // YM'nin başkanı yok → oluşturulabilir.
-        await scope.Users.CreateStaffAsync(Staff(UserRole.DepartmentHead, seed.YmId, "ym.baskan@test.local"));
+        await scope.Users.CreateStaffAsync(Staff(UserRole.DepartmentHead, seed.YmId, "ym.baskan@test.local", "900002"));
     }
 
     [Fact]
@@ -279,6 +264,18 @@ public class DatabaseConstraintTests
         using var ctx = db.NewContext();
 
         ctx.Users.Add(new User { FullName = "Kopya", Email = "admin@test.local", PasswordHash = "x", Role = UserRole.Advisor });
+        await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
+    }
+
+    [Fact]
+    public async Task Database_RejectsDuplicateRegistryNumber_ButAllowsManyStudentsWithout()
+    {
+        using var db = new TestDb();
+        TestData.Seed(db);
+        using var ctx = db.NewContext();
+
+        // Öğrencilerin sicil numarası boştur; birden fazla boş değer benzersiz indeksi bozmaz (seed'de iki öğrenci var).
+        ctx.Users.Add(new User { FullName = "Kopya", RegistryNumber = "100001", Email = "kopya@test.local", PasswordHash = "x", Role = UserRole.Advisor });
         await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
     }
 

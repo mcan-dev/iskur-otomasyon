@@ -83,53 +83,73 @@ export function PlanItem({ plan, canReview, onChanged, showStudent = true }: { p
   );
 }
 
-export function LeaveTable({ leaves, canReview, onChanged, showStudent = true }: { leaves: Leave[]; canReview: boolean; onChanged: () => void; showStudent?: boolean }) {
-  const [reviewing, setReviewing] = useState<Leave | null>(null);
+/** İzin listesi. İzinler onay beklemez; sekreterlik gerekirse iptal eder. */
+export function LeaveTable({ leaves, canCancel, onChanged, showStudent = true }: { leaves: Leave[]; canCancel: boolean; onChanged: () => void; showStudent?: boolean }) {
+  const [cancelling, setCancelling] = useState<Leave | null>(null);
+  const [note, setNote] = useState('');
   const [error, setError] = useState('');
   if (leaves.length === 0) return <Empty>Kayıt bulunamadı.</Empty>;
 
-  async function download(l: Leave) {
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    if (!cancelling) return;
     setError('');
     try {
-      await api.download(`/api/leaves/${l.id}/document`, l.documentFileName ?? 'belge');
+      await api.post(`/api/leaves/${cancelling.id}/cancel`, { note: note.trim() || null });
+      setCancelling(null);
+      setNote('');
+      onChanged();
     } catch (err) {
-      setError(msg(err, 'Belge indirilemedi.'));
+      setError(msg(err, 'İzin iptal edilemedi.'));
     }
   }
 
   return (
     <>
-      {error && <Alert>{error}</Alert>}
       <table className="table">
         <thead>
           <tr>
             {showStudent && <th>Öğrenci</th>}
-            <th>Tarih</th><th>Süre</th><th>Gerekçe</th><th>Durum</th><th></th>
+            <th>İzin günü</th><th>Süre</th><th>Açıklama</th><th>Alındığı gün</th><th>Durum</th><th></th>
           </tr>
         </thead>
         <tbody>
           {leaves.map((l) => (
             <tr key={l.id}>
-              {showStudent && <td>{l.studentName}<div className="muted small">{l.departmentName}</div></td>}
+              {showStudent && <td>{l.studentName}<div className="muted small">{l.studentNumber} · {l.departmentName}</div></td>}
               <td>{fmtDate(l.startDate)}{l.startDate !== l.endDate && ` – ${fmtDate(l.endDate)}`}</td>
               <td>{l.daysCounted} gün</td>
               <td>
-                {l.reason}
-                {l.reviewNote && <div className="muted small">Not: {l.reviewNote}</div>}
+                {l.description ?? <span className="muted">—</span>}
+                {l.cancelNote && <div className="muted small">İptal notu: {l.cancelNote}</div>}
               </td>
-              <td><Badge tone={leaveTone[l.status]}>{leaveStatusLabels[l.status]}</Badge></td>
+              <td>{fmtDate(l.appliedOn)}</td>
               <td>
-                <div className="row">
-                  {l.hasDocument && <button className="btn small" onClick={() => download(l)}>Belge</button>}
-                  {canReview && l.status === 'Pending' && <button className="btn small primary" onClick={() => setReviewing(l)}>İncele</button>}
-                </div>
+                <Badge tone={leaveTone[l.status]}>{leaveStatusLabels[l.status]}</Badge>
+                {l.cancelledByName && <div className="muted small">{l.cancelledByName}</div>}
+              </td>
+              <td>
+                {canCancel && l.status === 'Approved' && (
+                  <button className="btn small danger" onClick={() => setCancelling(l)}>İptal et</button>
+                )}
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-      {reviewing && (
-        <ReviewModal title="İzin talebini incele" url={`/api/leaves/${reviewing.id}/review`} onClose={() => setReviewing(null)} onDone={onChanged} />
+      {cancelling && (
+        <Modal title="İzni iptal et" onClose={() => setCancelling(null)}>
+          <form onSubmit={submit}>
+            {error && <Alert>{error}</Alert>}
+            <p className="muted small">
+              {cancelling.studentName} · {fmtDate(cancelling.startDate)}. İzin silinmez; iptal edildi olarak saklanır ve gün izin hakkından düşmez.
+            </p>
+            <Field label="Not (isteğe bağlı)">
+              <textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} maxLength={1000} />
+            </Field>
+            <button className="btn primary wide">İptal et</button>
+          </form>
+        </Modal>
       )}
     </>
   );

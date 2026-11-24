@@ -9,7 +9,7 @@ public interface ILeaveRepository : IRepository<LeaveRequest>
 
     Task<IReadOnlyList<LeaveRequest>> SearchAsync(LeaveSearchCriteria criteria, CancellationToken ct = default);
 
-    /// <summary>İptal ve reddedilenler hariç, verilen aralıkla çakışan izin var mı?</summary>
+    /// <summary>İptal edilenler hariç, verilen aralıkla çakışan izin var mı?</summary>
     Task<bool> HasOverlapAsync(int studentId, DateOnly start, DateOnly end, int? exceptId = null, CancellationToken ct = default);
 }
 

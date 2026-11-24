@@ -74,7 +74,7 @@ export default function ReportsPage() {
           </Field>
         )}
         {(
-          <Field label="Danışman">
+          <Field label="Sorumlu personel">
             <select value={advisorId} onChange={(e) => setAdvisorId(e.target.value)}>
               <option value="">Tümü</option>
               {advisors.data?.map((a) => <option key={a.id} value={a.id}>{a.fullName}</option>)}

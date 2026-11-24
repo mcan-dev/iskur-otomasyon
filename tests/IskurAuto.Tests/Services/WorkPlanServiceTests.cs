@@ -91,18 +91,34 @@ public class WorkPlanServiceTests
     }
 
     [Fact]
-    public async Task SaveMyPlan_LessonDayNeedsNoExplanation()
+    public async Task SaveMyPlan_HalfDayLessonDayNeedsNoExplanation()
     {
         var (db, _) = StudentSession();
         using var _ = db;
 
         using (var scope = db.NewScope())
-            await scope.CourseDays.SetMineAsync(new CourseDaysRequest { Days = [new CourseDayDto { Day = DayOfWeek.Tuesday }] });
+            await scope.CourseDays.SetMineAsync(new CourseDaysRequest { Days = [new CourseDayDto { Day = DayOfWeek.Tuesday, Session = CourseSession.Morning }] });
 
         using (var scope = db.NewScope())
         {
             var plan = await scope.WorkPlans.SaveMyPlanAsync(ValidPlan());
             Assert.All(plan.Days, d => Assert.True(d.IsLessonDay));
+        }
+    }
+
+    [Fact]
+    public async Task SaveMyPlan_FullDayLessonDay_CannotBeAWorkDay()
+    {
+        var (db, _) = StudentSession();
+        using var _ = db;
+
+        using (var scope = db.NewScope())
+            await scope.CourseDays.SetMineAsync(new CourseDaysRequest { Days = [new CourseDayDto { Day = DayOfWeek.Tuesday, Session = CourseSession.FullDay }] });
+
+        using (var scope = db.NewScope())
+        {
+            var ex = await Assert.ThrowsAsync<DomainValidationException>(() => scope.WorkPlans.SaveMyPlanAsync(ValidPlan()));
+            Assert.Contains("tam gün dersiniz", string.Join(" ", ex.Errors["Days"]));
         }
     }
 

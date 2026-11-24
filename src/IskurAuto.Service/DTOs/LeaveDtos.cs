@@ -3,25 +3,21 @@ using IskurAuto.Core.Enums;
 
 namespace IskurAuto.Service.DTOs;
 
+/// <summary>
+/// İzin talebi: öğrenci aynı ayın onaylı çalışma planından bir veya birden çok gün seçer.
+/// Tür ve gerekçe yoktur; açıklama isteğe bağlıdır. Talep anında geçerli olur.
+/// </summary>
 public class CreateLeaveRequest
 {
-    public LeaveType Type { get; set; }
-
-    public DateOnly StartDate { get; set; }
-
-    public DateOnly EndDate { get; set; }
-
-    [Required, StringLength(300, MinimumLength = 3)]
-    public string Reason { get; set; } = string.Empty;
+    [Required, MinLength(1)]
+    public List<DateOnly> Days { get; set; } = new();
 
     [StringLength(1000)]
     public string? Description { get; set; }
 }
 
-public class ReviewLeaveRequest
+public class CancelLeaveRequest
 {
-    public bool Approve { get; set; }
-
     [StringLength(1000)]
     public string? Note { get; set; }
 }
@@ -31,20 +27,41 @@ public class LeaveDto
     public int Id { get; set; }
     public int StudentId { get; set; }
     public string StudentName { get; set; } = string.Empty;
+    public string StudentNumber { get; set; } = string.Empty;
     public string DepartmentName { get; set; } = string.Empty;
-    public LeaveType Type { get; set; }
     public LeaveStatus Status { get; set; }
     public DateOnly StartDate { get; set; }
     public DateOnly EndDate { get; set; }
     public decimal DaysCounted { get; set; }
-    public string Reason { get; set; } = string.Empty;
     public string? Description { get; set; }
     public DateOnly AppliedOn { get; set; }
-    public string? ReviewedByName { get; set; }
-    public DateTime? ReviewedAt { get; set; }
-    public string? ReviewNote { get; set; }
-    public bool HasDocument { get; set; }
-    public string? DocumentFileName { get; set; }
+    public string? CancelledByName { get; set; }
+    public DateTime? CancelledAt { get; set; }
+    public string? CancelNote { get; set; }
+}
+
+/// <summary>Öğrencinin izin seçebileceği takvim: o ayın onaylı plandaki çalışma günleri.</summary>
+public class LeaveCalendarDto
+{
+    public int Year { get; set; }
+    public int Month { get; set; }
+    public bool HasApprovedPlan { get; set; }
+    public List<LeaveCalendarDayDto> Days { get; set; } = new();
+    public LeaveBalanceDto Balance { get; set; } = null!;
+}
+
+public class LeaveCalendarDayDto
+{
+    public DateOnly Date { get; set; }
+
+    /// <summary>Onaylı plandaki çalışma günü mü?</summary>
+    public bool IsWorkDay { get; set; }
+
+    /// <summary>Bu gün için geçerli izin var mı?</summary>
+    public bool IsOnLeave { get; set; }
+
+    /// <summary>İzin için seçilebilir mi (çalışma günü, geçmemiş, izinli değil).</summary>
+    public bool CanSelect { get; set; }
 }
 
 public class WarningDto
@@ -65,15 +82,8 @@ public class LeaveBalanceDto
     /// <summary>Kullanılan günün devamsızlık olarak harcanan kısmı.</summary>
     public decimal AbsenceDays { get; set; }
 
-    public decimal Pending { get; set; }
     public decimal Remaining { get; set; }
     public List<WarningDto> Warnings { get; set; } = new();
-}
-
-public class LeaveResultDto
-{
-    public LeaveDto Leave { get; set; } = null!;
-    public LeaveBalanceDto Balance { get; set; } = null!;
 }
 
 public class LeaveAlertDto
@@ -87,6 +97,7 @@ public class LeaveAlertDto
 public class LeaveSearchQuery
 {
     public int? Year { get; set; }
+    public int? Month { get; set; }
     public int? StudentId { get; set; }
     public int? DepartmentId { get; set; }
     public int? AdvisorUserId { get; set; }
@@ -146,18 +157,4 @@ public class LeavePolicyDto
     [Range(0, 365)]
     public int LeaveWarningRemainingDays { get; set; }
 
-}
-
-public sealed class DocumentUpload
-{
-    public Stream Content { get; init; } = Stream.Null;
-    public string FileName { get; init; } = string.Empty;
-    public long Length { get; init; }
-}
-
-public sealed class DocumentDownload
-{
-    public Stream Content { get; init; } = Stream.Null;
-    public string FileName { get; init; } = string.Empty;
-    public string ContentType { get; init; } = "application/octet-stream";
 }

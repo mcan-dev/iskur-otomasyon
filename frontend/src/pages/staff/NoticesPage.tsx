@@ -26,7 +26,7 @@ export default function NoticesPage() {
 
   return (
     <div className={user?.role === 'Advisor' ? 'two-col' : undefined}>
-      <Card title="Devamsızlık bildirimleri" subtitle={isHead ? 'Danışmanlardan gelen bildirimleri inceleyip okundu olarak işaretleyin.' : 'Bölüm başkanına gönderilen bildirimler.'}>
+      <Card title="Devamsızlık bildirimleri" subtitle={isHead ? 'Sorumlu personelden gelen bildirimleri inceleyip okundu olarak işaretleyin.' : 'Birim yetkilisine gönderilen bildirimler.'}>
         <label className="row" style={{ marginBottom: 12 }}>
           <input type="checkbox" checked={unreadOnly} onChange={(e) => setUnreadOnly(e.target.checked)} /> Yalnızca okunmamışlar
         </label>
@@ -40,7 +40,7 @@ export default function NoticesPage() {
                 <strong>{n.studentName} · {fmtDate(n.date)}</strong>
                 {n.isRead ? <Badge tone="gray">Okundu</Badge> : <Badge tone="amber">Yeni</Badge>}
               </div>
-              <p className="muted small">{n.departmentName} · Danışman {n.advisorName} · {fmtDateTime(n.createdAt)}</p>
+              <p className="muted small">{n.departmentName} · Sorumlu personel {n.advisorName} · {fmtDateTime(n.createdAt)}</p>
               <p>{n.message}</p>
               {n.isRead && n.readByName && <p className="muted small">{n.readByName} · {fmtDateTime(n.readAt)}</p>}
               {isHead && !n.isRead && <button className="btn small primary" onClick={() => markRead(n)}>Okundu işaretle</button>}
@@ -77,7 +77,7 @@ function SendNotice({ onDone }: { onDone: () => void }) {
   }
 
   return (
-    <Card title="Bildirim gönder" subtitle="Öğrencinin gelmediği veya devamda sorun yaşandığı günü bölüm başkanına bildirin.">
+    <Card title="Bildirim gönder" subtitle="Öğrencinin gelmediği veya devamda sorun yaşandığı günü birim yetkilisine bildirin.">
       <form onSubmit={submit}>
         {error && <Alert>{error}</Alert>}
         {ok && <Alert kind="info">Bildirim gönderildi.</Alert>}

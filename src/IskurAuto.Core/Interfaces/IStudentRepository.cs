@@ -13,9 +13,9 @@ public interface IStudentRepository : IRepository<StudentProfile>
 
     Task<StudentProfile?> GetDetailByUserIdAsync(int userId, CancellationToken ct = default);
 
-    Task<bool> NationalIdExistsAsync(string nationalId, CancellationToken ct = default);
+    Task<bool> NationalIdExistsAsync(string nationalId, int? exceptStudentId = null, CancellationToken ct = default);
 
-    Task<bool> StudentNumberExistsAsync(string studentNumber, CancellationToken ct = default);
+    Task<bool> StudentNumberExistsAsync(string studentNumber, int? exceptStudentId = null, CancellationToken ct = default);
 
     /// <summary>Filtreli ve sayfalı öğrenci listesi (salt okunur; izlenmez).</summary>
     Task<PagedResult<StudentProfile>> SearchAsync(

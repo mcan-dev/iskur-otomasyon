@@ -13,24 +13,16 @@ using IskurAuto.Service.Mapping;
 
 namespace IskurAuto.Service.Implementations;
 
+/// <summary>
+/// İzinler. Öğrenci izin günlerini o ayın onaylı çalışma planından seçer; izin onay beklemeden geçerli olur ve
+/// sekreterlik bilgilendirilir. Sekreterlik izni onaylamaz, gerekirse iptal eder ve öğrencinin toplam hakkını ayarlar.
+/// </summary>
 public class LeaveService : ILeaveService
 {
-    private const long MaxDocumentBytes = 5 * 1024 * 1024;
-
-    private static readonly Dictionary<string, string> DocumentTypes = new(StringComparer.OrdinalIgnoreCase)
-    {
-        [".pdf"] = "application/pdf",
-        [".jpg"] = "image/jpeg",
-        [".jpeg"] = "image/jpeg",
-        [".png"] = "image/png"
-    };
-
     private readonly ILeaveRepository _leaves;
     private readonly IAbsenceRepository _absences;
     private readonly IStudentRepository _students;
-    private readonly IHolidayRepository _holidays;
     private readonly IWorkPlanRepository _plans;
-    private readonly IDocumentStore _documents;
     private readonly ILeavePolicyProvider _policies;
     private readonly IUnitOfWork _uow;
     private readonly IClock _clock;
@@ -39,22 +31,21 @@ public class LeaveService : ILeaveService
 
     public LeaveService(
         ILeaveRepository leaves, IAbsenceRepository absences, IStudentRepository students,
-        IHolidayRepository holidays, IWorkPlanRepository plans, IDocumentStore documents,
-        ILeavePolicyProvider policies, IUnitOfWork uow, IClock clock, IAuditService audit,
-        ICurrentUser current)
+        IWorkPlanRepository plans, ILeavePolicyProvider policies, IUnitOfWork uow, IClock clock,
+        IAuditService audit, ICurrentUser current)
     {
         _leaves = leaves;
         _absences = absences;
         _students = students;
-        _holidays = holidays;
         _plans = plans;
-        _documents = documents;
         _policies = policies;
         _uow = uow;
         _clock = clock;
         _audit = audit;
         _current = current;
     }
+
+    // ─── Öğrenci ──────────────────────────────────────────────────────────────
 
     public async Task<LeaveBalanceDto> GetMyBalanceAsync(int year, CancellationToken ct = default)
     {
@@ -73,7 +64,45 @@ public class LeaveService : ILeaveService
         return leaves.Select(l => l.ToDto()).ToList();
     }
 
-    public async Task<LeaveResultDto> RequestAsync(CreateLeaveRequest request, CancellationToken ct = default)
+    public async Task<LeaveCalendarDto> GetMyCalendarAsync(int year, int month, CancellationToken ct = default)
+    {
+        _current.RequireRole(UserRole.Student);
+        EnsureValidMonth(year, month);
+
+        var student = await LoadMineAsync(ct);
+        var plan = await ApprovedPlanAsync(student.Id, year, month, ct);
+        var onLeave = await LeaveDaysAsync(student.Id, year, month, ct);
+        var today = _clock.Today;
+
+        var first = new DateOnly(year, month, 1);
+        var last = first.AddMonths(1).AddDays(-1);
+        var workDays = plan?.Days.Select(d => d.Date).ToHashSet() ?? new HashSet<DateOnly>();
+
+        var days = new List<LeaveCalendarDayDto>();
+        for (var day = first; day <= last; day = day.AddDays(1))
+        {
+            var isWorkDay = workDays.Contains(day);
+            var isOnLeave = onLeave.Contains(day);
+            days.Add(new LeaveCalendarDayDto
+            {
+                Date = day,
+                IsWorkDay = isWorkDay,
+                IsOnLeave = isOnLeave,
+                CanSelect = student.IsActive && isWorkDay && !isOnLeave && day >= today
+            });
+        }
+
+        return new LeaveCalendarDto
+        {
+            Year = year,
+            Month = month,
+            HasApprovedPlan = plan is not null,
+            Days = days,
+            Balance = await BalanceAsync(student.Id, year, ct)
+        };
+    }
+
+    public async Task<IReadOnlyList<LeaveDto>> RequestAsync(CreateLeaveRequest request, CancellationToken ct = default)
     {
         _current.RequireRole(UserRole.Student);
 
@@ -81,101 +110,91 @@ public class LeaveService : ILeaveService
         if (!student.IsActive)
             throw new ConflictException("Programda aktif olmadığınız için izin talep edemezsiniz.");
 
-        ValidateRequest(request);
+        var days = (request.Days ?? new List<DateOnly>()).Distinct().OrderBy(d => d).ToList();
+        if (days.Count == 0)
+            throw new DomainValidationException(nameof(request.Days), "İzin almak istediğiniz en az bir çalışma gününü seçin.");
 
-        if (await _leaves.HasOverlapAsync(student.Id, request.StartDate, request.EndDate, ct: ct))
-            throw new ConflictException("Bu tarihlerle çakışan bir izin talebiniz zaten var.");
+        var year = days[0].Year;
+        var month = days[0].Month;
+        if (days.Any(d => d.Year != year || d.Month != month))
+            throw new DomainValidationException(nameof(request.Days), "Bir talepte yalnızca aynı ayın günleri seçilebilir.");
 
-        var days = await CountDaysAsync(student.Id, request, ct);
-        if (days <= 0)
-            throw new DomainValidationException(nameof(request.StartDate), "Seçilen aralıkta izin kullanılacak bir gün yok (hafta sonu, resmî tatil veya çalışma planınızda olmayan günler sayılmaz).");
+        var plan = await ApprovedPlanAsync(student.Id, year, month, ct)
+            ?? throw new ConflictException($"{TurkishText.MonthYear(year, month)} için onaylanmış bir çalışma planınız yok; izin yalnızca çalışma günleri için alınabilir.");
 
-        var leave = new LeaveRequest
+        var workDays = plan.Days.Select(d => d.Date).ToHashSet();
+        var alreadyOnLeave = await LeaveDaysAsync(student.Id, year, month, ct);
+        var today = _clock.Today;
+
+        var errors = new List<string>();
+        foreach (var day in days)
+        {
+            if (!workDays.Contains(day))
+                errors.Add($"{Format(day)} çalışma gününüz değil; izin yalnızca çalışma günleri için alınabilir.");
+            else if (day < today)
+                errors.Add($"{Format(day)} geçmiş bir gün; geçmiş günler için izin alınamaz.");
+            else if (alreadyOnLeave.Contains(day))
+                errors.Add($"{Format(day)} için zaten izniniz var.");
+        }
+        if (errors.Count > 0)
+            throw new DomainValidationException(new Dictionary<string, string[]> { [nameof(request.Days)] = errors.ToArray() });
+
+        // Öğrenci ay içinde en az bir gün çalışmak zorundadır: ayın bütün çalışma günleri izinle kapatılamaz.
+        var remainingWorkDays = workDays.Count(d => !alreadyOnLeave.Contains(d) && !days.Contains(d));
+        if (remainingWorkDays < 1)
+            throw new ConflictException("Bir ay içinde en az bir gün çalışmanız gerekir; ayın tüm çalışma günleri için izin alınamaz.");
+
+        var balance = await BalanceAsync(student.Id, year, ct);
+        if (balance.Remaining < days.Count)
+            throw new ConflictException(balance.Remaining <= 0
+                ? "İzin hakkınız kalmadı. Fakülte sekreterliği ile görüşün."
+                : $"İzin hakkınız {balance.Remaining:0.##} gün; {days.Count} gün seçtiniz.");
+
+        var description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
+        var created = days.Select(day => new LeaveRequest
         {
             StudentProfileId = student.Id,
-            Type = request.Type,
-            StartDate = request.StartDate,
-            EndDate = request.EndDate,
-            DaysCounted = days,
-            Reason = request.Reason.Trim(),
-            Description = request.Description?.Trim(),
-            AppliedOn = _clock.Today
-        };
-        await _leaves.AddAsync(leave);
+            Status = LeaveStatus.Approved,
+            StartDate = day,
+            EndDate = day,
+            DaysCounted = 1,
+            Description = description,
+            AppliedOn = today
+        }).ToList();
+
+        foreach (var leave in created)
+            await _leaves.AddAsync(leave);
 
         await using var tx = await _uow.BeginTransactionAsync(ct);
         await _uow.SaveChangesAsync(ct);
-        await _audit.RecordAsync(AuditActions.LeaveRequested, nameof(LeaveRequest), leave.Id,
-            $"{request.StartDate:dd.MM.yyyy} - {request.EndDate:dd.MM.yyyy} arası, {days:0.##} gün", ct: ct);
+        foreach (var leave in created)
+            await _audit.RecordAsync(AuditActions.LeaveRequested, nameof(LeaveRequest), leave.Id,
+                $"{Format(leave.StartDate)} izin günü (sekreterliğe bildirildi)", ct: ct);
         await _uow.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
 
-        return await ResultAsync(leave.Id, ct);
+        var result = new List<LeaveDto>();
+        foreach (var leave in created)
+            result.Add((await _leaves.GetDetailAsync(leave.Id, ct))!.ToDto());
+        return result;
     }
 
-    public async Task<LeaveDto> CancelAsync(int leaveId, CancellationToken ct = default)
+    public async Task<LeaveDto> CancelMineAsync(int leaveId, CancellationToken ct = default)
     {
         _current.RequireRole(UserRole.Student);
 
-        var leave = await LoadOwnedAsync(leaveId, ct);
-        if (leave.Status != LeaveStatus.Pending)
-            throw new ConflictException("Yalnızca bekleyen talepler iptal edilebilir.");
+        var student = await LoadMineAsync(ct);
+        var leave = await _leaves.GetDetailAsync(leaveId, ct);
+        if (leave is null || leave.StudentProfileId != student.Id)
+            throw new NotFoundException("İzin bulunamadı.");
 
-        leave.Status = LeaveStatus.Cancelled;
-        await _audit.RecordAsync(AuditActions.LeaveCancelled, nameof(LeaveRequest), leave.Id, ct: ct);
-        await _uow.SaveChangesAsync(ct);
+        if (leave.StartDate < _clock.Today)
+            throw new ConflictException("Geçmiş bir günün izni öğrenci tarafından iptal edilemez.");
 
-        return leave.ToDto();
+        return await MarkCancelledAsync(leave, null, ct);
     }
 
-    public async Task<LeaveDto> AttachDocumentAsync(int leaveId, DocumentUpload file, CancellationToken ct = default)
-    {
-        _current.RequireRole(UserRole.Student);
-
-        var leave = await LoadOwnedAsync(leaveId, ct);
-        if (leave.Status is LeaveStatus.Rejected or LeaveStatus.Cancelled)
-            throw new ConflictException("Reddedilen veya iptal edilen talebe belge eklenemez.");
-
-        var extension = Path.GetExtension(file.FileName);
-        if (!DocumentTypes.TryGetValue(extension, out var contentType))
-            throw new DomainValidationException("File", "Yalnızca PDF, JPG veya PNG yüklenebilir.");
-        if (file.Length <= 0 || file.Length > MaxDocumentBytes)
-            throw new DomainValidationException("File", "Dosya boş olamaz ve 5 MB'ı aşamaz.");
-
-        leave.DocumentStoredName = await _documents.SaveAsync(file.Content, extension.ToLowerInvariant(), ct);
-        leave.DocumentFileName = Path.GetFileName(file.FileName);
-        leave.DocumentContentType = contentType;
-
-        await _audit.RecordAsync(AuditActions.LeaveDocumentAdded, nameof(LeaveRequest), leave.Id, ct: ct);
-        await _uow.SaveChangesAsync(ct);
-
-        return leave.ToDto();
-    }
-
-    public async Task<DocumentDownload> OpenDocumentAsync(int leaveId, CancellationToken ct = default)
-    {
-        _current.RequireRole(UserRole.FacultyAdmin, UserRole.DepartmentHead, UserRole.Advisor, UserRole.Student);
-
-        var leave = await LoadVisibleAsync(leaveId, ct);
-        if (!leave.HasDocument)
-            throw new NotFoundException("Bu talepte belge yok.");
-
-        var content = await _documents.OpenAsync(leave.DocumentStoredName!, ct)
-            ?? throw new NotFoundException("Belge dosyası bulunamadı.");
-
-        if (_current.Role != UserRole.Student)
-        {
-            await _audit.RecordAsync(AuditActions.LeaveDocumentViewed, nameof(LeaveRequest), leave.Id, ct: ct);
-            await _uow.SaveChangesAsync(ct);
-        }
-
-        return new DocumentDownload
-        {
-            Content = content,
-            FileName = leave.DocumentFileName ?? "belge",
-            ContentType = leave.DocumentContentType ?? "application/octet-stream"
-        };
-    }
+    // ─── Personel ─────────────────────────────────────────────────────────────
 
     public async Task<IReadOnlyList<LeaveDto>> SearchAsync(LeaveSearchQuery query, CancellationToken ct = default)
     {
@@ -184,6 +203,7 @@ public class LeaveService : ILeaveService
         var criteria = new LeaveSearchCriteria
         {
             Year = query.Year,
+            Month = query.Year is null ? null : query.Month,
             StudentId = query.StudentId,
             DepartmentId = query.DepartmentId,
             AdvisorUserId = query.AdvisorUserId,
@@ -199,39 +219,24 @@ public class LeaveService : ILeaveService
     {
         _current.RequireRole(UserRole.FacultyAdmin, UserRole.DepartmentHead, UserRole.Advisor, UserRole.Student);
 
-        return (await LoadVisibleAsync(leaveId, ct)).ToDto();
+        var leave = await _leaves.GetDetailAsync(leaveId, ct)
+            ?? throw new NotFoundException("İzin bulunamadı.");
+        if (!_current.CanView(leave.StudentProfile))
+            throw new NotFoundException("İzin bulunamadı.");
+
+        return leave.ToDto();
     }
 
-    public async Task<LeaveResultDto> ReviewAsync(int leaveId, ReviewLeaveRequest request, CancellationToken ct = default)
+    public async Task<LeaveDto> CancelAsync(int leaveId, CancelLeaveRequest request, CancellationToken ct = default)
     {
-        // Sekreterlik tüm talepleri, bölüm başkanı kendi bölümündekileri, danışman yalnızca kendi öğrencilerinin
-        // taleplerini sonuçlandırır. Kapsam dışı talep "bulunamadı" döner.
-        _current.RequireRole(UserRole.FacultyAdmin, UserRole.DepartmentHead, UserRole.Advisor);
+        // İzni yalnızca fakülte sekreterliği iptal eder; onaylama diye bir adım yoktur.
+        _current.RequireRole(UserRole.FacultyAdmin);
 
         var leave = await _leaves.GetDetailAsync(leaveId, ct)
-            ?? throw new NotFoundException("İzin talebi bulunamadı.");
+            ?? throw new NotFoundException("İzin bulunamadı.");
 
-        if (!_current.CanView(leave.StudentProfile))
-            throw new NotFoundException("İzin talebi bulunamadı.");
-
-        if (leave.Status != LeaveStatus.Pending)
-            throw new ConflictException("Bu talep zaten sonuçlandırılmış.");
-
-        var note = request.Note?.Trim();
-        if (!request.Approve && string.IsNullOrEmpty(note))
-            throw new DomainValidationException(nameof(request.Note), "Reddederken gerekçe yazmalısınız.");
-
-        leave.Status = request.Approve ? LeaveStatus.Approved : LeaveStatus.Rejected;
-        leave.ReviewedByUserId = _current.UserId;
-        leave.ReviewedAt = _clock.UtcNow;
-        leave.ReviewNote = note;
-
-        await _audit.RecordAsync(request.Approve ? AuditActions.LeaveApproved : AuditActions.LeaveRejected,
-            nameof(LeaveRequest), leave.Id,
-            $"{leave.StartDate:dd.MM.yyyy} - {leave.EndDate:dd.MM.yyyy} arası, {leave.DaysCounted:0.##} gün", ct: ct);
-        await _uow.SaveChangesAsync(ct);
-
-        return await ResultAsync(leave.Id, ct);
+        var note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim();
+        return await MarkCancelledAsync(leave, note, ct);
     }
 
     public async Task<LeaveBalanceDto> GetStudentBalanceAsync(int studentId, int year, CancellationToken ct = default)
@@ -287,29 +292,48 @@ public class LeaveService : ILeaveService
             .ToList();
     }
 
-    private void ValidateRequest(CreateLeaveRequest request)
+    // ─── Yardımcılar ──────────────────────────────────────────────────────────
+
+    private async Task<LeaveDto> MarkCancelledAsync(LeaveRequest leave, string? note, CancellationToken ct)
     {
-        var errors = new ValidationErrors();
+        if (leave.Status == LeaveStatus.Cancelled)
+            throw new ConflictException("Bu izin zaten iptal edilmiş.");
 
-        if (request.EndDate < request.StartDate)
-            errors.Add(nameof(request.EndDate), "Bitiş tarihi başlangıçtan önce olamaz.");
-        if (request.StartDate.Year != request.EndDate.Year)
-            errors.Add(nameof(request.EndDate), "İzin iki farklı yıla yayılamaz; yıl sonunda ikiye bölerek talep edin.");
-        if (!Enum.IsDefined(request.Type))
-            errors.Add(nameof(request.Type), "Geçersiz izin türü.");
-        if (string.IsNullOrWhiteSpace(request.Reason))
-            errors.Add(nameof(request.Reason), "İzin gerekçesi yazmalısınız.");
+        leave.Status = LeaveStatus.Cancelled;
+        leave.CancelledByUserId = _current.UserId;
+        leave.CancelledAt = _clock.UtcNow;
+        leave.CancelNote = note;
 
-        errors.ThrowIfAny();
+        await _audit.RecordAsync(AuditActions.LeaveCancelled, nameof(LeaveRequest), leave.Id,
+            $"{Format(leave.StartDate)} izni iptal edildi", ct: ct);
+        await _uow.SaveChangesAsync(ct);
+
+        return (await _leaves.GetDetailAsync(leave.Id, ct))!.ToDto();
     }
 
-    private async Task<decimal> CountDaysAsync(int studentId, CreateLeaveRequest request, CancellationToken ct)
+    private async Task<MonthlyWorkPlan?> ApprovedPlanAsync(int studentId, int year, int month, CancellationToken ct)
     {
-        var holidays = (await _holidays.GetBetweenAsync(request.StartDate, request.EndDate, ct))
-            .Select(h => h.Date).ToHashSet();
-        var plans = await _plans.GetPlansInRangeAsync(studentId, request.StartDate, request.EndDate, ct);
+        var plan = await _plans.GetWithDaysAsync(studentId, year, month, ct);
+        return plan is { Status: WorkPlanStatus.Approved } ? plan : null;
+    }
 
-        return LeaveDayCounter.Count(request.StartDate, request.EndDate, holidays, plans);
+    private async Task<HashSet<DateOnly>> LeaveDaysAsync(int studentId, int year, int month, CancellationToken ct)
+    {
+        var first = new DateOnly(year, month, 1);
+        var last = first.AddMonths(1).AddDays(-1);
+        var leaves = await _leaves.SearchAsync(new LeaveSearchCriteria
+        {
+            StudentId = studentId,
+            Year = year,
+            Status = LeaveStatus.Approved
+        }, ct);
+
+        var result = new HashSet<DateOnly>();
+        foreach (var leave in leaves)
+            for (var day = leave.StartDate; day <= leave.EndDate; day = day.AddDays(1))
+                if (day >= first && day <= last)
+                    result.Add(day);
+        return result;
     }
 
     private async Task<LeaveBalanceDto> BalanceAsync(int studentId, int year, CancellationToken ct)
@@ -321,16 +345,6 @@ public class LeaveService : ILeaveService
         var student = await _students.GetByIdAsync(studentId);
 
         return LeaveBalanceCalculator.Calculate(policy, leaves, absences, student?.LeaveDayAllowance).ToDto(year);
-    }
-
-    private async Task<LeaveResultDto> ResultAsync(int leaveId, CancellationToken ct)
-    {
-        var leave = (await _leaves.GetDetailAsync(leaveId, ct))!;
-        return new LeaveResultDto
-        {
-            Leave = leave.ToDto(),
-            Balance = await BalanceAsync(leave.StudentProfileId, leave.StartDate.Year, ct)
-        };
     }
 
     private void ApplyScope(LeaveSearchCriteria criteria)
@@ -351,25 +365,11 @@ public class LeaveService : ILeaveService
         => await _students.GetDetailByUserIdAsync(_current.UserId, ct)
            ?? throw new NotFoundException("Öğrenci profiliniz bulunamadı.");
 
-    private async Task<LeaveRequest> LoadOwnedAsync(int leaveId, CancellationToken ct)
+    private static void EnsureValidMonth(int year, int month)
     {
-        var student = await LoadMineAsync(ct);
-        var leave = await _leaves.GetDetailAsync(leaveId, ct);
-
-        if (leave is null || leave.StudentProfileId != student.Id)
-            throw new NotFoundException("İzin talebi bulunamadı.");
-
-        return leave;
+        if (year is < 2000 or > 2100 || month is < 1 or > 12)
+            throw new DomainValidationException("Month", "Geçerli bir yıl ve ay giriniz.");
     }
 
-    private async Task<LeaveRequest> LoadVisibleAsync(int leaveId, CancellationToken ct)
-    {
-        var leave = await _leaves.GetDetailAsync(leaveId, ct)
-            ?? throw new NotFoundException("İzin talebi bulunamadı.");
-
-        if (!_current.CanView(leave.StudentProfile))
-            throw new NotFoundException("İzin talebi bulunamadı.");
-
-        return leave;
-    }
+    private static string Format(DateOnly date) => date.ToString("dd.MM.yyyy");
 }

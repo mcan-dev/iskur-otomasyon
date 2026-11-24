@@ -1,17 +1,9 @@
 namespace IskurAuto.Core.Enums;
 
-public enum LeaveType
-{
-    Excuse = 1,
-    Health = 2,
-    Other = 3
-}
-
+/// <summary>İzinler onay beklemez; kayıt ya geçerlidir ya da iptal edilmiştir.</summary>
 public enum LeaveStatus
 {
-    Pending = 1,
     Approved = 2,
-    Rejected = 3,
     Cancelled = 4
 }
 

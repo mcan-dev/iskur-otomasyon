@@ -124,3 +124,41 @@ public class AttendanceComparisonDto
     public decimal DailyHours { get; set; }
     public IReadOnlyList<PlannedDayDto> Days { get; set; } = Array.Empty<PlannedDayDto>();
 }
+
+/// <summary>
+/// Mesai karekod saatleri. Sabah mesai başlangıcında ve akşam mesai bitişinde fakültedeki monitörlerde karekod gösterilir;
+/// saatleri fakülte sekreterliği belirler.
+/// </summary>
+public class AttendanceScheduleDto
+{
+    public TimeOnly MorningStart { get; set; } = new(8, 0);
+    public TimeOnly MorningEnd { get; set; } = new(9, 0);
+    public TimeOnly EveningStart { get; set; } = new(16, 30);
+    public TimeOnly EveningEnd { get; set; } = new(17, 30);
+}
+
+public enum DisplayWindow
+{
+    /// <summary>Şu an karekod gösterilmiyor.</summary>
+    Closed = 0,
+    Morning = 1,
+    Evening = 2
+}
+
+/// <summary>Monitör ekranının durumu: şu anki pencere ve varsa güncel karekod.</summary>
+public class AttendanceDisplayDto
+{
+    public DisplayWindow Window { get; set; }
+
+    /// <summary>"Sabah mesai girişi", "Akşam mesai çıkışı" veya kapalıyken bilgi metni.</summary>
+    public string Title { get; set; } = string.Empty;
+
+    public TimeOnly? WindowStart { get; set; }
+    public TimeOnly? WindowEnd { get; set; }
+
+    /// <summary>Kapalıyken sıradaki pencerenin açıklaması (örn. "Bugün 16:30").</summary>
+    public string? NextWindow { get; set; }
+
+    public QrCodeDto? Qr { get; set; }
+    public AttendanceScheduleDto Schedule { get; set; } = new();
+}

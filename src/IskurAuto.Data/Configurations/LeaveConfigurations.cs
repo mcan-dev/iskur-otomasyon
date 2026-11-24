@@ -9,23 +9,17 @@ public class LeaveRequestConfiguration : IEntityTypeConfiguration<LeaveRequest>
     public void Configure(EntityTypeBuilder<LeaveRequest> b)
     {
         b.ToTable("LeaveRequests");
-        b.Property(x => x.Type).HasConversion<string>().HasMaxLength(20);
         b.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
-        b.Property(x => x.Reason).IsRequired().HasMaxLength(300);
         b.Property(x => x.Description).HasMaxLength(1000);
-        b.Property(x => x.ReviewNote).HasMaxLength(1000);
-        b.Property(x => x.DocumentFileName).HasMaxLength(255);
-        b.Property(x => x.DocumentStoredName).HasMaxLength(100);
-        b.Property(x => x.DocumentContentType).HasMaxLength(100);
+        b.Property(x => x.CancelNote).HasMaxLength(1000);
         b.Property(x => x.DaysCounted).HasPrecision(5, 2);
-        b.Ignore(x => x.HasDocument);
 
         b.HasIndex(x => new { x.StudentProfileId, x.StartDate });
 
         b.HasOne(x => x.StudentProfile).WithMany()
             .HasForeignKey(x => x.StudentProfileId).OnDelete(DeleteBehavior.Restrict);
-        b.HasOne(x => x.ReviewedByUser).WithMany()
-            .HasForeignKey(x => x.ReviewedByUserId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne(x => x.CancelledByUser).WithMany()
+            .HasForeignKey(x => x.CancelledByUserId).OnDelete(DeleteBehavior.Restrict);
     }
 }
 

@@ -9,65 +9,71 @@ using Xunit;
 
 namespace IskurAuto.Tests.Services;
 
+/// <summary>
+/// Giriş: öğrenci öğrenci e-postası + OBİS şifresiyle, personel sicil numarası + şifresiyle girer.
+/// Sistemde kayıt olma yoktur; öğrenci hesabını bilgi işlemden gelen bilgilerle sekreterlik açar.
+/// </summary>
 public class AuthServiceTests
 {
-    private static StudentRegistrationRequest ValidRegistration(int departmentId) => new()
+    private static LoginRequest Student(string email, string password) => new() { Username = email, Password = password, Role = UserRole.Student };
+    private static LoginRequest Staff(string registry, string password, UserRole role) => new() { Username = registry, Password = password, Role = role };
+
+    private static CreateStudentRequest NewStudent(int departmentId) => new()
     {
         FullName = "  Yeni   Öğrenci ",
-        Email = "Yeni@Ogr.edu.tr ",
-        Password = "Parola123",
+        Email = "250000003@Ogr.Selcuk.edu.tr ",
+        ObisPassword = "Obis2026",
         PhoneNumber = "0 (532) 111 22 33",
         NationalId = "34567891238",
-        Iban = "tr83 0006 2000 0000 0000 0000 03",
         StudentNumber = "250000003",
         DepartmentId = departmentId,
         RegistrationYear = 2025
     };
 
-    // ─── Öğrenci kaydı ────────────────────────────────────────────────────────
+    // ─── Öğrenci hesabını sekreterlik açar ────────────────────────────────────
 
     [Fact]
-    public async Task Register_WithValidData_CreatesUserProfileAndOpenParticipation()
+    public async Task CreateStudent_ByFaculty_CreatesUserProfileAndOpenParticipation_AndStudentCanLogInWithObisPassword()
     {
         using var db = new TestDb();
         var seed = TestData.Seed(db);
+        db.Current.As(UserRole.FacultyAdmin, seed.AdminId);
 
         using (var scope = db.NewScope())
         {
-            var result = await scope.Auth.RegisterStudentAsync(ValidRegistration(seed.BmId));
-            Assert.Equal("yeni@ogr.edu.tr", result.Email);
+            var created = await scope.Students.CreateAsync(NewStudent(seed.BmId));
+            Assert.Equal("250000003@ogr.selcuk.edu.tr", created.Email);
         }
 
-        using var verify = db.NewContext();
-        var profile = await verify.StudentProfiles
-            .Include(s => s.User).Include(s => s.Participations)
-            .SingleAsync(s => s.StudentNumber == "250000003");
+        using (var verify = db.NewContext())
+        {
+            var profile = await verify.StudentProfiles
+                .Include(s => s.User).Include(s => s.Participations)
+                .SingleAsync(s => s.StudentNumber == "250000003");
 
-        Assert.Equal(UserRole.Student, profile.User.Role);
-        Assert.Equal("Yeni Öğrenci", profile.User.FullName);          // boşluklar düzeltildi
-        Assert.Equal("05321112233", profile.User.PhoneNumber);        // telefon normalize
-        Assert.Equal("TR830006200000000000000003", profile.Iban);     // IBAN normalize
-        Assert.NotEqual("Parola123", profile.User.PasswordHash);      // parola açık saklanmaz
-        var participation = Assert.Single(profile.Participations);
-        Assert.Null(participation.EndDate);                           // katılım açık = aktif
-        Assert.Equal(db.Clock.Today, participation.StartDate);
+            Assert.Equal(UserRole.Student, profile.User.Role);
+            Assert.Equal("Yeni Öğrenci", profile.User.FullName);
+            Assert.Equal("05321112233", profile.User.PhoneNumber);
+            Assert.NotEqual("Obis2026", profile.User.PasswordHash);    // şifre açık saklanmaz
+            Assert.Null(Assert.Single(profile.Participations).EndDate);
+        }
+
+        db.Current.Anonymous();
+        using var login = db.NewScope();
+        var response = await login.Auth.LoginAsync(Student("250000003@ogr.selcuk.edu.tr", "Obis2026"));
+        Assert.Equal("Student", response.User.Role);
     }
 
     [Fact]
-    public async Task Register_NewStudent_IsVisibleToFacultyAndDepartmentHead_AndInReports()
+    public async Task CreateStudent_NewStudent_IsVisibleToDepartmentAndInReports()
     {
         using var db = new TestDb();
         var seed = TestData.Seed(db);
-
-        using (var scope = db.NewScope())
-            await scope.Auth.RegisterStudentAsync(ValidRegistration(seed.BmId));
-
         db.Current.As(UserRole.FacultyAdmin, seed.AdminId);
+
         using (var scope = db.NewScope())
         {
-            var list = await scope.Students.SearchAsync(new StudentSearchQuery { Text = "250000003" });
-            Assert.Equal(1, list.TotalCount);
-
+            await scope.Students.CreateAsync(NewStudent(seed.BmId));
             var report = await scope.Reports.GetAsync(ReportKind.StudentList, new ReportQuery());
             Assert.Contains(report.Rows, r => r.Contains("250000003"));
         }
@@ -78,48 +84,46 @@ public class AuthServiceTests
     }
 
     [Fact]
-    public async Task Register_WithManyInvalidFields_ReportsAllErrorsAtOnce()
+    public async Task CreateStudent_ByNonFaculty_IsForbidden()
     {
         using var db = new TestDb();
         var seed = TestData.Seed(db);
-        var request = ValidRegistration(seed.BmId);
-        request.NationalId = "12345678901";
-        request.Iban = "TR000000000000000000000000";
-        request.Password = "kisa";
-        request.PhoneNumber = "123";
-        request.DepartmentId = 9999;
+        db.Current.As(UserRole.DepartmentHead, seed.HeadId, seed.BmId);
 
         using var scope = db.NewScope();
-        var ex = await Assert.ThrowsAsync<DomainValidationException>(() => scope.Auth.RegisterStudentAsync(request));
-
-        foreach (var field in new[] { "NationalId", "Iban", "Password", "PhoneNumber", "DepartmentId" })
-            Assert.True(ex.Errors.ContainsKey(field), $"'{field}' hatası bekleniyordu.");
+        await Assert.ThrowsAsync<ForbiddenException>(() => scope.Students.CreateAsync(NewStudent(seed.BmId)));
     }
 
     [Fact]
-    public async Task Register_WithFutureRegistrationYear_IsRejected()
+    public async Task CreateStudent_WithManyInvalidFields_ReportsAllErrorsAtOnce()
     {
         using var db = new TestDb();
         var seed = TestData.Seed(db);
-        var request = ValidRegistration(seed.BmId);
+        db.Current.As(UserRole.FacultyAdmin, seed.AdminId);
+        var request = NewStudent(seed.BmId);
+        request.NationalId = "12345678901";
+        request.ObisPassword = "x";
+        request.PhoneNumber = "123";
+        request.DepartmentId = 9999;
         request.RegistrationYear = 2099;
 
         using var scope = db.NewScope();
-        var ex = await Assert.ThrowsAsync<DomainValidationException>(() => scope.Auth.RegisterStudentAsync(request));
-        Assert.True(ex.Errors.ContainsKey("RegistrationYear"));
+        var ex = await Assert.ThrowsAsync<DomainValidationException>(() => scope.Students.CreateAsync(request));
+
+        foreach (var field in new[] { "NationalId", "ObisPassword", "PhoneNumber", "DepartmentId", "RegistrationYear" })
+            Assert.True(ex.Errors.ContainsKey(field), $"'{field}' hatası bekleniyordu.");
     }
 
     [Theory]
     [InlineData("email")]
     [InlineData("nationalId")]
     [InlineData("studentNumber")]
-    public async Task Register_WithDuplicateUniqueValue_ThrowsConflict(string duplicatedField)
+    public async Task CreateStudent_WithDuplicateUniqueValue_ThrowsConflict_AndLeavesNoPartialRecords(string duplicatedField)
     {
         using var db = new TestDb();
         var seed = TestData.Seed(db);
-
-        // Var olan öğrenci Mehmet'in değerlerinden birini kullan.
-        var request = ValidRegistration(seed.BmId);
+        db.Current.As(UserRole.FacultyAdmin, seed.AdminId);
+        var request = NewStudent(seed.BmId);
         switch (duplicatedField)
         {
             case "email": request.Email = "mehmet@test.local"; break;
@@ -127,178 +131,87 @@ public class AuthServiceTests
             case "studentNumber": request.StudentNumber = "230000001"; break;
         }
 
-        using var scope = db.NewScope();
-        await Assert.ThrowsAsync<ConflictException>(() => scope.Auth.RegisterStudentAsync(request));
-    }
-
-    [Fact]
-    public async Task Register_WhenFails_LeavesNoPartialRecords()
-    {
-        using var db = new TestDb();
-        var seed = TestData.Seed(db);
-        var request = ValidRegistration(seed.BmId);
-        request.NationalId = "12345678950";   // mükerrer → hata
-
         using (var scope = db.NewScope())
-            await Assert.ThrowsAsync<ConflictException>(() => scope.Auth.RegisterStudentAsync(request));
+            await Assert.ThrowsAsync<ConflictException>(() => scope.Students.CreateAsync(request));
 
         using var verify = db.NewContext();
-        Assert.False(await verify.Users.AnyAsync(u => u.Email == "yeni@ogr.edu.tr"));
+        Assert.Equal(2, await verify.StudentProfiles.CountAsync());
     }
 
-    // ─── Personel başvurusu ───────────────────────────────────────────────────
-
-    private static StaffRegistrationRequest ValidStaff(int departmentId) => new()
-    {
-        FullName = " Yeni  Danışman ",
-        Email = "Yeni.Danisman@Test.local",
-        Password = "Parola123",
-        PhoneNumber = "0532 222 33 44",
-        Role = UserRole.Advisor,
-        DepartmentId = departmentId
-    };
+    // ─── Öğrenci girişi: e-posta + OBİS şifresi ───────────────────────────────
 
     [Fact]
-    public async Task RegisterStaff_CreatesInactiveAccountThatCannotLogInYet()
-    {
-        using var db = new TestDb();
-        var seed = TestData.Seed(db);
-
-        using (var scope = db.NewScope())
-        {
-            var result = await scope.Auth.RegisterStaffAsync(ValidStaff(seed.BmId));
-            Assert.False(result.IsActive);
-        }
-
-        using (var verify = db.NewContext())
-        {
-            var user = await verify.Users.SingleAsync(u => u.Email == "yeni.danisman@test.local");
-            Assert.False(user.IsActive);
-            Assert.Equal(UserRole.Advisor, user.Role);
-            Assert.Equal("Yeni Danışman", user.FullName);
-            Assert.Equal("05322223344", user.PhoneNumber);
-        }
-
-        using var login = db.NewScope();
-        var ex = await Assert.ThrowsAsync<ForbiddenException>(() =>
-            login.Auth.LoginAsync(new LoginRequest { Email = "yeni.danisman@test.local", Password = "Parola123" }));
-        Assert.Contains("aktif değil", ex.Message);
-        Assert.Contains("onay", ex.Message);
-
-        // Yanlış parolada hesabın varlığı ya da durumu açıklanmaz.
-        using var wrong = db.NewScope();
-        await Assert.ThrowsAsync<AuthenticationFailedException>(() =>
-            wrong.Auth.LoginAsync(new LoginRequest { Email = "yeni.danisman@test.local", Password = "Yanlis123" }));
-    }
-
-    [Fact]
-    public async Task RegisterStaff_AsStudentOrWithoutDepartment_IsRejected()
-    {
-        using var db = new TestDb();
-        var seed = TestData.Seed(db);
-
-        var student = ValidStaff(seed.BmId);
-        student.Role = UserRole.Student;
-        var noDepartment = ValidStaff(seed.BmId);
-        noDepartment.DepartmentId = null;
-
-        using var scope = db.NewScope();
-        var e1 = await Assert.ThrowsAsync<DomainValidationException>(() => scope.Auth.RegisterStaffAsync(student));
-        Assert.True(e1.Errors.ContainsKey("Role"));
-        var e2 = await Assert.ThrowsAsync<DomainValidationException>(() => scope.Auth.RegisterStaffAsync(noDepartment));
-        Assert.True(e2.Errors.ContainsKey("DepartmentId"));
-    }
-
-    [Fact]
-    public async Task RegisterStaff_AsFacultyAdmin_IsRejected()
-    {
-        using var db = new TestDb();
-        var seed = TestData.Seed(db);
-        var request = ValidStaff(seed.BmId);
-        request.Role = UserRole.FacultyAdmin;
-        request.DepartmentId = null;
-
-        using var scope = db.NewScope();
-        var ex = await Assert.ThrowsAsync<DomainValidationException>(() => scope.Auth.RegisterStaffAsync(request));
-        Assert.True(ex.Errors.ContainsKey("Role"));
-
-        using var verify = db.NewContext();
-        Assert.False(await verify.Users.AnyAsync(u => u.Email == "yeni.danisman@test.local"));
-    }
-
-    [Fact]
-    public async Task RegisterStaff_MarksTheAccountAsPendingApproval()
-    {
-        using var db = new TestDb();
-        var seed = TestData.Seed(db);
-        using (var scope = db.NewScope())
-            await scope.Auth.RegisterStaffAsync(ValidStaff(seed.BmId));
-
-        using var verify = db.NewContext();
-        var user = await verify.Users.SingleAsync(u => u.Email == "yeni.danisman@test.local");
-        Assert.True(user.IsPendingApproval);
-        Assert.False(user.IsActive);
-    }
-
-    [Fact]
-    public async Task RegisterStaff_WithExistingEmail_ThrowsConflict()
-    {
-        using var db = new TestDb();
-        var seed = TestData.Seed(db);
-        var request = ValidStaff(seed.BmId);
-        request.Email = "mehmet@test.local";
-
-        using var scope = db.NewScope();
-        await Assert.ThrowsAsync<ConflictException>(() => scope.Auth.RegisterStaffAsync(request));
-    }
-
-    // ─── Giriş ────────────────────────────────────────────────────────────────
-
-    [Fact]
-    public async Task Login_WithCorrectCredentials_ReturnsTokenAndSetsLastLogin()
+    public async Task StudentLogin_WithEmailAndObisPassword_ReturnsTokenAndSetsLastLogin()
     {
         using var db = new TestDb();
         TestData.Seed(db);
 
         using (var scope = db.NewScope())
         {
-            var response = await scope.Auth.LoginAsync(new LoginRequest { Email = " ADMIN@test.local ", Password = TestData.Password });
+            var response = await scope.Auth.LoginAsync(Student(" MEHMET@test.local ", TestData.Password));
             Assert.False(string.IsNullOrEmpty(response.AccessToken));
-            Assert.Equal("FacultyAdmin", response.User.Role);
+            Assert.Equal("Student", response.User.Role);
         }
 
         using var verify = db.NewContext();
-        var user = await verify.Users.SingleAsync(u => u.Email == "admin@test.local");
-        Assert.Equal(db.Clock.UtcNow, user.LastLoginAt);
+        Assert.Equal(db.Clock.UtcNow, (await verify.Users.SingleAsync(u => u.Email == "mehmet@test.local")).LastLoginAt);
     }
 
     [Fact]
-    public async Task Login_WithWrongPassword_ThrowsAndWritesAuditRecord()
+    public async Task StudentLogin_WithWrongPassword_ThrowsAndWritesAuditRecord()
     {
         using var db = new TestDb();
         TestData.Seed(db);
 
         using (var scope = db.NewScope())
-            await Assert.ThrowsAsync<AuthenticationFailedException>(() =>
-                scope.Auth.LoginAsync(new LoginRequest { Email = "admin@test.local", Password = "yanlis-parola1" }));
+        {
+            var ex = await Assert.ThrowsAsync<AuthenticationFailedException>(() => scope.Auth.LoginAsync(Student("mehmet@test.local", "yanlis-sifre1")));
+            Assert.Contains("OBİS", ex.Message);
+        }
 
         using var verify = db.NewContext();
         Assert.True(await verify.AuditLogs.AnyAsync(a => a.Action == AuditActions.LoginFailed));
     }
 
     [Fact]
-    public async Task Login_UnknownEmailAndWrongPassword_GiveIdenticalMessage()
+    public async Task StudentLogin_UnknownEmailAndWrongPassword_GiveIdenticalMessage()
     {
         using var db = new TestDb();
         TestData.Seed(db);
         using var scope = db.NewScope();
 
-        var unknown = await Assert.ThrowsAsync<AuthenticationFailedException>(() =>
-            scope.Auth.LoginAsync(new LoginRequest { Email = "yok@test.local", Password = "Parola123" }));
-        var wrong = await Assert.ThrowsAsync<AuthenticationFailedException>(() =>
-            scope.Auth.LoginAsync(new LoginRequest { Email = "admin@test.local", Password = "Parola123" }));
+        var unknown = await Assert.ThrowsAsync<AuthenticationFailedException>(() => scope.Auth.LoginAsync(Student("yok@test.local", "Parola123")));
+        var wrong = await Assert.ThrowsAsync<AuthenticationFailedException>(() => scope.Auth.LoginAsync(Student("mehmet@test.local", "Parola123")));
 
-        Assert.Equal(unknown.Message, wrong.Message);   // hangisinin yanlış olduğu sızdırılmaz
+        Assert.Equal(unknown.Message, wrong.Message);
+    }
+
+    // ─── Personel girişi: sicil numarası ──────────────────────────────────────
+
+    [Fact]
+    public async Task StaffLogin_WithRegistryNumber_Succeeds_ButEmailIsNotAccepted()
+    {
+        using var db = new TestDb();
+        TestData.Seed(db);
+        using var scope = db.NewScope();
+
+        var response = await scope.Auth.LoginAsync(Staff(" 300001 ", TestData.Password, UserRole.Advisor));
+        Assert.Equal("Advisor", response.User.Role);
+        Assert.Equal("300001", response.User.RegistryNumber);
+
+        await Assert.ThrowsAsync<AuthenticationFailedException>(() =>
+            scope.Auth.LoginAsync(Staff("advisor@test.local", TestData.Password, UserRole.Advisor)));
+    }
+
+    [Fact]
+    public async Task StaffLogin_WithWrongPassword_SaysSicilOrPasswordIsWrong()
+    {
+        using var db = new TestDb();
+        TestData.Seed(db);
+        using var scope = db.NewScope();
+
+        var ex = await Assert.ThrowsAsync<AuthenticationFailedException>(() => scope.Auth.LoginAsync(Staff("100001", "Yanlis123", UserRole.FacultyAdmin)));
+        Assert.Contains("Sicil", ex.Message);
     }
 
     [Fact]
@@ -313,24 +226,11 @@ public class AuthServiceTests
         }
 
         using var scope = db.NewScope();
-        var ex = await Assert.ThrowsAsync<ForbiddenException>(() =>
-            scope.Auth.LoginAsync(new LoginRequest { Email = "advisor@test.local", Password = TestData.Password }));
+        var ex = await Assert.ThrowsAsync<ForbiddenException>(() => scope.Auth.LoginAsync(Staff("300001", TestData.Password, UserRole.Advisor)));
         Assert.Contains("Hesabınız aktif değil", ex.Message);
-    }
 
-    [Fact]
-    public async Task Login_WithMatchingRole_Succeeds()
-    {
-        using var db = new TestDb();
-        TestData.Seed(db);
-        using var scope = db.NewScope();
-
-        var response = await scope.Auth.LoginAsync(new LoginRequest
-        {
-            Email = "advisor@test.local", Password = TestData.Password, Role = UserRole.Advisor
-        });
-
-        Assert.Equal("Advisor", response.User.Role);
+        // Yanlış parolada hesabın durumu açıklanmaz.
+        await Assert.ThrowsAsync<AuthenticationFailedException>(() => scope.Auth.LoginAsync(Staff("300001", "Yanlis123", UserRole.Advisor)));
     }
 
     [Fact]
@@ -340,23 +240,17 @@ public class AuthServiceTests
         TestData.Seed(db);
 
         using (var scope = db.NewScope())
-        {
-            // Danışman hesabı, fakülte giriş sayfasından girmeye çalışıyor.
-            await Assert.ThrowsAsync<ForbiddenException>(() => scope.Auth.LoginAsync(new LoginRequest
-            {
-                Email = "advisor@test.local", Password = TestData.Password, Role = UserRole.FacultyAdmin
-            }));
-        }
+            await Assert.ThrowsAsync<ForbiddenException>(() => scope.Auth.LoginAsync(Staff("300001", TestData.Password, UserRole.FacultyAdmin)));
 
         using var verify = db.NewContext();
         Assert.True(await verify.AuditLogs.AnyAsync(a => a.Action == AuditActions.LoginFailed));
-        Assert.Null((await verify.Users.SingleAsync(u => u.Email == "advisor@test.local")).LastLoginAt);
+        Assert.Null((await verify.Users.SingleAsync(u => u.RegistryNumber == "300001")).LastLoginAt);
     }
 
-    // ─── Parola değiştirme ────────────────────────────────────────────────────
+    // ─── Şifre değiştirme ─────────────────────────────────────────────────────
 
     [Fact]
-    public async Task ChangePassword_WithCorrectCurrent_ChangesPassword()
+    public async Task ChangePassword_ForStaff_WithCorrectCurrent_ChangesPassword()
     {
         using var db = new TestDb();
         var seed = TestData.Seed(db);
@@ -367,9 +261,8 @@ public class AuthServiceTests
 
         db.Current.Anonymous();
         using var login = db.NewScope();
-        await login.Auth.LoginAsync(new LoginRequest { Email = "advisor@test.local", Password = "YeniParola9" });
-        await Assert.ThrowsAsync<AuthenticationFailedException>(() =>
-            login.Auth.LoginAsync(new LoginRequest { Email = "advisor@test.local", Password = TestData.Password }));
+        await login.Auth.LoginAsync(Staff("300001", "YeniParola9", UserRole.Advisor));
+        await Assert.ThrowsAsync<AuthenticationFailedException>(() => login.Auth.LoginAsync(Staff("300001", TestData.Password, UserRole.Advisor)));
     }
 
     [Fact]
@@ -386,5 +279,18 @@ public class AuthServiceTests
             scope.Auth.ChangePasswordAsync(new ChangePasswordRequest { CurrentPassword = TestData.Password, NewPassword = "12345678" }));
         await Assert.ThrowsAsync<DomainValidationException>(() =>
             scope.Auth.ChangePasswordAsync(new ChangePasswordRequest { CurrentPassword = TestData.Password, NewPassword = TestData.Password }));
+    }
+
+    [Fact]
+    public async Task ChangePassword_ForStudent_IsForbidden_BecauseItIsTheObisPassword()
+    {
+        using var db = new TestDb();
+        var seed = TestData.Seed(db);
+        db.Current.As(UserRole.Student, seed.MehmetUserId);
+        using var scope = db.NewScope();
+
+        var ex = await Assert.ThrowsAsync<ForbiddenException>(() =>
+            scope.Auth.ChangePasswordAsync(new ChangePasswordRequest { CurrentPassword = TestData.Password, NewPassword = "YeniParola9" }));
+        Assert.Contains("OBİS", ex.Message);
     }
 }

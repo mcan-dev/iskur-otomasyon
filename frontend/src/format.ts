@@ -1,4 +1,4 @@
-import type { CourseSession, LeaveStatus, LeaveType, PlanStatus, PlannedDayOutcome, TaskStatus, TerminationBasis } from './api/types';
+import type { CourseSession, LeaveStatus, PlanStatus, PlannedDayOutcome, TaskStatus, TerminationBasis } from './api/types';
 
 const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
 export const monthName = (m: number) => months[m - 1] ?? '';
@@ -29,8 +29,7 @@ export function isoDate(d: Date): string {
 export const todayIso = () => isoDate(new Date());
 
 export const planStatusLabels: Record<PlanStatus, string> = { Pending: 'Onay bekliyor', Approved: 'Onaylandı', Rejected: 'Reddedildi' };
-export const leaveStatusLabels: Record<LeaveStatus, string> = { Pending: 'Onay bekliyor', Approved: 'Onaylandı', Rejected: 'Reddedildi', Cancelled: 'İptal edildi' };
-export const leaveTypeLabels: Record<LeaveType, string> = { Excuse: 'Mazeret izni', Health: 'Sağlık izni', Other: 'Diğer' };
+export const leaveStatusLabels: Record<LeaveStatus, string> = { Approved: 'Geçerli', Cancelled: 'İptal edildi' };
 export const courseSessionLabels: Record<CourseSession, string> = { FullDay: 'Tam gün', Morning: 'Öğleden önce', Afternoon: 'Öğleden sonra' };
 export const taskStatusLabels: Record<TaskStatus, string> = { Open: 'Açık', Completed: 'Tamamlandı', NotCompleted: 'Tamamlanmadı' };
 export const outcomeLabels: Record<PlannedDayOutcome, string> = {
@@ -54,7 +53,7 @@ export const weekdays = [
 
 type Tone = 'green' | 'amber' | 'red' | 'gray' | 'blue';
 export const planTone: Record<PlanStatus, Tone> = { Pending: 'amber', Approved: 'green', Rejected: 'red' };
-export const leaveTone: Record<LeaveStatus, Tone> = { Pending: 'amber', Approved: 'green', Rejected: 'red', Cancelled: 'gray' };
+export const leaveTone: Record<LeaveStatus, Tone> = { Approved: 'green', Cancelled: 'gray' };
 export const taskTone: Record<TaskStatus, Tone> = { Open: 'blue', Completed: 'green', NotCompleted: 'red' };
 export const outcomeTone: Record<PlannedDayOutcome, Tone> = {
   Attended: 'green', OnLeave: 'blue', RecordedAbsence: 'red', Missing: 'amber', Pending: 'gray', Upcoming: 'gray',
@@ -70,7 +69,7 @@ export const reportKinds: { id: string; label: string; needsMonth?: boolean }[] 
   { id: 'MonthlyWork', label: 'Aylık çalışma (planlanan / gerçekleşen)', needsMonth: true },
   { id: 'YearlyWork', label: 'Yıllık çalışma saati' },
   { id: 'LeaveAndAbsence', label: 'İzin ve devamsızlık' },
-  { id: 'Advisor', label: 'Danışman özeti' },
+  { id: 'Advisor', label: 'Sorumlu personel özeti' },
   { id: 'StudentList', label: 'Öğrenci listesi (aktif / pasif)' },
   { id: 'NearLeaveLimit', label: 'İzin sınırına yaklaşanlar' },
   { id: 'TerminationReview', label: 'İlişik kesme incelemesi' },

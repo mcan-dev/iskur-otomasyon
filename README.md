@@ -32,6 +32,7 @@ Veritabanı (`iskurauto.db`) ilk çalıştırmada oluşur, migration'lar kendili
 
 ```bash
 dotnet user-secrets set "JwtSettings:SecretKey" "<en az 32 karakter>" --project src/IskurAuto.API
+dotnet user-secrets set "Bootstrap:AdminRegistryNumber" "100001" --project src/IskurAuto.API
 dotnet user-secrets set "Bootstrap:AdminEmail" "admin@ornek.edu.tr" --project src/IskurAuto.API
 dotnet user-secrets set "Bootstrap:AdminPassword" "<güçlü parola>" --project src/IskurAuto.API
 ```
@@ -42,18 +43,17 @@ Frontend adresi `Cors:AllowedOrigins` içine eklenir. Çalışma planı kurallar
 
 ## Demo hesaplar
 
-Yalnızca Development'ta oluşur, parola `Demo1234!`:
+Yalnızca Development'ta oluşur, şifre `Demo1234!`. Sistemde kayıt olma yoktur: öğrenci öğrenci e-postası ve OBİS şifresiyle, personel sicil numarasıyla giriş yapar (bilgiler bilgi işlemden alınır; demo hesaplar sahtedir).
 
-| Rol | E-posta |
+| Rol (arayüzdeki adı) | Giriş |
 |---|---|
-| Fakülte Sekreterliği | sekreter@teknoloji.edu.tr |
-| Bölüm Başkanı | baskan.bm@teknoloji.edu.tr (Bilgisayar); baskan.eem@, baskan.mak@, baskan.mek@, baskan.met@ ile diğer bölümler |
-| Danışman | danisman.bm@teknoloji.edu.tr (öğrencisi Mehmet, Burak) |
-| Öğrenci | ogrenci@teknoloji.edu.tr (en dolu hesap), ogrenci2@, burak.sahin@ (izin hakkına yakın, Kasım planı ve bugünkü devamı var), selin.celik@ (izin sınırını aşmış, Elektrik-Elektronik), zeynep.acar@ (Bilgisayar), emre.demir@ (Elektrik-Elektronik), berkay.sonmez@ (Makine), merve.tuna@ (Mekatronik), oguz.kara@ (Metalurji), ahmet.kilic@ (Mekatronik), fatma.gunes@ (Metalurji) — hepsi @teknoloji.edu.tr |
-| Danışman (diğer) | danisman2.bm@, danisman.mak@, danisman.eem@, danisman.mek@, danisman.met@ teknoloji.edu.tr |
-| Onay bekleyen danışmanlar (giriş yapamaz, "Hesabınız aktif değil" der; sekreterlik onaylayınca girer) | bekleyen.danisman@, bekleyen.danisman2@teknoloji.edu.tr |
+| Fakülte Sekreterliği | sicil **100001** |
+| Birim yetkilisi (eski adıyla bölüm başkanı) | sicil **200001** (Bilgisayar); 200002 EEM, 200003 Makine, 200004 Mekatronik, 200005 Metalurji |
+| Sorumlu personel (eski adıyla danışman) | sicil **300001** (Bilgisayar; öğrencileri Mehmet, Burak); 300002 BM, 300003 Makine, 300004 EEM, 300005 Mekatronik, 300006 Metalurji |
+| Pasif personel ("Hesabınız aktif değil" der) | sicil 300007, 300008 |
+| Öğrenci | **230000001@ogr.selcuk.edu.tr** (Mehmet, en dolu hesap), 240000002@ (Elif), 250000003@ (Burak), 260000004@ (Selin, izin sınırını aşmış), 230000005@ (Kerem), 250000006@ (Ahmet), 240000007@ (Fatma), 300000011@ (Zeynep), 310000022@ (Emre), 320000033@ (Berkay), 330000044@ (Merve), 340000055@ (Oğuz) — hepsi `@ogr.selcuk.edu.tr` |
 
-Başvuru onayı: Fakülte Sekreterliği girişi, soldaki menüden **Hesap Başvuruları**, satırda "Onayla" veya "Reddet". Ana sayfada bekleyen başvuru varsa uyarı çıkar. Fakülte sekreterliği hesabı kendi kendine başvuruyla açılamaz; ilk hesap kurulumda (`Bootstrap`), sonrakiler "Tanımlar ve Hesaplar > Personel hesapları > Yeni personel" ile açılır.
+Yeni öğrenci: Fakülte Sekreterliği > **Öğrenciler > Öğrenci ekle** (öğrenci e-postası ve OBİS şifresi bilgi işlemden). Yeni personel: **Tanımlar ve Hesaplar > Personel hesapları > Yeni personel** (sicil no zorunlu). İlk sekreterlik hesabı kurulumda `Bootstrap` ayarlarıyla açılır.
 
 ## Testler
 
@@ -81,7 +81,8 @@ dotnet test
 
 - Hesap kilitleme yok.
 - Parola sıfırlama isteği için istek sınırı (rate limit) yok; bağlantı tek kullanımlıktır ve 30 dakika geçerlidir.
-- E-posta alan adı kısıtı yoktur (gereksinim dokümanında zorunlu değil); kuruma ait adresle sınırlamak istenirse kayıt doğrulamasına eklenir.
+- OBİS ile canlı bağlantı yoktur: öğrencinin OBİS şifresinin özeti, bilgi işlemden gelen bilgiyle sekreterlik tarafından girilir. OBİS'te şifre değişirse sekreterlik öğrencinin sayfasından yeni şifreyi girer. Gerçek OBİS doğrulaması bilgi işlemin sağlayacağı bir servisle eklenebilir.
+- IBAN sahipliği bankadan doğrulanamaz; öğrenci hesap sahibi adını yazar ve beyanda bulunur. Enpara'nın Enpara Bank'a geçmeden önceki eski IBAN'ları QNB koduyla (00111) başladığı için ayırt edilemez.
 - Token süresi dolana kadar eski rol geçerli kalır (varsayılan 120 dk).
 - TC ve IBAN veritabanında düz saklanıyor, yalnızca gösterimde maskeleniyor. TC için NVİ doğrulaması yok.
 - Öğrenci kaydı onaysız.

@@ -68,6 +68,52 @@ public static class IbanValidator
 }
 
 /// <summary>
+/// IBAN'ın ait olduğu bankanın kontrolü. Türk IBAN'ında 5-9. haneler banka (EFT/FAST katılımcı) kodudur.
+/// Yalnızca şubesi olan (fiziki) bankaların hesapları kabul edilir; şubesiz dijital bankalar ve
+/// elektronik para kuruluşları (Papara vb.) reddedilir. Kodlar TCMB FAST katılımcı listesinden alınmıştır.
+/// Not: Enpara'nın Enpara Bank'a geçmeden önceki eski IBAN'ları QNB'nin koduyla (00111) başlar ve
+/// QNB hesaplarından ayırt edilemez; bunlar bu kontrolden geçer.
+/// </summary>
+public static class IbanBankRules
+{
+    private static readonly Dictionary<string, string> DigitalBanks = new()
+    {
+        ["00157"] = "Enpara Bank",
+        ["00158"] = "Colendi Bank",
+        ["00159"] = "Fups Bank",
+        ["00160"] = "Ziraat Dinamik Banka",
+        ["00212"] = "Hayat Finans Katılım Bankası",
+        ["00213"] = "T.O.M. Katılım Bankası",
+        ["00214"] = "Dünya Katılım Bankası"
+    };
+
+    /// <param name="normalized">Geçerli, normalize edilmiş IBAN.</param>
+    public static string BankCode(string normalized) => normalized.Length >= 9 ? normalized.Substring(4, 5) : string.Empty;
+
+    /// <summary>Sanal/dijital banka veya elektronik para kuruluşu ise kullanıcıya gösterilecek hata; değilse null.</summary>
+    public static string? VirtualBankError(string normalized)
+    {
+        var code = BankCode(normalized);
+        if (DigitalBanks.TryGetValue(code, out var name))
+            return $"{name} gibi şubesiz dijital bankaların hesapları kabul edilmez. Şubesi olan bir bankadaki kendi hesabınızın IBAN'ını giriniz.";
+
+        // 008xx ve 009xx kodları banka değil, elektronik para / ödeme kuruluşudur (Papara, Turkcell Paycell vb.).
+        if (int.TryParse(code, out var number) && number >= 800)
+            return "Elektronik para kuruluşlarının (Papara vb.) hesapları kabul edilmez. Şubesi olan bir bankadaki kendi hesabınızın IBAN'ını giriniz.";
+
+        return null;
+    }
+
+    /// <summary>Hesap sahibi adı, öğrencinin adıyla (büyük/küçük harf ve boşluk farkı gözetmeden) aynı mı?</summary>
+    public static bool HolderMatches(string? holderName, string studentName)
+        => Simplify(holderName) == Simplify(studentName) && Simplify(holderName).Length > 0;
+
+    private static string Simplify(string? value)
+        => new string((value ?? string.Empty).Where(c => !char.IsWhiteSpace(c)).ToArray())
+            .ToUpper(new System.Globalization.CultureInfo("tr-TR"));
+}
+
+/// <summary>
 /// Parola kuralı: en az 8 karakter, en az bir harf ve bir rakam.
 /// Neden uzunluk odaklı: modern öneri (NIST) karmaşık sembol zorlamak yerine yeterli uzunluktur.
 /// </summary>
@@ -111,6 +157,10 @@ public static class InputNormalizer
         else if (digits.Length == 10 && digits[0] == '5') digits = "0" + digits;
         return digits;
     }
+
+    /// <summary>Sicil numarası: kırp, boşlukları sil, büyük harf.</summary>
+    public static string RegistryNumber(string? value)
+        => new string((value ?? string.Empty).Where(c => !char.IsWhiteSpace(c)).ToArray()).ToUpperInvariant();
 
     public static bool IsValidMobile(string normalizedPhone) => MobilePattern.IsMatch(normalizedPhone);
 }

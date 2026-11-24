@@ -4,12 +4,13 @@ export interface User {
   id: number;
   fullName: string;
   email: string;
+  /** Personel sicil numarası; öğrencide boş. */
+  registryNumber?: string | null;
   phoneNumber?: string | null;
   role: Role;
   departmentId?: number | null;
   departmentName?: string | null;
   isActive: boolean;
-  isPendingApproval?: boolean;
 }
 
 export interface LoginResponse {
@@ -68,23 +69,10 @@ export interface LeaveBalance {
   year: number;
   limit: number;
   used: number;
-  pending: number;
   remaining: number;
   leaveDays: number;
   absenceDays: number;
   warnings: Warning[];
-}
-
-export interface RegistrationRequest {
-  fullName: string;
-  email: string;
-  password: string;
-  phoneNumber: string;
-  nationalId: string;
-  iban?: string;
-  studentNumber: string;
-  departmentId: number;
-  registrationYear: number;
 }
 
 export interface LeaveAlert {
@@ -154,32 +142,95 @@ export interface WorkPlan {
   days: WorkPlanDay[];
 }
 
-export type LeaveType = 'Excuse' | 'Health' | 'Other';
-export type LeaveStatus = 'Pending' | 'Approved' | 'Rejected' | 'Cancelled';
+export type LeaveStatus = 'Approved' | 'Cancelled';
 
+/** Bir izin günü (her gün ayrı kayıttır; onay beklemez). */
 export interface Leave {
   id: number;
   studentId?: number;
   studentName?: string;
+  studentNumber?: string;
   departmentName?: string;
-  type: LeaveType;
   status: LeaveStatus;
   startDate: string;
   endDate: string;
   daysCounted: number;
-  reason: string;
   description?: string | null;
   appliedOn: string;
-  reviewedByName?: string | null;
-  reviewedAt?: string | null;
-  reviewNote?: string | null;
-  hasDocument: boolean;
-  documentFileName?: string | null;
+  cancelledByName?: string | null;
+  cancelledAt?: string | null;
+  cancelNote?: string | null;
 }
 
-export interface LeaveResult {
-  leave: Leave;
+export interface LeaveCalendarDay {
+  date: string;
+  isWorkDay: boolean;
+  isOnLeave: boolean;
+  canSelect: boolean;
+}
+
+export interface LeaveCalendar {
+  year: number;
+  month: number;
+  hasApprovedPlan: boolean;
+  days: LeaveCalendarDay[];
   balance: LeaveBalance;
+}
+
+export interface WorkLifetime {
+  studentId: number;
+  limit: number;
+  workedDays: number;
+  upcomingPlannedDays: number;
+  remainingDays: number;
+}
+
+export interface AttendanceSchedule {
+  morningStart: string;
+  morningEnd: string;
+  eveningStart: string;
+  eveningEnd: string;
+}
+
+export type DisplayWindow = 'Closed' | 'Morning' | 'Evening';
+
+export interface AttendanceDisplay {
+  window: DisplayWindow;
+  title: string;
+  windowStart?: string | null;
+  windowEnd?: string | null;
+  nextWindow?: string | null;
+  qr?: QrCode | null;
+  schedule: AttendanceSchedule;
+}
+
+export type RosterStatus = 'Planned' | 'Attended' | 'OnLeave' | 'Missing';
+
+export interface WorkRoster {
+  year: number;
+  month: number;
+  days: {
+    date: string;
+    students: { studentId: number; studentName: string; studentNumber: string; departmentName: string; status: RosterStatus }[];
+  }[];
+}
+
+export interface YearWorkers {
+  year: number;
+  students: {
+    studentId: number;
+    studentName: string;
+    studentNumber: string;
+    departmentName: string;
+    plannedDays: number;
+    workedDays: number;
+    leaveDays: number;
+  }[];
+}
+
+export interface BulkAssignResult {
+  assigned: number;
+  errors: { studentId: number; studentName: string; message: string }[];
 }
 
 export interface Absence {

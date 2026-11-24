@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using IskurAuto.Core.Constants;
 using IskurAuto.Core.Entities;
+using IskurAuto.Core.Enums;
 using IskurAuto.Core.Exceptions;
 using IskurAuto.Core.Interfaces;
 using IskurAuto.Core.Models;
@@ -43,11 +44,15 @@ public class PasswordResetService : IPasswordResetService
 
     public async Task RequestAsync(ForgotPasswordRequest request, CancellationToken ct = default)
     {
-        var address = InputNormalizer.Email(request.Email);
-        var user = await _users.GetByEmailAsync(address, ct);
+        // Personel e-postasını ya da sicil numarasını yazabilir.
+        var input = request.Email ?? string.Empty;
+        var user = input.Contains('@')
+            ? await _users.GetByEmailAsync(InputNormalizer.Email(input), ct)
+            : await _users.GetByRegistryNumberAsync(InputNormalizer.RegistryNumber(input), ct);
 
         // Kayıtlı olmayan veya pasif hesapta sessizce çıkılır; dışarıdan bakan fark göremez.
-        if (user is null || !user.IsActive) return;
+        // Öğrencinin şifresi OBİS şifresidir; OBİS üzerinden yenilenir, buradan sıfırlanmaz.
+        if (user is null || !user.IsActive || user.Role == UserRole.Student) return;
 
         var now = _clock.UtcNow;
         foreach (var open in await _tokens.GetUnusedForUserAsync(user.Id, ct))

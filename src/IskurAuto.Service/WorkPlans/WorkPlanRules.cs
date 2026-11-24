@@ -9,7 +9,10 @@ public enum DayBlock
     None,
     Weekend,
     Holiday,
-    OutsideProgram
+    OutsideProgram,
+
+    /// <summary>Öğrencinin o gün tam gün dersi var; çalışma günü seçilemez.</summary>
+    FullDayLesson
 }
 
 public sealed record ProgramPeriod(DateOnly Start, DateOnly? End);
@@ -56,6 +59,7 @@ public sealed class PlanMonth
         if (date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday) return DayBlock.Weekend;
         if (_holidays.Contains(date)) return DayBlock.Holiday;
         if (!_programPeriods.Any(p => date >= p.Start && (p.End is null || date <= p.End))) return DayBlock.OutsideProgram;
+        if (LessonSession(date) == CourseSession.FullDay) return DayBlock.FullDayLesson;
         return DayBlock.None;
     }
 
@@ -100,6 +104,7 @@ public static class WorkPlanRules
                 DayBlock.Weekend => "hafta sonu olduğu için",
                 DayBlock.Holiday => "resmî tatil olduğu için",
                 DayBlock.OutsideProgram => "programa katılım döneminin dışında kaldığı için",
+                DayBlock.FullDayLesson => "tam gün dersiniz olduğu için",
                 _ => null
             };
 

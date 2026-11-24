@@ -12,12 +12,10 @@ using IskurAuto.Service.Validation;
 
 namespace IskurAuto.Service.Implementations;
 
-/// <summary>Giriş, öğrenci kaydı ve parola değiştirme.</summary>
+/// <summary>Giriş (öğrenci e-postası + OBİS şifresi, personel sicil no + şifre) ve personel şifre değiştirme.</summary>
 public class AuthService : IAuthService
 {
     private readonly IUserRepository _users;
-    private readonly IStudentRepository _students;
-    private readonly IDepartmentRepository _departments;
     private readonly IUnitOfWork _uow;
     private readonly IPasswordHasher _hasher;
     private readonly ITokenService _tokens;
@@ -26,13 +24,10 @@ public class AuthService : IAuthService
     private readonly ICurrentUser _current;
 
     public AuthService(
-        IUserRepository users, IStudentRepository students, IDepartmentRepository departments,
-        IUnitOfWork uow, IPasswordHasher hasher, ITokenService tokens,
+        IUserRepository users, IUnitOfWork uow, IPasswordHasher hasher, ITokenService tokens,
         IClock clock, IAuditService audit, ICurrentUser current)
     {
         _users = users;
-        _students = students;
-        _departments = departments;
         _uow = uow;
         _hasher = hasher;
         _tokens = tokens;
@@ -43,41 +38,49 @@ public class AuthService : IAuthService
 
     public async Task<LoginResponse> LoginAsync(LoginRequest request, CancellationToken ct = default)
     {
-        var email = InputNormalizer.Email(request.Email);
-        var user = await _users.GetByEmailAsync(email, ct);
+        if (!Enum.IsDefined(request.Role))
+            throw new DomainValidationException(nameof(request.Role), "Giriş türü seçilmelidir.");
+
+        // Öğrenci öğrenci e-postasıyla, personel sicil numarasıyla girer.
+        var isStudentLogin = request.Role == UserRole.Student;
+        var username = isStudentLogin
+            ? InputNormalizer.Email(request.Username)
+            : InputNormalizer.RegistryNumber(request.Username);
+
+        var user = isStudentLogin
+            ? await _users.GetByEmailAsync(username, ct)
+            : await _users.GetByRegistryNumberAsync(username, ct);
 
         // Kullanıcı yoksa bile sahte özet üzerinde doğrulama yapılır: yanıt süresi aynı kalır,
-        // saldırgan "bu e-posta kayıtlı mı?" bilgisini süreden çıkaramaz.
+        // saldırgan "bu hesap kayıtlı mı?" bilgisini süreden çıkaramaz.
         var passwordOk = _hasher.Verify(user?.PasswordHash ?? _hasher.DummyHash, request.Password);
 
-        // Parolası doğru olan ama hesabı aktif olmayan kişiye nedeni söylemek güvenlidir: parolayı zaten biliyor,
-        // yalnızca neden giremediğini öğreniyor. Parola yanlışsa hep aynı genel mesaj verilir.
+        // Parolası doğru olan ama hesabı aktif olmayan kişiye nedeni söylemek güvenlidir: parolayı zaten biliyor.
         if (user is { IsActive: false } && passwordOk)
         {
             await _audit.RecordAsync(AuditActions.LoginFailed, nameof(User), user.Id,
-                user.IsPendingApproval ? "Onay bekleyen hesapla giriş denemesi." : "Pasif hesapla giriş denemesi.",
-                actorUserId: user.Id, actorEmail: email, ct: ct);
+                "Pasif hesapla giriş denemesi.", actorUserId: user.Id, actorEmail: user.Email, ct: ct);
             await _uow.SaveChangesAsync(ct);
-            throw new ForbiddenException(user.IsPendingApproval
-                ? "Hesabınız aktif değil: başvurunuz fakülte sekreterliği onayını bekliyor. Onaylandığında giriş yapabilirsiniz."
-                : "Hesabınız aktif değil. Lütfen fakülte sekreterliği ile iletişime geçin.");
+            throw new ForbiddenException("Hesabınız aktif değil. Lütfen fakülte sekreterliği ile iletişime geçin.");
         }
 
         if (user is null || !passwordOk || !user.IsActive)
         {
             await _audit.RecordAsync(AuditActions.LoginFailed, nameof(User), user?.Id,
-                "Başarısız giriş denemesi.", actorUserId: user?.Id, actorEmail: email, ct: ct);
+                "Başarısız giriş denemesi.", actorUserId: user?.Id, actorEmail: user?.Email, ct: ct);
             await _uow.SaveChangesAsync(ct);
 
             // Hangi koşulun başarısız olduğu söylenmez: hep aynı mesaj.
-            throw new AuthenticationFailedException();
+            throw new AuthenticationFailedException(isStudentLogin
+                ? "Öğrenci e-postası veya OBİS şifresi hatalı."
+                : "Sicil numarası veya şifre hatalı.");
         }
 
         // Parola doğru ama hesap bu giriş sayfasının rolünde değil: jeton verilmez.
-        if (request.Role is { } expected && user.Role != expected)
+        if (user.Role != request.Role)
         {
             await _audit.RecordAsync(AuditActions.LoginFailed, nameof(User), user.Id,
-                "Hesap, giriş sayfasının rolüyle eşleşmiyor.", actorUserId: user.Id, actorEmail: email, ct: ct);
+                "Hesap, giriş sayfasının rolüyle eşleşmiyor.", actorUserId: user.Id, actorEmail: user.Email, ct: ct);
             await _uow.SaveChangesAsync(ct);
             throw new ForbiddenException("Bu hesap bu giriş türü için yetkili değil. Lütfen kendi rolünüzün giriş sayfasını kullanın.");
         }
@@ -96,133 +99,6 @@ public class AuthService : IAuthService
         };
     }
 
-    public async Task<RegistrationResultDto> RegisterStudentAsync(StudentRegistrationRequest request, CancellationToken ct = default)
-    {
-        // 1) Normalizasyon: girdiyi tek biçime getir (boşluk, büyük/küçük harf, telefon biçimi).
-        var email = InputNormalizer.Email(request.Email);
-        var fullName = InputNormalizer.Name(request.FullName);
-        var phone = InputNormalizer.Phone(request.PhoneNumber);
-        var iban = IbanValidator.Normalize(request.Iban);
-        var nationalId = (request.NationalId ?? string.Empty).Trim();
-        var studentNumber = (request.StudentNumber ?? string.Empty).Trim();
-
-        // 2) Anlamsal doğrulama: tüm hatalar toplanır, kullanıcı formda hepsini birden görür.
-        var errors = new ValidationErrors();
-        if (fullName.Length < 2) errors.Add(nameof(request.FullName), "Ad soyad en az 2 karakter olmalıdır.");
-        errors.Add(nameof(request.Password), PasswordPolicy.Validate(request.Password));
-        if (!NationalIdValidator.IsValid(nationalId))
-            errors.Add(nameof(request.NationalId), "T.C. kimlik numarası geçersiz.");
-        if (iban.Length > 0 && !IbanValidator.IsValid(iban))
-            errors.Add(nameof(request.Iban), "IBAN geçersiz. TR ile başlayan, 26 haneli geçerli bir IBAN giriniz.");
-        if (!InputNormalizer.IsValidMobile(phone))
-            errors.Add(nameof(request.PhoneNumber), "Geçerli bir cep telefonu numarası giriniz (örn. 0532 123 45 67).");
-        if (studentNumber.Length is < 3 or > 9)
-            errors.Add(nameof(request.StudentNumber), "Öğrenci numarası 3 ile 9 karakter arasında olmalıdır.");
-        if (request.RegistrationYear > _clock.Today.Year)
-            errors.Add(nameof(request.RegistrationYear), "Kayıt yılı içinde bulunulan yıldan sonra olamaz.");
-
-        var department = await _departments.GetByIdAsync(request.DepartmentId);
-        if (department is null || !department.IsActive)
-            errors.Add(nameof(request.DepartmentId), "Seçilen bölüm bulunamadı.");
-
-        errors.ThrowIfAny();
-
-        // 3) Mükerrer kayıt kontrolü (veritabanındaki benzersiz indeksler ikinci güvence).
-        if (await _users.EmailExistsAsync(email, ct))
-            throw new ConflictException("Bu e-posta adresiyle kayıtlı bir hesap zaten var.");
-        if (await _students.NationalIdExistsAsync(nationalId, ct))
-            throw new ConflictException("Bu T.C. kimlik numarasıyla kayıtlı bir öğrenci zaten var.");
-        if (await _students.StudentNumberExistsAsync(studentNumber, ct))
-            throw new ConflictException("Bu öğrenci numarasıyla kayıtlı bir öğrenci zaten var.");
-
-        // 4) Üç kayıt (kullanıcı, profil, ilk katılım dönemi) tek işlemde yazılır.
-        var profile = new StudentProfile
-        {
-            User = new User
-            {
-                FullName = fullName,
-                Email = email,
-                PhoneNumber = phone,
-                PasswordHash = _hasher.Hash(request.Password),
-                Role = UserRole.Student,
-                IsActive = true
-            },
-            NationalId = nationalId,
-            Iban = iban,
-            StudentNumber = studentNumber,
-            DepartmentId = department!.Id,
-            RegistrationYear = request.RegistrationYear
-        };
-        profile.Participations.Add(new ProgramParticipation { StartDate = _clock.Today });
-
-        await _students.AddAsync(profile);
-
-        // Denetim kaydı yeni Id'yi bilmek ister; bu yüzden önce kaydedilir, sonra denetim yazılır.
-        // İkisi aynı işlem (transaction) içinde olduğundan biri başarısızsa ikisi de geri alınır.
-        await using var tx = await _uow.BeginTransactionAsync(ct);
-        await _uow.SaveChangesAsync(ct);
-        await _audit.RecordAsync(AuditActions.StudentRegistered, nameof(StudentProfile), profile.Id,
-            "Öğrenci kendi kaydını oluşturdu.", actorUserId: profile.UserId, actorEmail: email, ct: ct);
-        await _uow.SaveChangesAsync(ct);
-        await tx.CommitAsync(ct);
-
-        return new RegistrationResultDto { UserId = profile.UserId, StudentId = profile.Id, Email = email };
-    }
-
-    public async Task<StaffRegistrationResultDto> RegisterStaffAsync(StaffRegistrationRequest request, CancellationToken ct = default)
-    {
-        var email = InputNormalizer.Email(request.Email);
-        var fullName = InputNormalizer.Name(request.FullName);
-        var phone = InputNormalizer.Phone(request.PhoneNumber);
-        var needsDepartment = request.Role is UserRole.DepartmentHead or UserRole.Advisor;
-
-        var errors = new ValidationErrors();
-        // Fakülte sekreterliği hesabı kendi kendine açılamaz; mevcut bir sekreterlik hesabı tarafından açılır.
-        if (!Enum.IsDefined(request.Role) || request.Role is UserRole.Student or UserRole.FacultyAdmin)
-            errors.Add(nameof(request.Role), "Başvuru yalnızca danışman veya bölüm başkanı için yapılabilir. Fakülte sekreterliği hesapları sekreterlik tarafından açılır.");
-        if (fullName.Length < 2)
-            errors.Add(nameof(request.FullName), "Ad soyad en az 2 karakter olmalıdır.");
-        errors.Add(nameof(request.Password), PasswordPolicy.Validate(request.Password));
-        if (!InputNormalizer.IsValidMobile(phone))
-            errors.Add(nameof(request.PhoneNumber), "Geçerli bir cep telefonu numarası giriniz (örn. 0532 123 45 67).");
-
-        Department? department = null;
-        if (needsDepartment)
-        {
-            department = request.DepartmentId is int id ? await _departments.GetByIdAsync(id) : null;
-            if (department is null || !department.IsActive)
-                errors.Add(nameof(request.DepartmentId), "Bu rol için geçerli bir bölüm seçilmelidir.");
-        }
-        errors.ThrowIfAny();
-
-        if (await _users.EmailExistsAsync(email, ct))
-            throw new ConflictException("Bu e-posta adresiyle kayıtlı bir hesap zaten var.");
-
-        // Hesap pasif açılır: yetkili bir hesabın kendi kendine açılmasını önler.
-        var user = new User
-        {
-            FullName = fullName,
-            Email = email,
-            PhoneNumber = phone,
-            PasswordHash = _hasher.Hash(request.Password),
-            Role = request.Role,
-            DepartmentId = department?.Id,
-            Department = department,
-            IsActive = false,
-            IsPendingApproval = true
-        };
-        await _users.AddAsync(user);
-
-        await using var tx = await _uow.BeginTransactionAsync(ct);
-        await _uow.SaveChangesAsync(ct);
-        await _audit.RecordAsync(AuditActions.StaffRegistered, nameof(User), user.Id,
-            $"Rol: {TurkishText.Role(user.Role)}; fakülte onayı bekliyor.", actorUserId: user.Id, actorEmail: email, ct: ct);
-        await _uow.SaveChangesAsync(ct);
-        await tx.CommitAsync(ct);
-
-        return new StaffRegistrationResultDto { UserId = user.Id, Email = email, IsActive = false };
-    }
-
     public async Task ChangePasswordAsync(ChangePasswordRequest request, CancellationToken ct = default)
     {
         if (!_current.IsAuthenticated)
@@ -230,6 +106,10 @@ public class AuthService : IAuthService
 
         var user = await _users.GetByIdAsync(_current.UserId)
             ?? throw new NotFoundException("Kullanıcı bulunamadı.");
+
+        // Öğrencinin şifresi OBİS şifresidir; OBİS üzerinden değiştirilir, bu sistemde değiştirilemez.
+        if (user.Role == UserRole.Student)
+            throw new ForbiddenException("Öğrenci şifresi OBİS şifresidir; şifrenizi OBİS üzerinden değiştirebilirsiniz.");
 
         if (!_hasher.Verify(user.PasswordHash, request.CurrentPassword))
             throw new DomainValidationException(nameof(request.CurrentPassword), "Mevcut parola hatalı.");

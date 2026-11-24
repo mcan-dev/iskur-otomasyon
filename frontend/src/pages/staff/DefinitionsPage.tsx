@@ -1,5 +1,4 @@
 import { useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
 import { api, ApiError } from '../../api/client';
 import type { Department, ExamPeriod, Holiday, LeavePolicy, Role, User, WorkUnit } from '../../api/types';
 import { Alert, Badge, Card, Empty, Field, Modal, PhoneInput } from '../../components/ui';
@@ -169,7 +168,7 @@ const staffRoles: Exclude<Role, 'Student'>[] = ['FacultyAdmin', 'DepartmentHead'
 function Staff() {
   const [role, setRole] = useState('');
   const users = useLoad(() => api.get<User[]>(`/api/users${role ? `?role=${role}` : ''}`), [role]);
-  const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<User | 'new' | null>(null);
   const [error, setError] = useState('');
 
   async function toggle(u: User) {
@@ -183,9 +182,9 @@ function Staff() {
   }
 
   return (
-    <Card title="Personel hesapları" subtitle="Hesaplar silinmez; çalışmayanlar pasif yapılır. Öğrenciler kendileri kayıt olur.">
+    <Card title="Personel hesapları" subtitle="Personel sicil numarası ve şifresiyle giriş yapar. Sistemde kayıt olma yoktur; hesapları sekreterlik açar. Hesaplar silinmez, pasif yapılır.">
       <div className="row" style={{ marginBottom: 12 }}>
-        <button className="btn primary" onClick={() => setCreating(true)}>Yeni personel</button>
+        <button className="btn primary" onClick={() => setEditing('new')}>Yeni personel</button>
         <select value={role} onChange={(e) => setRole(e.target.value)}>
           <option value="">Tüm roller</option>
           {staffRoles.map((r) => <option key={r} value={r}>{roleLabels[r]}</option>)}
@@ -195,16 +194,18 @@ function Staff() {
       {users.data && (
         <div className="scroll-x">
           <table className="table">
-            <thead><tr><th>Ad soyad</th><th>E-posta</th><th>Rol</th><th>Bölüm</th><th>Durum</th><th /></tr></thead>
+            <thead><tr><th>Sicil no</th><th>Ad soyad</th><th>E-posta</th><th>Rol</th><th>Bölüm</th><th>Durum</th><th /></tr></thead>
             <tbody>
               {users.data.map((u) => (
                 <tr key={u.id}>
+                  <td>{u.registryNumber ?? '—'}</td>
                   <td>{u.fullName}</td><td>{u.email}</td><td>{roleLabels[u.role]}</td><td>{u.departmentName ?? '—'}</td>
-                  <td><Badge tone={u.isPendingApproval ? 'amber' : u.isActive ? 'green' : 'gray'}>{u.isPendingApproval ? 'Onay bekliyor' : u.isActive ? 'Aktif' : 'Pasif'}</Badge></td>
+                  <td><Badge tone={u.isActive ? 'green' : 'gray'}>{u.isActive ? 'Aktif' : 'Pasif'}</Badge></td>
                   <td className="right-cell">
-                    {u.isPendingApproval
-                      ? <Link className="btn small" to="/hesap-basvurulari">Başvuruya git</Link>
-                      : <button className="btn small" onClick={() => toggle(u)}>{u.isActive ? 'Pasif yap' : 'Aktif yap'}</button>}
+                    <div className="row">
+                      <button className="btn small" onClick={() => setEditing(u)}>Düzenle</button>
+                      <button className="btn small" onClick={() => toggle(u)}>{u.isActive ? 'Pasif yap' : 'Aktif yap'}</button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -212,40 +213,54 @@ function Staff() {
           </table>
         </div>
       )}
-      {creating && <StaffForm onClose={() => setCreating(false)} onDone={() => { setCreating(false); users.reload(); }} />}
+      {editing && (
+        <StaffForm user={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onDone={() => { setEditing(null); users.reload(); }} />
+      )}
     </Card>
   );
 }
 
-function StaffForm({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+/** Personel hesabı açma ve düzenleme (sekreterlik). */
+function StaffForm({ user, onClose, onDone }: { user: User | null; onClose: () => void; onDone: () => void }) {
   const departments = useLoad(() => api.get<Department[]>('/api/departments'), []);
-  const [v, setV] = useState({ fullName: '', email: '', phoneNumber: '', password: '', role: 'Advisor' as Exclude<Role, 'Student'>, departmentId: '' });
+  const [v, setV] = useState({
+    fullName: user?.fullName ?? '',
+    registryNumber: user?.registryNumber ?? '',
+    email: user?.email ?? '',
+    phoneNumber: user?.phoneNumber ?? '',
+    password: '',
+    role: (user?.role ?? 'Advisor') as Exclude<Role, 'Student'>,
+    departmentId: user?.departmentId ? String(user.departmentId) : '',
+  });
   const [error, setError] = useState('');
   const needsDepartment = v.role !== 'FacultyAdmin';
 
   async function submit(e: FormEvent) {
     e.preventDefault();
     setError('');
+    const body = {
+      fullName: v.fullName.trim(),
+      registryNumber: v.registryNumber.trim(),
+      email: v.email.trim(),
+      phoneNumber: v.phoneNumber.trim() || null,
+      role: v.role,
+      departmentId: needsDepartment ? Number(v.departmentId) : null,
+    };
     try {
-      await api.post('/api/users', {
-        fullName: v.fullName.trim(),
-        email: v.email.trim(),
-        phoneNumber: v.phoneNumber.trim() || null,
-        password: v.password,
-        role: v.role,
-        departmentId: needsDepartment ? Number(v.departmentId) : null,
-      });
+      if (user) await api.put(`/api/users/${user.id}`, { ...body, newPassword: v.password || null });
+      else await api.post('/api/users', { ...body, password: v.password });
       onDone();
     } catch (err) {
-      setError(msg(err, 'Hesap oluşturulamadı.'));
+      setError(msg(err, user ? 'Kaydedilemedi.' : 'Hesap oluşturulamadı.'));
     }
   }
 
   return (
-    <Modal title="Yeni personel hesabı" onClose={onClose}>
+    <Modal title={user ? 'Personel bilgilerini düzenle' : 'Yeni personel hesabı'} onClose={onClose}>
       <form onSubmit={submit}>
         {error && <Alert>{error}</Alert>}
         <Field label="Ad soyad"><input value={v.fullName} onChange={(e) => setV({ ...v, fullName: e.target.value })} required /></Field>
+        <Field label="Sicil numarası" hint="Personel bu numarayla giriş yapar."><input value={v.registryNumber} onChange={(e) => setV({ ...v, registryNumber: e.target.value })} required minLength={3} maxLength={20} /></Field>
         <Field label="E-posta"><input type="email" value={v.email} onChange={(e) => setV({ ...v, email: e.target.value })} required /></Field>
         <Field label="Telefon (isteğe bağlı)"><PhoneInput value={v.phoneNumber} onChange={(x) => setV({ ...v, phoneNumber: x })} /></Field>
         <Field label="Rol">
@@ -261,8 +276,10 @@ function StaffForm({ onClose, onDone }: { onClose: () => void; onDone: () => voi
             </select>
           </Field>
         )}
-        <Field label="Başlangıç parolası" hint="Kullanıcı daha sonra değiştirebilir."><input type="password" value={v.password} onChange={(e) => setV({ ...v, password: e.target.value })} required autoComplete="new-password" /></Field>
-        <button className="btn primary wide">Hesabı oluştur</button>
+        <Field label={user ? 'Yeni şifre (boş bırakılırsa değişmez)' : 'Başlangıç şifresi'} hint="En az 8 karakter, harf ve rakam.">
+          <input type="password" value={v.password} onChange={(e) => setV({ ...v, password: e.target.value })} required={!user} autoComplete="new-password" />
+        </Field>
+        <button className="btn primary wide">{user ? 'Kaydet' : 'Hesabı oluştur'}</button>
       </form>
     </Modal>
   );

@@ -14,8 +14,8 @@ public static class TurkishText
     public static string Role(UserRole role) => role switch
     {
         UserRole.Student => "Öğrenci",
-        UserRole.Advisor => "Danışman öğretim elemanı",
-        UserRole.DepartmentHead => "Bölüm başkanı",
+        UserRole.Advisor => "Sorumlu personel",
+        UserRole.DepartmentHead => "Birim yetkilisi",
         UserRole.FacultyAdmin => "Fakülte sekreterliği / dekanlık",
         _ => role.ToString()
     };
@@ -27,7 +27,7 @@ public static class TurkishText
         ReportKind.LeaveAndAbsence => "İzin ve devamsızlık raporu",
         ReportKind.NearLeaveLimit => "İzin sınırına yaklaşanlar listesi",
         ReportKind.TerminationReview => "İlişik kesme inceleme listesi",
-        ReportKind.Advisor => "Danışman özet raporu",
+        ReportKind.Advisor => "Sorumlu personel özet raporu",
         ReportKind.StudentList => "Öğrenci listesi",
         ReportKind.MonthlyStatement => "Ay sonu dökümü",
         _ => kind.ToString()

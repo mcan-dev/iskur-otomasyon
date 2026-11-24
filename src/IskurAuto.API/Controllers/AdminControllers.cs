@@ -18,13 +18,13 @@ public class UsersController : ControllerBase
 
     public UsersController(IUserService users) => _users = users;
 
-    /// <summary>Kullanıcı listesi. Bölüm başkanı yalnızca kendi bölümündekileri görür (danışman seçimi için).</summary>
+    /// <summary>Personel listesi. Birim yetkilisi yalnızca kendi bölümündekileri görür (sorumlu personel seçimi için).</summary>
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyList<UserDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<UserDto>>> Search([FromQuery] UserSearchQuery query, CancellationToken ct)
         => Ok(await _users.SearchAsync(query, ct));
 
-    /// <summary>Personel hesabı oluşturur (Fakülte yönetimi, Bölüm Başkanı veya Danışman).</summary>
+    /// <summary>Personel hesabı oluşturur (Fakülte sekreterliği, Birim yetkilisi veya Sorumlu personel); giriş sicil no ile.</summary>
     [HttpPost]
     [Authorize(Roles = AppRoles.FacultyAdmin)]
     [ProducesResponseType(typeof(UserDto), StatusCodes.Status201Created)]
@@ -35,6 +35,13 @@ public class UsersController : ControllerBase
         var created = await _users.CreateStaffAsync(request, ct);
         return StatusCode(StatusCodes.Status201Created, created);
     }
+
+    /// <summary>Personel bilgilerini (ad, sicil no, e-posta, rol, bölüm, şifre) düzenler.</summary>
+    [HttpPut("{id:int}")]
+    [Authorize(Roles = AppRoles.FacultyAdmin)]
+    [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<UserDto>> UpdateStaff(int id, [FromBody] UpdateStaffUserRequest request, CancellationToken ct)
+        => Ok(await _users.UpdateStaffAsync(id, request, ct));
 
     /// <summary>Personel hesabını aktif/pasif yapar (hesap silinmez).</summary>
     [HttpPut("{id:int}/active")]

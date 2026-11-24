@@ -22,6 +22,8 @@ public class StudentService : IStudentService
     private readonly IStudentRepository _students;
     private readonly IUserRepository _users;
     private readonly IWorkUnitRepository _units;
+    private readonly IDepartmentRepository _departments;
+    private readonly IPasswordHasher _hasher;
     private readonly IUnitOfWork _uow;
     private readonly IClock _clock;
     private readonly IAuditService _audit;
@@ -29,8 +31,11 @@ public class StudentService : IStudentService
 
     public StudentService(
         IStudentRepository students, IUserRepository users, IWorkUnitRepository units,
+        IDepartmentRepository departments, IPasswordHasher hasher,
         IUnitOfWork uow, IClock clock, IAuditService audit, ICurrentUser current)
     {
+        _departments = departments;
+        _hasher = hasher;
         _students = students;
         _users = users;
         _units = units;
@@ -62,6 +67,12 @@ public class StudentService : IStudentService
             errors.Add(nameof(request.PhoneNumber), "Geçerli bir cep telefonu numarası giriniz (örn. 0532 123 45 67).");
         if (!IbanValidator.IsValid(iban))
             errors.Add(nameof(request.Iban), "IBAN geçersiz. TR ile başlayan, 26 haneli geçerli bir IBAN giriniz.");
+        else
+            errors.Add(nameof(request.Iban), IbanBankRules.VirtualBankError(iban));
+        if (!IbanBankRules.HolderMatches(request.IbanHolderName, student.User.FullName))
+            errors.Add(nameof(request.IbanHolderName), "IBAN sizin adınıza olmalıdır: hesap sahibi adı soyadı, kayıtlı adınızla aynı olmalı.");
+        if (!request.ConfirmOwnIban)
+            errors.Add(nameof(request.ConfirmOwnIban), "IBAN'ın size ait olduğunu onaylamalısınız.");
         errors.ThrowIfAny();
 
         student.User.PhoneNumber = phone;
@@ -215,14 +226,251 @@ public class StudentService : IStudentService
     {
         _current.RequireRole(UserRole.FacultyAdmin);
         var student = await LoadAsync(studentId, ct);
+        var unit = await ResolveUnitAsync(request.WorkUnitId);
 
-        if (!student.IsActive)
-            throw new ConflictException("Pasif durumdaki öğrenciye birim atanamaz.");
+        await AssignUnitCoreAsync(student, unit, ct);
+        return student.ToDetail(revealPersonalData: true);
+    }
 
-        var unit = await _units.GetByIdAsync(request.WorkUnitId)
+    public async Task<StudentDetailDto> AssignAdvisorAsync(int studentId, AssignAdvisorRequest request, CancellationToken ct = default)
+    {
+        _current.RequireRole(UserRole.FacultyAdmin, UserRole.DepartmentHead);
+        var student = await LoadAsync(studentId, ct);
+
+        // Birim yetkilisi yalnızca kendi bölümünün öğrencisine sorumlu personel atayabilir.
+        if (_current.Role == UserRole.DepartmentHead && _current.DepartmentId != student.DepartmentId)
+            throw new NotFoundException("Öğrenci bulunamadı.");
+
+        var advisor = await ResolveAdvisorAsync(request.AdvisorUserId, request.AdvisorRegistryNumber, ct);
+        await AssignAdvisorCoreAsync(student, advisor, ct);
+
+        return student.ToDetail(revealPersonalData: _current.Role == UserRole.FacultyAdmin);
+    }
+
+    /// <summary>
+    /// Seçilen öğrencilerin hepsini tek işlemde birime ve/veya sorumlu personele atar. Atanamayan öğrenciler
+    /// (pasif, farklı bölüm, zaten aynı yerde) atlanır ve nedenleriyle birlikte döner.
+    /// </summary>
+    public async Task<BulkAssignResultDto> BulkAssignAsync(BulkAssignRequest request, CancellationToken ct = default)
+    {
+        _current.RequireRole(UserRole.FacultyAdmin, UserRole.DepartmentHead);
+
+        var wantsAdvisor = request.AdvisorUserId is not null || !string.IsNullOrWhiteSpace(request.AdvisorRegistryNumber);
+        if (request.WorkUnitId is null && !wantsAdvisor)
+            throw new DomainValidationException("Atama", "Bir çalışma birimi veya sorumlu personel seçin.");
+        if (request.WorkUnitId is not null && _current.Role != UserRole.FacultyAdmin)
+            throw new ForbiddenException("Çalışma birimi atamasını yalnızca fakülte sekreterliği yapar.");
+
+        var studentIds = (request.StudentIds ?? new List<int>()).Distinct().ToList();
+        if (studentIds.Count == 0)
+            throw new DomainValidationException(nameof(request.StudentIds), "En az bir öğrenci seçin.");
+
+        var unit = request.WorkUnitId is int unitId ? await ResolveUnitAsync(unitId) : null;
+        var advisor = wantsAdvisor ? await ResolveAdvisorAsync(request.AdvisorUserId, request.AdvisorRegistryNumber, ct) : null;
+
+        var result = new BulkAssignResultDto();
+        foreach (var id in studentIds)
+        {
+            var student = await _students.GetDetailAsync(id, ct);
+            if (student is null || !_current.CanView(student))
+            {
+                result.Errors.Add(new BulkAssignErrorDto { StudentId = id, Message = "Öğrenci bulunamadı." });
+                continue;
+            }
+
+            try
+            {
+                if (_current.Role == UserRole.DepartmentHead && _current.DepartmentId != student.DepartmentId)
+                    throw new NotFoundException("Öğrenci bulunamadı.");
+
+                var changed = false;
+                if (unit is not null && student.CurrentUnitAssignment?.WorkUnitId != unit.Id)
+                {
+                    await AssignUnitCoreAsync(student, unit, ct);
+                    changed = true;
+                }
+                if (advisor is not null && student.CurrentAdvisorAssignment?.AdvisorUserId != advisor.Id)
+                {
+                    await AssignAdvisorCoreAsync(student, advisor, ct);
+                    changed = true;
+                }
+
+                if (changed) result.Assigned++;
+                else result.Errors.Add(new BulkAssignErrorDto { StudentId = id, StudentName = student.User.FullName, Message = "Zaten bu atamaya sahip." });
+            }
+            catch (Exception ex) when (ex is ConflictException or DomainValidationException or NotFoundException)
+            {
+                result.Errors.Add(new BulkAssignErrorDto { StudentId = id, StudentName = student.User.FullName, Message = ex.Message });
+            }
+        }
+
+        return result;
+    }
+
+    // ─── Öğrenci hesabı açma ve düzenleme (sekreterlik) ───────────────────────
+
+    public async Task<StudentDetailDto> CreateAsync(CreateStudentRequest request, CancellationToken ct = default)
+    {
+        _current.RequireRole(UserRole.FacultyAdmin);
+
+        var email = InputNormalizer.Email(request.Email);
+        var fullName = InputNormalizer.Name(request.FullName);
+        var phone = InputNormalizer.Phone(request.PhoneNumber);
+        var nationalId = (request.NationalId ?? string.Empty).Trim();
+        var studentNumber = (request.StudentNumber ?? string.Empty).Trim();
+
+        var errors = new ValidationErrors();
+        if (fullName.Length < 2) errors.Add(nameof(request.FullName), "Ad soyad en az 2 karakter olmalıdır.");
+        if (string.IsNullOrWhiteSpace(request.ObisPassword) || request.ObisPassword.Length < 4)
+            errors.Add(nameof(request.ObisPassword), "OBİS şifresi en az 4 karakter olmalıdır.");
+        if (!NationalIdValidator.IsValid(nationalId))
+            errors.Add(nameof(request.NationalId), "T.C. kimlik numarası geçersiz.");
+        if (!InputNormalizer.IsValidMobile(phone))
+            errors.Add(nameof(request.PhoneNumber), "Geçerli bir cep telefonu numarası giriniz (örn. 0532 123 45 67).");
+        if (studentNumber.Length is < 3 or > 9)
+            errors.Add(nameof(request.StudentNumber), "Öğrenci numarası 3 ile 9 karakter arasında olmalıdır.");
+        if (request.RegistrationYear > _clock.Today.Year)
+            errors.Add(nameof(request.RegistrationYear), "Kayıt yılı içinde bulunulan yıldan sonra olamaz.");
+
+        var department = await _departments.GetByIdAsync(request.DepartmentId);
+        if (department is null || !department.IsActive)
+            errors.Add(nameof(request.DepartmentId), "Seçilen bölüm bulunamadı.");
+        errors.ThrowIfAny();
+
+        if (await _users.EmailExistsAsync(email, ct))
+            throw new ConflictException("Bu e-posta adresiyle kayıtlı bir hesap zaten var.");
+        if (await _students.NationalIdExistsAsync(nationalId, ct: ct))
+            throw new ConflictException("Bu T.C. kimlik numarasıyla kayıtlı bir öğrenci zaten var.");
+        if (await _students.StudentNumberExistsAsync(studentNumber, ct: ct))
+            throw new ConflictException("Bu öğrenci numarasıyla kayıtlı bir öğrenci zaten var.");
+
+        var profile = new StudentProfile
+        {
+            User = new User
+            {
+                FullName = fullName,
+                Email = email,
+                PhoneNumber = phone,
+                PasswordHash = _hasher.Hash(request.ObisPassword),
+                Role = UserRole.Student,
+                IsActive = true
+            },
+            NationalId = nationalId,
+            StudentNumber = studentNumber,
+            DepartmentId = department!.Id,
+            RegistrationYear = request.RegistrationYear
+        };
+        profile.Participations.Add(new ProgramParticipation { StartDate = _clock.Today });
+        await _students.AddAsync(profile);
+
+        await using var tx = await _uow.BeginTransactionAsync(ct);
+        await _uow.SaveChangesAsync(ct);
+        await _audit.RecordAsync(AuditActions.StudentCreated, nameof(StudentProfile), profile.Id,
+            "Öğrenci hesabı bilgi işlem bilgileriyle açıldı.", ct: ct);
+        await _uow.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
+
+        return (await LoadAsync(profile.Id, ct)).ToDetail(revealPersonalData: true);
+    }
+
+    public async Task<StudentDetailDto> UpdateAsync(int studentId, UpdateStudentRequest request, CancellationToken ct = default)
+    {
+        _current.RequireRole(UserRole.FacultyAdmin);
+        var student = await LoadAsync(studentId, ct);
+
+        var email = InputNormalizer.Email(request.Email);
+        var fullName = InputNormalizer.Name(request.FullName);
+        var phone = InputNormalizer.Phone(request.PhoneNumber);
+        var nationalId = (request.NationalId ?? string.Empty).Trim();
+        var studentNumber = (request.StudentNumber ?? string.Empty).Trim();
+        var iban = IbanValidator.Normalize(request.Iban);
+
+        var errors = new ValidationErrors();
+        if (fullName.Length < 2) errors.Add(nameof(request.FullName), "Ad soyad en az 2 karakter olmalıdır.");
+        if (!NationalIdValidator.IsValid(nationalId))
+            errors.Add(nameof(request.NationalId), "T.C. kimlik numarası geçersiz.");
+        if (!InputNormalizer.IsValidMobile(phone))
+            errors.Add(nameof(request.PhoneNumber), "Geçerli bir cep telefonu numarası giriniz (örn. 0532 123 45 67).");
+        if (studentNumber.Length is < 3 or > 9)
+            errors.Add(nameof(request.StudentNumber), "Öğrenci numarası 3 ile 9 karakter arasında olmalıdır.");
+        if (iban.Length > 0)
+        {
+            if (!IbanValidator.IsValid(iban))
+                errors.Add(nameof(request.Iban), "IBAN geçersiz. TR ile başlayan, 26 haneli geçerli bir IBAN giriniz.");
+            else
+                errors.Add(nameof(request.Iban), IbanBankRules.VirtualBankError(iban));
+        }
+        if (!string.IsNullOrEmpty(request.NewObisPassword) && request.NewObisPassword.Length < 4)
+            errors.Add(nameof(request.NewObisPassword), "OBİS şifresi en az 4 karakter olmalıdır.");
+
+        var department = await _departments.GetByIdAsync(request.DepartmentId);
+        if (department is null)
+            errors.Add(nameof(request.DepartmentId), "Seçilen bölüm bulunamadı.");
+        errors.ThrowIfAny();
+
+        if (await _users.EmailExistsExceptAsync(email, student.UserId, ct))
+            throw new ConflictException("Bu e-posta adresiyle kayıtlı başka bir hesap var.");
+        if (await _students.NationalIdExistsAsync(nationalId, student.Id, ct))
+            throw new ConflictException("Bu T.C. kimlik numarasıyla kayıtlı başka bir öğrenci var.");
+        if (await _students.StudentNumberExistsAsync(studentNumber, student.Id, ct))
+            throw new ConflictException("Bu öğrenci numarasıyla kayıtlı başka bir öğrenci var.");
+
+        // Bölüm değişirse eski bölümün sorumlu personeli artık bu öğrencinin sorumlusu olamaz: atama kapanır.
+        if (student.DepartmentId != department!.Id && student.CurrentAdvisorAssignment is { } advisor)
+            advisor.EndDate = Latest(_clock.Today, advisor.StartDate);
+
+        student.User.FullName = fullName;
+        student.User.Email = email;
+        student.User.PhoneNumber = phone;
+        student.NationalId = nationalId;
+        student.StudentNumber = studentNumber;
+        student.DepartmentId = department.Id;
+        student.Department = department;
+        student.RegistrationYear = request.RegistrationYear;
+        if (iban.Length > 0) student.Iban = iban;
+        if (!string.IsNullOrEmpty(request.NewObisPassword))
+            student.User.PasswordHash = _hasher.Hash(request.NewObisPassword);
+
+        // Yeni değerler denetim kaydına yazılmaz (kişisel veri).
+        await _audit.RecordAsync(AuditActions.StudentUpdated, nameof(StudentProfile), student.Id,
+            "Öğrenci bilgileri sekreterlik tarafından güncellendi.", ct: ct);
+        await _uow.SaveChangesAsync(ct);
+
+        return student.ToDetail(revealPersonalData: true);
+    }
+
+    // ─── Atama yardımcıları ───────────────────────────────────────────────────
+
+    private async Task<WorkUnit> ResolveUnitAsync(int workUnitId)
+    {
+        var unit = await _units.GetByIdAsync(workUnitId)
             ?? throw new NotFoundException("Birim bulunamadı.");
         if (!unit.IsActive)
-            throw new DomainValidationException(nameof(request.WorkUnitId), "Seçilen birim aktif değil.");
+            throw new DomainValidationException(nameof(AssignUnitRequest.WorkUnitId), "Seçilen birim aktif değil.");
+        return unit;
+    }
+
+    /// <summary>Sorumlu personeli Id'si ya da sicil numarasıyla bulur.</summary>
+    private async Task<User> ResolveAdvisorAsync(int? advisorUserId, string? registryNumber, CancellationToken ct)
+    {
+        User? advisor = null;
+        if (advisorUserId is int id)
+            advisor = await _users.GetWithDepartmentAsync(id, ct);
+        else if (!string.IsNullOrWhiteSpace(registryNumber))
+            advisor = await _users.GetByRegistryNumberAsync(InputNormalizer.RegistryNumber(registryNumber), ct);
+        else
+            throw new DomainValidationException(nameof(AssignAdvisorRequest.AdvisorRegistryNumber), "Sorumlu personelin sicil numarasını girin.");
+
+        if (advisor is null || advisor.Role != UserRole.Advisor || !advisor.IsActive)
+            throw new DomainValidationException(nameof(AssignAdvisorRequest.AdvisorRegistryNumber),
+                "Bu sicil numarasında aktif bir sorumlu personel bulunamadı.");
+        return advisor;
+    }
+
+    private async Task AssignUnitCoreAsync(StudentProfile student, WorkUnit unit, CancellationToken ct)
+    {
+        if (!student.IsActive)
+            throw new ConflictException("Pasif durumdaki öğrenciye birim atanamaz.");
 
         var current = student.CurrentUnitAssignment;
         if (current?.WorkUnitId == unit.Id)
@@ -251,31 +499,19 @@ public class StudentService : IStudentService
             $"Çalışma birimi: {unit.Name}", ct: ct);
         await _uow.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
-
-        return student.ToDetail(revealPersonalData: true);
     }
 
-    public async Task<StudentDetailDto> AssignAdvisorAsync(int studentId, AssignAdvisorRequest request, CancellationToken ct = default)
+    private async Task AssignAdvisorCoreAsync(StudentProfile student, User advisor, CancellationToken ct)
     {
-        _current.RequireRole(UserRole.FacultyAdmin, UserRole.DepartmentHead);
-        var student = await LoadAsync(studentId, ct);
-
-        // Bölüm başkanı yalnızca kendi bölümünün öğrencisine danışman atayabilir.
-        if (_current.Role == UserRole.DepartmentHead && _current.DepartmentId != student.DepartmentId)
-            throw new NotFoundException("Öğrenci bulunamadı.");
-
         if (!student.IsActive)
-            throw new ConflictException("Pasif durumdaki öğrenciye danışman atanamaz.");
-
-        var advisor = await _users.GetWithDepartmentAsync(request.AdvisorUserId, ct);
-        if (advisor is null || advisor.Role != UserRole.Advisor || !advisor.IsActive)
-            throw new DomainValidationException(nameof(request.AdvisorUserId), "Seçilen kullanıcı aktif bir danışman değil.");
+            throw new ConflictException("Pasif durumdaki öğrenciye sorumlu personel atanamaz.");
         if (advisor.DepartmentId != student.DepartmentId)
-            throw new DomainValidationException(nameof(request.AdvisorUserId), "Danışman, öğrenciyle aynı bölümde olmalıdır.");
+            throw new DomainValidationException(nameof(AssignAdvisorRequest.AdvisorRegistryNumber),
+                "Sorumlu personel, öğrenciyle aynı bölümde olmalıdır.");
 
         var current = student.CurrentAdvisorAssignment;
         if (current?.AdvisorUserId == advisor.Id)
-            throw new ConflictException("Bu kişi zaten öğrencinin danışmanı.");
+            throw new ConflictException("Bu kişi zaten öğrencinin sorumlu personeli.");
 
         var today = _clock.Today;
 
@@ -295,11 +531,9 @@ public class StudentService : IStudentService
         });
 
         await _audit.RecordAsync(AuditActions.AdvisorAssigned, nameof(StudentProfile), student.Id,
-            $"Danışman: {advisor.FullName}", ct: ct);
+            $"Sorumlu personel: {advisor.FullName} (sicil {advisor.RegistryNumber})", ct: ct);
         await _uow.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
-
-        return student.ToDetail(revealPersonalData: _current.Role == UserRole.FacultyAdmin);
     }
 
     // ─── Yardımcılar ──────────────────────────────────────────────────────────

@@ -22,6 +22,10 @@ public static class AuditActions
     public const string AdvisorAssigned      = "Student.AdvisorAssigned";
 
     public const string StaffUserCreated     = "User.StaffCreated";
+    public const string StaffUserUpdated     = "User.StaffUpdated";
+    public const string StudentCreated       = "Student.Created";
+    public const string StudentUpdated       = "Student.Updated";
+    public const string AttendanceScheduleChanged = "Settings.AttendanceScheduleChanged";
     public const string StaffRegistered      = "User.StaffRegistered";
     public const string UserActivated        = "User.Activated";
     public const string UserApplicationRejected = "User.ApplicationRejected";

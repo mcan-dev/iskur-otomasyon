@@ -42,7 +42,7 @@ Ayarlar `src/IskurAuto.API/appsettings.json` içindedir. Gizli değerler dosyaya
 | `WorkPlan:MaxDaysPerMonth` | 14 | Bir ayda seçilebilecek en fazla çalışma günü. |
 | `WorkPlan:EditDeadlineDay` | 5 | Plan düzeltmesi için ayın son günü. |
 | `WorkPlan:DailyHours` | 7,5 | Günlük çalışma süresi (saat). İŞKUR programında haftada 3 gün ve en fazla 22,5 saat çalışılır. Çalışılan her gün tam gündür, yarım gün yoktur. |
-| `Bootstrap:AdminEmail` / `AdminPassword` | boş | Sistemde hiç Fakülte Sekreterliği hesabı yoksa ilk yönetici bununla oluşturulur. |
+| `Bootstrap:AdminRegistryNumber` / `AdminEmail` / `AdminPassword` | boş | Sistemde hiç Fakülte Sekreterliği hesabı yoksa ilk sekreterlik hesabı bununla oluşturulur; giriş sicil numarasıyla yapılır. |
 
 Genel izin hakkı ve uyarı eşiği dosyada değil veritabanındadır; Fakülte Sekreterliği hesabıyla
 `PUT /api/settings/leave` üzerinden değiştirilir. Değişiklik denetim kaydına yazılır.
@@ -71,6 +71,7 @@ Betik veritabanını siler, API'yi başlatır ve her rolün her sayfasını dold
    ```bash
    export ASPNETCORE_ENVIRONMENT=Production
    export JwtSettings__SecretKey="<en az 32 karakter, rastgele>"
+   export Bootstrap__AdminRegistryNumber="100001"
    export Bootstrap__AdminEmail="admin@ornek.edu.tr"
    export Bootstrap__AdminPassword="<güçlü parola>"
    export ConnectionStrings__IskurAutoDb="Server=sql.ornek.edu.tr;Database=IskurAuto;User Id=iskur_app;Password=<parola>;Encrypt=True;TrustServerCertificate=False"

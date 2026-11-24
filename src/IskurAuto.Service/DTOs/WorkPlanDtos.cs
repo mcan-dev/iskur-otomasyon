@@ -111,6 +111,22 @@ public class WorkPlanCalendarDto
     public List<CalendarDayDto> Days { get; set; } = new();
 }
 
+/// <summary>Üniversite hayatı boyunca çalışılabilecek toplam iş günü (varsayılan 140) ve kullanımı.</summary>
+public class WorkLifetimeDto
+{
+    public int StudentId { get; set; }
+    public int Limit { get; set; }
+
+    /// <summary>Devam kaydı olan (çalışılmış) gün sayısı.</summary>
+    public int WorkedDays { get; set; }
+
+    /// <summary>Gönderilmiş ya da onaylanmış planlarda bugünden sonraki çalışma günleri.</summary>
+    public int UpcomingPlannedDays { get; set; }
+
+    /// <summary>Limit − çalışılan gün.</summary>
+    public int RemainingDays { get; set; }
+}
+
 public class CourseDayDto
 {
     public DayOfWeek Day { get; set; }

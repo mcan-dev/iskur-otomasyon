@@ -1,6 +1,6 @@
 # Test senaryoları
 
-Belgenin 9. maddesindeki test başlıkları ve bunları karşılayan otomatik testler. Toplam 282 test yöntemi vardır; `[Theory]` testlerinin her veri satırı ayrı çalıştığı için `dotnet test` çıktısındaki sayı daha yüksektir.
+Belgenin 9. maddesindeki test başlıkları ve bunları karşılayan otomatik testler. Toplam 287 test yöntemi vardır; `[Theory]` testlerinin her veri satırı ayrı çalıştığı için `dotnet test` çıktısındaki sayı daha yüksektir.
 
 ```bash
 dotnet test                                         # hepsi

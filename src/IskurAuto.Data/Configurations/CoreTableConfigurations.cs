@@ -38,6 +38,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         b.Property(x => x.FullName).IsRequired().HasMaxLength(200);
         b.Property(x => x.Email).IsRequired().HasMaxLength(254);
         b.Property(x => x.PhoneNumber).HasMaxLength(20);
+        b.Property(x => x.RegistryNumber).HasMaxLength(20);
         b.Property(x => x.PasswordHash).IsRequired().HasMaxLength(500);
 
         // Rol metin olarak saklanır ("Student"): veritabanını okuyan biri anlar ve
@@ -46,6 +47,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         // Mükerrer kullanıcıyı uygulama kontrolüne ek olarak veritabanı da engeller.
         b.HasIndex(x => x.Email).IsUnique();
+        b.HasIndex(x => x.RegistryNumber).IsUnique().HasFilter("[RegistryNumber] IS NOT NULL");
 
         b.HasOne(x => x.Department).WithMany()
             .HasForeignKey(x => x.DepartmentId).OnDelete(DeleteBehavior.Restrict);

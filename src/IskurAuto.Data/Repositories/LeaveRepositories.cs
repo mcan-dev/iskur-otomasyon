@@ -18,8 +18,16 @@ public class LeaveRepository : GenericRepository<LeaveRequest>, ILeaveRepository
     {
         var query = WithDetails().AsNoTracking().AsQueryable();
 
-        if (criteria.Year is int year)
-            query = query.Where(l => l.StartDate >= new DateOnly(year, 1, 1) && l.StartDate <= new DateOnly(year, 12, 31));
+        if (criteria.Year is int year && criteria.Month is int month)
+        {
+            var first = new DateOnly(year, month, 1);
+            var last = first.AddMonths(1).AddDays(-1);
+            query = query.Where(l => l.StartDate >= first && l.StartDate <= last);
+        }
+        else if (criteria.Year is int onlyYear)
+        {
+            query = query.Where(l => l.StartDate >= new DateOnly(onlyYear, 1, 1) && l.StartDate <= new DateOnly(onlyYear, 12, 31));
+        }
         if (criteria.StudentId is int studentId)
             query = query.Where(l => l.StudentProfileId == studentId);
         if (criteria.DepartmentId is int departmentId)
@@ -35,13 +43,13 @@ public class LeaveRepository : GenericRepository<LeaveRequest>, ILeaveRepository
 
     public Task<bool> HasOverlapAsync(int studentId, DateOnly start, DateOnly end, int? exceptId = null, CancellationToken ct = default)
         => Context.LeaveRequests.AnyAsync(l => l.StudentProfileId == studentId
-            && (l.Status == LeaveStatus.Pending || l.Status == LeaveStatus.Approved)
+            && l.Status == LeaveStatus.Approved
             && l.StartDate <= end && l.EndDate >= start
             && (exceptId == null || l.Id != exceptId), ct);
 
     private IQueryable<LeaveRequest> WithDetails()
         => Context.LeaveRequests
-            .Include(l => l.ReviewedByUser)
+            .Include(l => l.CancelledByUser)
             .Include(l => l.StudentProfile).ThenInclude(s => s.User)
             .Include(l => l.StudentProfile).ThenInclude(s => s.Department)
             .Include(l => l.StudentProfile).ThenInclude(s => s.AdvisorAssignments);

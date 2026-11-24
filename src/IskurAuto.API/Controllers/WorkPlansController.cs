@@ -35,6 +35,12 @@ public class WorkPlansController : ControllerBase
     public async Task<ActionResult<IReadOnlyList<WorkPlanDto>>> MyHistory(CancellationToken ct)
         => Ok(await _plans.ListMyPlansAsync(ct));
 
+    /// <summary>Üniversite hayatı boyunca çalışılabilecek 140 iş gününden çalışılan ve kalan.</summary>
+    [HttpGet("me/lifetime")]
+    [Authorize(Roles = AppRoles.Student)]
+    public async Task<ActionResult<WorkLifetimeDto>> MyLifetime(CancellationToken ct)
+        => Ok(await _plans.GetMyLifetimeAsync(ct));
+
     /// <summary>Planı kaydeder; aynı ay için tekrar çağrılırsa planı günceller.</summary>
     [HttpPut("me")]
     [Authorize(Roles = AppRoles.Student)]
@@ -58,6 +64,11 @@ public class WorkPlansController : ControllerBase
     [Authorize(Roles = AppRoles.AllStaff)]
     public async Task<ActionResult<WorkPlanCalendarDto>> StudentCalendar(int studentId, [FromQuery] int year, [FromQuery] int month, CancellationToken ct)
         => Ok(await _plans.GetStudentCalendarAsync(studentId, year, month, ct));
+
+    [HttpGet("students/{studentId:int}/lifetime")]
+    [Authorize(Roles = AppRoles.AllStaff)]
+    public async Task<ActionResult<WorkLifetimeDto>> StudentLifetime(int studentId, CancellationToken ct)
+        => Ok(await _plans.GetStudentLifetimeAsync(studentId, ct));
 
     /// <summary>Fakülte yönetimi öğrenci adına plan girer veya düzeltir.</summary>
     [HttpPut("students/{studentId:int}")]

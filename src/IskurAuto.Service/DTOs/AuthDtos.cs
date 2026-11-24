@@ -9,19 +9,22 @@ namespace IskurAuto.Service.DTOs;
 // DataAnnotations yalnızca "şekil" kontrolüdür (boş mu, uzunluk); anlamsal kurallar (TC algoritması,
 // benzersizlik...) servis katmanındadır.
 
+/// <summary>
+/// Giriş. Öğrenci üniversite öğrenci e-postası ve OBİS şifresiyle; personel sicil numarası ve şifresiyle girer.
+/// Bu bilgiler fakültedeki İŞKUR öğrencileri için bilgi işlemden alınır; sistemde kayıt olma ekranı yoktur.
+/// </summary>
 public class LoginRequest
 {
-    [Required, EmailAddress, StringLength(254)]
-    public string Email { get; set; } = string.Empty;
+    /// <summary>Öğrenci için öğrenci e-postası, personel için sicil numarası.</summary>
+    [Required, StringLength(254)]
+    public string Username { get; set; } = string.Empty;
 
+    /// <summary>Öğrenci için OBİS şifresi, personel için personel şifresi.</summary>
     [Required, StringLength(128)]
     public string Password { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Giriş sayfasının türü (öğrenci, danışman, bölüm başkanı, fakülte). Doluysa hesabın rolü bununla
-    /// eşleşmelidir; her rolün kendi giriş sayfası vardır. Boşsa rol denetlenmez.
-    /// </summary>
-    public UserRole? Role { get; set; }
+    /// <summary>Giriş sayfasının türü; hesabın rolü bununla eşleşmelidir (her rolün kendi giriş sayfası vardır).</summary>
+    public UserRole Role { get; set; }
 }
 
 public class LoginResponse
@@ -55,92 +58,21 @@ public class ResetPasswordRequest
     public string NewPassword { get; set; } = string.Empty;
 }
 
-/// <summary>Öğrenci ilk kayıt formu (belge madde 3).</summary>
-public class StudentRegistrationRequest
-{
-    [Required, StringLength(200, MinimumLength = 2)]
-    public string FullName { get; set; } = string.Empty;
-
-    [Required, EmailAddress, StringLength(254)]
-    public string Email { get; set; } = string.Empty;
-
-    [Required, StringLength(128)]
-    public string Password { get; set; } = string.Empty;
-
-    /// <summary>Cep telefonu. Örn: 0532 123 45 67</summary>
-    [Required, StringLength(25)]
-    public string PhoneNumber { get; set; } = string.Empty;
-
-    [Required, StringLength(11, MinimumLength = 11)]
-    public string NationalId { get; set; } = string.Empty;
-
-    /// <summary>Kayıtta istenmez; öğrenci sonradan profilinden girer. Doluysa geçerli olmalıdır.</summary>
-    [StringLength(40)]
-    public string Iban { get; set; } = string.Empty;
-
-    [Required, StringLength(9, MinimumLength = 3, ErrorMessage = "Öğrenci numarası en fazla 9 karakter olabilir.")]
-    public string StudentNumber { get; set; } = string.Empty;
-
-    [Range(1, int.MaxValue)]
-    public int DepartmentId { get; set; }
-
-    [Range(2000, 2100)]
-    public int RegistrationYear { get; set; }
-}
-
-/// <summary>
-/// Personelin kendi başvurusu (danışman, bölüm başkanı, fakülte sekreterliği).
-/// Hesap pasif açılır; fakülte sekreterliği onaylayınca giriş yapılabilir.
-/// </summary>
-public class StaffRegistrationRequest
-{
-    [Required, StringLength(200, MinimumLength = 2)]
-    public string FullName { get; set; } = string.Empty;
-
-    [Required, EmailAddress, StringLength(254)]
-    public string Email { get; set; } = string.Empty;
-
-    [Required, StringLength(128)]
-    public string Password { get; set; } = string.Empty;
-
-    [Required, StringLength(25)]
-    public string PhoneNumber { get; set; } = string.Empty;
-
-    /// <summary>FacultyAdmin | DepartmentHead | Advisor</summary>
-    public UserRole Role { get; set; }
-
-    /// <summary>Danışman ve bölüm başkanı için zorunlu.</summary>
-    public int? DepartmentId { get; set; }
-}
-
-public class StaffRegistrationResultDto
-{
-    public int UserId { get; set; }
-    public string Email { get; set; } = string.Empty;
-    public bool IsActive { get; set; }
-}
-
-public class RegistrationResultDto
-{
-    public int UserId { get; set; }
-    public int StudentId { get; set; }
-    public string Email { get; set; } = string.Empty;
-}
-
 public class UserDto
 {
     public int Id { get; set; }
     public string FullName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
+
+    /// <summary>Personel sicil numarası; öğrencide boş.</summary>
+    public string? RegistryNumber { get; set; }
+
     public string? PhoneNumber { get; set; }
 
-    /// <summary>FacultyAdmin | DepartmentHead | Advisor | Student</summary>
+    /// <summary>FacultyAdmin | DepartmentHead (birim yetkilisi) | Advisor (sorumlu personel) | Student</summary>
     public string Role { get; set; } = string.Empty;
 
     public int? DepartmentId { get; set; }
     public string? DepartmentName { get; set; }
     public bool IsActive { get; set; }
-
-    /// <summary>Kendi başvurusuyla gelen ve sekreterlik kararını bekleyen hesap.</summary>
-    public bool IsPendingApproval { get; set; }
 }

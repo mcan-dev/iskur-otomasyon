@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Accessibility, Logo } from './SiteChrome';
 
 /**
- * Giriş, kayıt ve parola sayfalarının ortak çerçevesi.
+ * Giriş ve şifre sayfalarının ortak çerçevesi.
  * Solda Selçuk Üniversitesi kapağı, sağda işlem formu bulunur.
  */
 export default function AuthShell({ children, wide = false }: { children: ReactNode; wide?: boolean }) {

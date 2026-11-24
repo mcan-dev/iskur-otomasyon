@@ -350,16 +350,7 @@ public class AttendanceServiceTests
     {
         using var f = await CreateAsync();
 
-        f.Db.Current.As(UserRole.Student, f.Seed.MehmetUserId);
-        LeaveResultDto leave;
-        using (var scope = f.Db.NewScope())
-            leave = await scope.Leaves.RequestAsync(new CreateLeaveRequest
-            {
-                Type = LeaveType.Excuse, StartDate = Today, EndDate = Today, Reason = "Aile işi"
-            });
-        f.Db.Current.As(UserRole.FacultyAdmin, f.Seed.AdminId);
-        using (var scope = f.Db.NewScope())
-            await scope.Leaves.ReviewAsync(leave.Leave.Id, new ReviewLeaveRequest { Approve = true });
+        TestData.AddLeaveDays(f.Db, f.Seed.MehmetId, Today, Today);
 
         var session = await OpenSessionAsync(f);
         var token = await CurrentTokenAsync(f, session.Id);

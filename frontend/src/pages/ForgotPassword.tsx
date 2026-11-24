@@ -30,7 +30,8 @@ export default function ForgotPassword() {
         <div className="auth-card">
           <h1>E-postanızı kontrol edin</h1>
           <p className="muted">
-            Bu adres sistemde kayıtlıysa parola sıfırlama bağlantısı gönderildi. Bağlantı 30 dakika geçerlidir ve tek kez kullanılabilir.
+            Bilgiler bir personel hesabıyla eşleşiyorsa kayıtlı e-posta adresine şifre sıfırlama bağlantısı gönderildi. Bağlantı 30 dakika
+            geçerlidir ve tek kez kullanılabilir.
           </p>
           <Link className="btn primary wide" to="/giris">
             Giriş sayfasına dön
@@ -43,11 +44,14 @@ export default function ForgotPassword() {
   return (
     <AuthShell>
       <form className="auth-card" onSubmit={submit}>
-        <h1>Parolamı unuttum</h1>
-        <p className="muted">Hesabınızın e-posta adresini girin, size bir sıfırlama bağlantısı gönderelim.</p>
+        <h1>Şifremi unuttum</h1>
+        <p className="muted">
+          Personel için: sicil numaranızı veya kayıtlı e-posta adresinizi girin, size bir sıfırlama bağlantısı gönderelim.
+          Öğrenciler OBİS şifresini OBİS üzerinden veya bilgi işlemden yeniler.
+        </p>
         {error && <Alert>{error}</Alert>}
-        <Field label="E-posta">
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" required />
+        <Field label="Sicil numarası veya e-posta">
+          <input value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" required />
         </Field>
         <button className="btn primary wide" disabled={busy}>
           {busy ? 'Gönderiliyor…' : 'Bağlantı Gönder'}

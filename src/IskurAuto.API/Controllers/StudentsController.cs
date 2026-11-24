@@ -64,6 +64,34 @@ public class StudentsController : ControllerBase
 
     // ─── Yönetim işlemleri ────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Bilgi işlemden gelen bilgilerle öğrenci hesabı açar (öğrenci e-postası + OBİS şifresi). Sistemde kayıt ekranı yoktur.
+    /// </summary>
+    [HttpPost]
+    [Authorize(Roles = AppRoles.FacultyAdmin)]
+    [ProducesResponseType(typeof(StudentDetailDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<StudentDetailDto>> Create([FromBody] CreateStudentRequest request, CancellationToken ct)
+        => StatusCode(StatusCodes.Status201Created, await _students.CreateAsync(request, ct));
+
+    /// <summary>Sekreterlik öğrencinin bilgilerini düzenler (ad, e-posta, TC, numara, bölüm, IBAN, OBİS şifresi).</summary>
+    [HttpPut("{id:int}")]
+    [Authorize(Roles = AppRoles.FacultyAdmin)]
+    [ProducesResponseType(typeof(StudentDetailDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<StudentDetailDto>> Update(int id, [FromBody] UpdateStudentRequest request, CancellationToken ct)
+        => Ok(await _students.UpdateAsync(id, request, ct));
+
+    /// <summary>
+    /// Seçilen öğrencileri tek işlemde çalışma birimine ve/veya sorumlu personele (Id ya da sicil no ile) atar.
+    /// Birim yetkilisi yalnızca kendi bölümündeki öğrencilere sorumlu personel atayabilir.
+    /// </summary>
+    [HttpPost("bulk-assign")]
+    [Authorize(Roles = AppRoles.FacultyAdmin + "," + AppRoles.DepartmentHead)]
+    [ProducesResponseType(typeof(BulkAssignResultDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<BulkAssignResultDto>> BulkAssign([FromBody] BulkAssignRequest request, CancellationToken ct)
+        => Ok(await _students.BulkAssignAsync(request, ct));
+
     /// <summary>Öğrencinin program katılımını sonlandırır (kayıt silinmez, pasif olur).</summary>
     [HttpPost("{id:int}/end-participation")]
     [Authorize(Roles = AppRoles.FacultyAdmin)]
