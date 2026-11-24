@@ -74,6 +74,8 @@ public class LeaveBalanceCalculatorTests
         var balance = Calc([Leave(11)]);
 
         AssertWarnings(balance, LeaveWarning.LeaveLimitExceeded);
+        Assert.Equal(0m, balance.Remaining);      // eksi izin yoktur
+        Assert.Equal(11m, balance.Used);
     }
 
     [Fact]

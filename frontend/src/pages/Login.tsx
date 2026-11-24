@@ -24,10 +24,6 @@ export function LoginChooser() {
     <AuthShell wide>
       <div className="auth-card chooser">
         <h1>Giriş Türünüzü Seçin</h1>
-        <p className="muted">
-          İŞKUR Otomasyonu, Selçuk Üniversitesi Teknoloji Fakültesi. Öğrenciler öğrenci e-postası ve OBİS şifresiyle, personel sicil
-          numarasıyla giriş yapar. Sistemde kayıt olma yoktur; hesap bilgileri bilgi işlemden alınır.
-        </p>
         <div className="chooser-grid">
           {loginTypes.map((t) => (
             <Link key={t.slug} to={`/giris/${t.slug}`} className="chooser-item">
@@ -36,7 +32,6 @@ export function LoginChooser() {
               </span>
               <span className="chooser-text">
                 <strong>{t.title}</strong>
-                <span className="muted small">{t.text}</span>
               </span>
             </Link>
           ))}

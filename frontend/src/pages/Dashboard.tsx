@@ -10,9 +10,9 @@ import { useLoad } from '../useLoad';
 
 type Tone = 'blue' | 'amber' | 'green' | 'red';
 
-function Tile({ icon, label, value, hint, tone = 'blue' }: { icon: string; label: string; value: React.ReactNode; hint?: string; tone?: Tone }) {
-  return (
-    <div className={`tile-card tone-bg-${tone}`}>
+function Tile({ icon, label, value, hint, tone = 'blue', to }: { icon: string; label: string; value: React.ReactNode; hint?: string; tone?: Tone; to?: string }) {
+  const body = (
+    <>
       <span className="tile-icon">
         <Icon name={icon} size={24} />
       </span>
@@ -21,7 +21,15 @@ function Tile({ icon, label, value, hint, tone = 'blue' }: { icon: string; label
         <strong className="tile-value">{value}</strong>
         {hint && <span className="tile-hint">{hint}</span>}
       </div>
-    </div>
+    </>
+  );
+  // Panel tıklanınca ilgili sayfaya gider.
+  return to ? (
+    <Link to={to} className={`tile-card tile-link tone-bg-${tone}`} aria-label={`${label}: ayrıntılar`}>
+      {body}
+    </Link>
+  ) : (
+    <div className={`tile-card tone-bg-${tone}`}>{body}</div>
   );
 }
 
@@ -97,10 +105,10 @@ function StudentSummary() {
         </Alert>
       ))}
       <div className="tiles">
-        <Tile icon="clock" label="Bu ay çalışılan saat" value={worked.data?.hasApprovedPlan ? `${hoursLabel(worked.data.workedHours)} saat` : '–'} hint={worked.data?.hasApprovedPlan ? `${worked.data.attendedDays} / ${worked.data.plannedDays} gün` : 'Onaylı plan yok'} tone="green" />
-        <Tile icon="building" label="Çalıştığı birim" value={p?.currentUnit?.workUnitName ?? 'Atanmadı'} />
-        <Tile icon="user" label="Sorumlu personel" value={p?.currentAdvisor?.advisorName ?? 'Atanmadı'} />
-        <Tile icon="mail" label="Kalan izin hakkı" value={b ? `${b.remaining} gün` : '–'} hint={b ? `${b.year} yılı, ${b.limit} gün üzerinden` : undefined} tone="green" />
+        <Tile icon="clock" label="Bu ay çalışılan saat" value={worked.data?.hasApprovedPlan ? `${hoursLabel(worked.data.workedHours)} saat` : '–'} hint={worked.data?.hasApprovedPlan ? `${worked.data.attendedDays} / ${worked.data.plannedDays} gün` : 'Onaylı plan yok'} tone="green" to="/gecmis" />
+        <Tile icon="building" label="Çalıştığı birim" value={p?.currentUnit?.workUnitName ?? 'Atanmadı'} to="/profil" />
+        <Tile icon="user" label="Sorumlu personel" value={p?.currentAdvisor?.advisorName ?? 'Atanmadı'} to="/profil" />
+        <Tile icon="mail" label="Kalan izin hakkı" value={b ? `${b.remaining} gün` : '–'} hint={b ? `${b.year} yılı, ${b.limit} gün üzerinden` : undefined} tone="green" to="/izinlerim" />
       </div>
       <Section title="Sizi Bekleyenler">
         <ul className="todo">
@@ -161,14 +169,14 @@ function StaffSummary({ role }: { role: string }) {
     <>
       {(students.error || alerts.error) && <Alert kind="warn">Bazı bilgiler yüklenemedi.</Alert>}
       <div className="tiles">
-        <Tile icon="users" label="Aktif öğrenci" value={students.data?.totalCount ?? '–'} hint="Yetki alanınızdaki kayıtlar" />
-        <Tile icon="mail" label="Yaklaşan izin günü" value={leaves.data ? upcoming.length : '–'} hint="Bugün ve sonrası" tone="amber" />
+        <Tile icon="users" label="Aktif öğrenci" value={students.data?.totalCount ?? '–'} hint="Yetki alanınızdaki kayıtlar" to="/ogrenciler" />
+        <Tile icon="mail" label="Yaklaşan izin günü" value={leaves.data ? upcoming.length : '–'} hint="Bugün ve sonrası" tone="amber" to="/izinler" />
         {role === 'FacultyAdmin' ? (
-          <Tile icon="check" label="Onay bekleyen plan" value={plans.data ? plans.data.length : '–'} hint="İçinde bulunulan ay" tone="amber" />
+          <Tile icon="check" label="Onay bekleyen plan" value={plans.data ? plans.data.length : '–'} hint="İçinde bulunulan ay" tone="amber" to="/plan-onaylari" />
         ) : (
-          <Tile icon="bell" label="Okunmamış bildirim" value={notices.data ? notices.data.length : '–'} hint="Devamsızlık bildirimleri" tone="amber" />
+          <Tile icon="bell" label="Okunmamış bildirim" value={notices.data ? notices.data.length : '–'} hint="Devamsızlık bildirimleri" tone="amber" to="/bildirimler" />
         )}
-        <Tile icon="alert" label="Sınıra yaklaşan / aşan" value={a ? a.length : '–'} hint="İzin veya devamsızlık sınırı" tone="red" />
+        <Tile icon="alert" label="Sınıra yaklaşan / aşan" value={a ? a.length : '–'} hint="İzin veya devamsızlık sınırı" tone="red" to={role === 'FacultyAdmin' ? '/devamsizlik' : '/izinler'} />
       </div>
       {recent.length > 0 && (
         <Section title="İzin Bildirimleri (son 7 gün)" to="/izinler" toLabel="TÜM İZİNLER">

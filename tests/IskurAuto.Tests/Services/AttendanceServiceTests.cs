@@ -88,21 +88,10 @@ public class AttendanceServiceTests
         Assert.Null(session.DepartmentId);
     }
 
-    [Fact]
-    public async Task CreateSession_AsDepartmentHead_IsLimitedToTheirOwnDepartment()
-    {
-        using var f = await CreateAsync();
-        f.Db.Current.As(UserRole.DepartmentHead, f.Seed.HeadId, f.Seed.BmId);
-        using var scope = f.Db.NewScope();
-
-        var session = await scope.Attendance.CreateSessionAsync(Session(departmentId: f.Seed.YmId));
-
-        Assert.Equal(f.Seed.BmId, session.DepartmentId);
-    }
-
     [Theory]
     [InlineData(UserRole.Student)]
     [InlineData(UserRole.Advisor)]
+    [InlineData(UserRole.DepartmentHead)]
     public async Task CreateSession_ByOtherRoles_IsForbidden(UserRole role)
     {
         using var f = await CreateAsync();
@@ -159,17 +148,18 @@ public class AttendanceServiceTests
     }
 
     [Fact]
-    public async Task DepartmentHead_CannotSeeOrUseAnotherDepartmentsSession()
+    public async Task DepartmentHead_CannotManageSessionsOrQrCodes()
     {
         using var f = await CreateAsync();
-        var ymSession = await OpenSessionAsync(f, Session(departmentId: f.Seed.YmId));
+        var session = await OpenSessionAsync(f, Session(departmentId: f.Seed.BmId));
 
         f.Db.Current.As(UserRole.DepartmentHead, f.Seed.HeadId, f.Seed.BmId);
         using var scope = f.Db.NewScope();
 
-        await Assert.ThrowsAsync<NotFoundException>(() => scope.Attendance.GetCurrentQrAsync(ymSession.Id));
-        await Assert.ThrowsAsync<NotFoundException>(() => scope.Attendance.CloseSessionAsync(ymSession.Id));
-        Assert.Empty(await scope.Attendance.ListSessionsAsync(null, null));
+        await Assert.ThrowsAsync<ForbiddenException>(() => scope.Attendance.GetCurrentQrAsync(session.Id));
+        await Assert.ThrowsAsync<ForbiddenException>(() => scope.Attendance.CloseSessionAsync(session.Id));
+        await Assert.ThrowsAsync<ForbiddenException>(() => scope.Attendance.ListSessionsAsync(null, null));
+        await Assert.ThrowsAsync<ForbiddenException>(() => scope.AttendanceDisplay.GetDisplayAsync());
     }
 
     [Fact]

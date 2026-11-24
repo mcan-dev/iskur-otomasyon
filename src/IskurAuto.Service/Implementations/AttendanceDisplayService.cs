@@ -83,7 +83,7 @@ public class AttendanceDisplayService : IAttendanceDisplayService
 
     public async Task<AttendanceDisplayDto> GetDisplayAsync(CancellationToken ct = default)
     {
-        _current.RequireRole(UserRole.FacultyAdmin, UserRole.DepartmentHead);
+        _current.RequireRole(UserRole.FacultyAdmin);
 
         var schedule = await LoadAsync(ct);
         var localNow = _clock.LocalNow;

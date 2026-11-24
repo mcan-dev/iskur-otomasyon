@@ -470,7 +470,7 @@ public static class DatabaseSeeder
             new AbsenceNotice { StudentProfile = elif, Date = D(2026, 10, 7), Message = "Öğrenci 7 Ekim'de çalışma yerine gelmedi.", AdvisorUser = advisorMak, CreatedAt = T(2026, 10, 7, 14) },
             new AbsenceNotice { StudentProfile = ahmet, Date = D(2026, 10, 21), Message = "Öğrenci 21 Ekim'de planlı olduğu halde görünmedi.", AdvisorUser = advisorMek, CreatedAt = T(2026, 10, 21, 15) },
             new AbsenceNotice { StudentProfile = fatma, Date = D(2026, 10, 7), Message = "Öğrenci rahatsızlığı nedeniyle gelemedi, rapor bekleniyor.", AdvisorUser = advisorMet, CreatedAt = T(2026, 10, 7, 13), ReadAt = T(2026, 10, 8, 9), ReadByUser = headMet },
-            new AbsenceNotice { StudentProfile = selin, Date = D(2026, 10, 15), Message = "Öğrenci üst üste devamsızlık yaptı, izin hakkını aştı.", AdvisorUser = advisorEem, CreatedAt = T(2026, 10, 15, 16) });
+            new AbsenceNotice { StudentProfile = selin, Date = D(2026, 10, 15), Message = "Öğrenci üst üste devamsızlık yaptı, izin hakkı doldu.", AdvisorUser = advisorEem, CreatedAt = T(2026, 10, 15, 16) });
 
         // Görevler: her bölümde en az bir görev; tamamlanmış olanlarda değerlendirme notu da vardır.
         StudentTask Task(StudentProfile s, User by, string title, string description, DateOnly given, DateOnly due, StudentTaskStatus status, string? note)
@@ -626,14 +626,14 @@ public static class DatabaseSeeder
             WorkPlanDay = burakNov.Days.First(x => x.Date == D(2026, 11, 2))
         });
 
-        // Selin izin ve devamsızlık sınırını aştı: 6 gün onaylı izin + 5 gün devamsızlık = 11 / 10 (ilişik kesme incelemesi listesinde görünür).
+        // Selin izin hakkını doldurdu: 6 gün izin + 1 gün izin (10 Kasım) + 3 gün devamsızlık = 10 / 10, kalan 0; yeni izin alamaz.
         db.LeaveRequests.Add(new LeaveRequest
         {
             StudentProfile = selin, Status = LeaveStatus.Approved,
             StartDate = D(2026, 10, 6), EndDate = D(2026, 10, 13), DaysCounted = 6, Description = "Grip ve dinlenme",
             AppliedOn = D(2026, 10, 5)
         });
-        foreach (var day in new[] { D(2026, 9, 22), D(2026, 9, 24), D(2026, 9, 29), D(2026, 10, 1), D(2026, 10, 15) })
+        foreach (var day in new[] { D(2026, 9, 22), D(2026, 9, 29), D(2026, 10, 15) })
             db.Absences.Add(new Absence { StudentProfile = selin, Date = day, Type = AbsenceType.Unexcused, Note = "Çalışma yerine gelmedi.", RecordedByUser = admin });
 
         // Görevler: tamamlanmayan ve açık

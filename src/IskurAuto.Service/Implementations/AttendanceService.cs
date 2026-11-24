@@ -48,7 +48,7 @@ public class AttendanceService : IAttendanceService
 
     public async Task<SessionDto> CreateSessionAsync(CreateSessionRequest request, CancellationToken ct = default)
     {
-        _current.RequireRole(UserRole.FacultyAdmin, UserRole.DepartmentHead);
+        _current.RequireRole(UserRole.FacultyAdmin);   // karekod ve oturum kurallarını yalnızca fakülte sekreterliği yönetir
 
         var departmentId = _current.Role == UserRole.DepartmentHead
             ? _current.DepartmentId ?? throw new ForbiddenException("Hesabınıza bir bölüm atanmamış.")
@@ -82,7 +82,7 @@ public class AttendanceService : IAttendanceService
 
     public async Task<SessionDto> CloseSessionAsync(int sessionId, CancellationToken ct = default)
     {
-        _current.RequireRole(UserRole.FacultyAdmin, UserRole.DepartmentHead);
+        _current.RequireRole(UserRole.FacultyAdmin);   // karekod ve oturum kurallarını yalnızca fakülte sekreterliği yönetir
 
         var session = await LoadSessionInScopeAsync(sessionId, ct);
         if (session.IsClosed)
@@ -97,7 +97,7 @@ public class AttendanceService : IAttendanceService
 
     public async Task<IReadOnlyList<SessionDto>> ListSessionsAsync(DateOnly? from, DateOnly? to, CancellationToken ct = default)
     {
-        _current.RequireRole(UserRole.FacultyAdmin, UserRole.DepartmentHead);
+        _current.RequireRole(UserRole.FacultyAdmin);   // karekod ve oturum kurallarını yalnızca fakülte sekreterliği yönetir
 
         var today = _clock.Today;
         var departmentId = _current.Role == UserRole.DepartmentHead ? _current.DepartmentId : null;
@@ -109,7 +109,7 @@ public class AttendanceService : IAttendanceService
 
     public async Task<QrCodeDto> GetCurrentQrAsync(int sessionId, CancellationToken ct = default)
     {
-        _current.RequireRole(UserRole.FacultyAdmin, UserRole.DepartmentHead);
+        _current.RequireRole(UserRole.FacultyAdmin);   // karekod ve oturum kurallarını yalnızca fakülte sekreterliği yönetir
 
         var session = await LoadSessionInScopeAsync(sessionId, ct);
         if (!session.IsActiveAt(_clock.LocalNow))

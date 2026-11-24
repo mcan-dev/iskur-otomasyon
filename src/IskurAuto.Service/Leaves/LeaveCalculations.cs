@@ -33,7 +33,8 @@ public static class LeaveBalanceCalculator
         var absenceDays = absences.Count(a => !a.IsRevoked);
 
         var used = leaveDays + absenceDays;
-        var remaining = limit - used;
+        // Eksi izin yoktur: hak bittiyse kalan 0'dır ve yeni izin alınamaz.
+        var remaining = Math.Max(0m, limit - used);
 
         return new LeaveBalance(limit, used, leaveDays, absenceDays, remaining, Warnings(policy, limit, used, remaining));
     }

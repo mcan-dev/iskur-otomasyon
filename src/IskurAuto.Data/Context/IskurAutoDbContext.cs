@@ -42,6 +42,9 @@ public class IskurAutoDbContext : DbContext, IUnitOfWork
         // Tablo ayarları ayrı IEntityTypeConfiguration sınıflarındadır (Configurations klasörü).
         // Neden: bu dosya her yeni tabloyla şişmez; her tablonun kuralı kendi dosyasında okunur.
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(IskurAutoDbContext).Assembly);
+
+        // Veritabanı tablo ve sütun adları Türkçedir; kod tarafındaki adlar değişmez.
+        TurkishNaming.Apply(modelBuilder);
     }
 
     public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)

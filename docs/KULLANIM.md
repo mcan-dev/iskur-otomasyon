@@ -44,7 +44,7 @@ Uç noktaların listesi için [API.md](API.md) dosyasına bakın.
 - **Sorumlu personel atama:** Öğrenci listesinde birden çok öğrenciyi işaretleyip tek işlemde, sorumlu personelin **sicil numarasıyla** atar. Önceki atama geçmişte kalır.
 - **Kim ne zaman çalışıyor:** Günlere göre çalışanları ve **geçmiş yıllarda** (ör. 2025) çalışanları görür.
 - Çalışılan ve kalan iş günü (140 gün) bilgisini öğrenci sayfasında görür.
-- Mesai karekod ekranını açabilir; bölümü için ek devam oturumu açabilir.
+- Karekod ekranı ve oturumları yalnızca fakülte sekreterliği tarafından yönetilir.
 
 ## Fakülte Sekreterliği / Dekanlık
 

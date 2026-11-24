@@ -4,7 +4,7 @@ import type { StudentSummary, StudentTask, TaskStatus } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
 import StudentPicker from '../../components/StudentPicker';
 import { Alert, Badge, Card, Empty, Field, Modal } from '../../components/ui';
-import { fmtDate, fmtDateTime, taskStatusLabels, taskTone, todayIso } from '../../format';
+import { fmtDate, taskStatusLabels, taskTone, todayIso } from '../../format';
 import { useLoad } from '../../useLoad';
 import { Filters } from './parts';
 
@@ -14,7 +14,6 @@ export default function TasksStaffPage() {
   const [status, setStatus] = useState('');
   const [overdue, setOverdue] = useState(false);
   const [evaluating, setEvaluating] = useState<StudentTask | null>(null);
-  const [openId, setOpenId] = useState<number | null>(null);
 
   const query = new URLSearchParams();
   if (status) query.set('status', status);
@@ -47,23 +46,8 @@ export default function TasksStaffPage() {
               <p className="muted small">{t.studentName} · {t.departmentName} · Veren {t.assignedByName} · Son tarih {fmtDate(t.dueDate)}</p>
               {t.description && <p>{t.description}</p>}
               <div className="row" style={{ marginTop: 8 }}>
-                {t.evaluationCount > 0 && (
-                  <button className="btn small" onClick={() => setOpenId(openId === t.id ? null : t.id)}>
-                    {openId === t.id ? 'Notları gizle' : `Notlar (${t.evaluationCount})`}
-                  </button>
-                )}
                 {isAdvisor && <button className="btn small primary" onClick={() => setEvaluating(t)}>Değerlendir</button>}
               </div>
-              {openId === t.id && (
-                <div className="stack" style={{ marginTop: 10 }}>
-                  {t.evaluations.map((e) => (
-                    <div key={e.id} className="list-item">
-                      <p className="muted small">{e.authorName} · {fmtDateTime(e.createdAt)}{e.newStatus && ` · Durum: ${taskStatusLabels[e.newStatus]}`}</p>
-                      {e.note && <p>{e.note}</p>}
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           ))}
         </div>
