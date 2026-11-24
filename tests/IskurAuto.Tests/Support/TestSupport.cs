@@ -157,6 +157,8 @@ public sealed class TestScope : IDisposable
     public IAbsenceNoticeService AbsenceNotices { get; }
     public IReportService Reports { get; }
     public ITerminationService Terminations { get; }
+    public IAttendanceDisplayService AttendanceDisplay { get; }
+    public IWorkRosterService Roster { get; }
 
     public TestScope(TestDb db, IskurAutoDbContext context)
     {
@@ -169,10 +171,10 @@ public sealed class TestScope : IDisposable
         var audit = new AuditService(new AuditLogRepository(context), db.Clock, db.Current);
 
         Audit = audit;
-        Auth = new AuthService(users, students, departments, context, db.Hasher, new FakeTokenService(), db.Clock, audit, db.Current);
+        Auth = new AuthService(users, context, db.Hasher, new FakeTokenService(), db.Clock, audit, db.Current);
         PasswordReset = new PasswordResetService(users, new PasswordResetTokenRepository(context), context, db.Hasher,
             Email, db.Clock, audit, new PasswordResetSettings { FrontendBaseUrl = "http://localhost:5173", TokenMinutes = 30 });
-        Students = new StudentService(students, users, units, context, db.Clock, audit, db.Current);
+        Students = new StudentService(students, users, units, departments, db.Hasher, context, db.Clock, audit, db.Current);
         Users = new UserService(users, departments, context, db.Hasher, audit, db.Current);
         Departments = new DepartmentService(departments, context, audit, db.Current);
         WorkUnits = new WorkUnitService(units, context, audit, db.Current);
@@ -181,7 +183,7 @@ public sealed class TestScope : IDisposable
         var examPeriods = new ExamPeriodRepository(context);
         var courseDays = new StudentCourseDayRepository(context);
         WorkPlans = new WorkPlanService(new WorkPlanRepository(context), students, holidays, examPeriods, courseDays,
-            context, db.Clock, audit, db.Current, db.WorkPlanSettings);
+            new AttendanceRecordRepository(context), context, db.Clock, audit, db.Current, db.WorkPlanSettings);
         CourseDays = new CourseDayService(students, courseDays, context, audit, db.Current);
         Calendar = new CalendarService(holidays, examPeriods, context, audit, db.Current);
 
@@ -189,8 +191,8 @@ public sealed class TestScope : IDisposable
         var absenceRepository = new AbsenceRepository(context);
         var policy = new LeavePolicyService(new SystemSettingRepository(context), context, audit, db.Current);
         LeaveSettings = policy;
-        Leaves = new LeaveService(leaveRepository, absenceRepository, students, holidays, new WorkPlanRepository(context),
-            db.Documents, policy, context, db.Clock, audit, db.Current);
+        Leaves = new LeaveService(leaveRepository, absenceRepository, students, new WorkPlanRepository(context),
+            policy, context, db.Clock, audit, db.Current);
         Absences = new AbsenceService(absenceRepository, students, context, db.Clock, audit, db.Current);
         Attendance = new AttendanceService(new AttendanceSessionRepository(context), new AttendanceRecordRepository(context),
             students, new WorkPlanRepository(context), leaveRepository, absenceRepository, context, db.Clock, audit, db.Current, db.WorkPlanSettings);
@@ -200,6 +202,10 @@ public sealed class TestScope : IDisposable
             absenceRepository, new StudentTaskRepository(context), policy, db.WorkPlanSettings, context, db.Clock, audit, db.Current);
         Terminations = new TerminationService(new TerminationRepository(context), students, Students, leaveRepository, absenceRepository,
             policy, context, db.Clock, audit, db.Current);
+        AttendanceDisplay = new AttendanceDisplayService(new SystemSettingRepository(context), new AttendanceSessionRepository(context),
+            holidays, context, db.Clock, audit, db.Current);
+        Roster = new WorkRosterService(new WorkPlanRepository(context), new AttendanceRecordRepository(context), leaveRepository,
+            db.Clock, db.Current);
     }
 
     public void Dispose() => Context.Dispose();
@@ -237,10 +243,10 @@ public static class TestData
         var lab = new WorkUnit { Name = "Bilgisayar Laboratuvarı" };
         var lib = new WorkUnit { Name = "Kütüphane" };
 
-        var admin = new User { FullName = "Ayşe Kaya", Email = "admin@test.local", PasswordHash = hash, Role = UserRole.FacultyAdmin };
-        var head = new User { FullName = "Mehmet Demir", Email = "head@test.local", PasswordHash = hash, Role = UserRole.DepartmentHead, Department = bm };
-        var advisor = new User { FullName = "Zeynep Arslan", Email = "advisor@test.local", PasswordHash = hash, Role = UserRole.Advisor, Department = bm };
-        var advisorYm = new User { FullName = "Can Er", Email = "advisor.ym@test.local", PasswordHash = hash, Role = UserRole.Advisor, Department = ym };
+        var admin = new User { FullName = "Ayşe Kaya", RegistryNumber = "100001", Email = "admin@test.local", PasswordHash = hash, Role = UserRole.FacultyAdmin };
+        var head = new User { FullName = "Mehmet Demir", RegistryNumber = "200001", Email = "head@test.local", PasswordHash = hash, Role = UserRole.DepartmentHead, Department = bm };
+        var advisor = new User { FullName = "Zeynep Arslan", RegistryNumber = "300001", Email = "advisor@test.local", PasswordHash = hash, Role = UserRole.Advisor, Department = bm };
+        var advisorYm = new User { FullName = "Can Er", RegistryNumber = "300002", Email = "advisor.ym@test.local", PasswordHash = hash, Role = UserRole.Advisor, Department = ym };
 
         var mehmet = NewStudent("Mehmet Öztürk", "mehmet@test.local", "12345678950", "TR400006200000000000000001", "230000001", bm, hash, start);
         var elif = NewStudent("Elif Yıldız", "elif@test.local", "23456789138", "TR130006200000000000000002", "240000002", ym, hash, start);
@@ -257,6 +263,34 @@ public static class TestData
             AdvisorId = advisor.Id, AdvisorYmId = advisorYm.Id, LabId = lab.Id, LibraryId = lib.Id,
             MehmetId = mehmet.Id, MehmetUserId = mehmet.UserId, ElifId = elif.Id, ElifUserId = elif.UserId
         };
+    }
+
+    /// <summary>
+    /// Doğrudan veritabanına geçerli izin günleri ekler (rapor, devam ve ilişik kesme testleri için).
+    /// Aralıktaki hafta içi günlerden, o ay için plan varsa yalnızca planlı günler; yoksa her hafta içi günü
+    /// ayrı bir izin kaydı olur (öğrencinin takvimden seçtiği her gün gibi).
+    /// </summary>
+    public static int AddLeaveDays(TestDb db, int studentId, DateOnly from, DateOnly to)
+    {
+        using var ctx = db.NewContext();
+        var plans = ctx.WorkPlans.Include(p => p.Days).Where(p => p.StudentProfileId == studentId).ToList();
+        var holidays = ctx.Holidays.Where(h => h.Date >= from && h.Date <= to).Select(h => h.Date).ToHashSet();
+        var count = 0;
+        for (var day = from; day <= to; day = day.AddDays(1))
+        {
+            if (day.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday || holidays.Contains(day)) continue;
+            var plan = plans.FirstOrDefault(p => p.Year == day.Year && p.Month == day.Month);
+            if (plan is not null && plan.Days.All(d => d.Date != day)) continue;
+
+            ctx.LeaveRequests.Add(new LeaveRequest
+            {
+                StudentProfileId = studentId, Status = LeaveStatus.Approved, StartDate = day, EndDate = day,
+                DaysCounted = 1, AppliedOn = db.Clock.Today
+            });
+            count++;
+        }
+        ctx.SaveChanges();
+        return count;
     }
 
     private static StudentProfile NewStudent(string name, string email, string nationalId, string iban,

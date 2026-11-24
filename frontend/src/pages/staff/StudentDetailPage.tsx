@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api, ApiError } from '../../api/client';
 import type {
-  Absence, AttendanceComparison, Leave, LeaveBalance, StudentDetailStaff, StudentTask, User, WorkPlan, WorkUnit,
+  Absence, AttendanceComparison, Department, Leave, LeaveBalance, StudentDetailStaff, StudentTask, User, WorkLifetime, WorkPlan, WorkUnit,
 } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
 import { Alert, Badge, Card, Empty, Field, Modal, MonthPicker, Stat } from '../../components/ui';
@@ -49,7 +49,7 @@ export default function StudentDetailPage() {
       </div>
       {s && tab === 'general' && <General student={s} role={user?.role} onChanged={student.reload} />}
       {tab === 'plans' && <Plans studentId={id} canReview={user?.role === 'FacultyAdmin'} />}
-      {s && tab === 'leaves' && <Leaves studentId={id} canReview canEditAllowance={user?.role === 'FacultyAdmin'} allowance={s.leaveDayAllowance ?? null} onAllowanceChanged={student.reload} />}
+      {s && tab === 'leaves' && <Leaves studentId={id} canCancel={user?.role === 'FacultyAdmin'} canEditAllowance={user?.role === 'FacultyAdmin'} allowance={s.leaveDayAllowance ?? null} onAllowanceChanged={student.reload} />}
       {tab === 'absences' && <Absences studentId={id} canRevoke={user?.role === 'FacultyAdmin'} />}
       {tab === 'attendance' && <Attendance studentId={id} />}
       {tab === 'tasks' && <Tasks studentId={id} />}
@@ -60,7 +60,8 @@ export default function StudentDetailPage() {
 // ─── Genel ─────────────────────────────────────────────────────────────────
 
 function General({ student: s, role, onChanged }: { student: StudentDetailStaff; role?: string; onChanged: () => void }) {
-  const [dialog, setDialog] = useState<'unit' | 'advisor' | 'end' | 'start' | null>(null);
+  const [dialog, setDialog] = useState<'unit' | 'advisor' | 'end' | 'start' | 'edit' | null>(null);
+  const lifetime = useLoad(() => api.get<WorkLifetime>(`/api/work-plans/students/${s.id}/lifetime`), [s.id]);
   const isFaculty = role === 'FacultyAdmin';
   const canAdvisor = isFaculty || role === 'DepartmentHead';
   const close = () => setDialog(null);
@@ -89,25 +90,39 @@ function General({ student: s, role, onChanged }: { student: StudentDetailStaff;
             {s.unitHistory.length === 0 && <li className="muted">Kayıt yok</li>}
             {s.unitHistory.map((x) => <li key={x.id}>{x.workUnitName}: {fmtDate(x.startDate)} – {x.endDate ? fmtDate(x.endDate) : 'devam ediyor'}</li>)}
           </ul>
-          <h3 className="sub">Danışman</h3>
+          <h3 className="sub">Sorumlu personel</h3>
           <ul className="plain">
             {s.advisorHistory.length === 0 && <li className="muted">Kayıt yok</li>}
             {s.advisorHistory.map((x) => <li key={x.id}>{x.advisorName}: {fmtDate(x.startDate)} – {x.endDate ? fmtDate(x.endDate) : 'devam ediyor'}</li>)}
           </ul>
         </Card>
       </div>
+      <div className="stack">
+      <Card title="Çalışma günü hakkı" subtitle={`Üniversite hayatı boyunca en fazla ${lifetime.data?.limit ?? 140} iş günü çalışılabilir.`}>
+        {lifetime.error && <Alert>{lifetime.error}</Alert>}
+        {lifetime.data && (
+          <div className="stats">
+            <Stat label="Çalışılan" value={`${lifetime.data.workedDays} gün`} />
+            <Stat label="Kalan" value={`${lifetime.data.remainingDays} gün`} tone="green"
+              hint={lifetime.data.upcomingPlannedDays > 0 ? `${lifetime.data.upcomingPlannedDays} gün planlarda bekliyor` : undefined} />
+          </div>
+        )}
+      </Card>
       <Card title="Atamalar ve durum">
-        <dl className="kv" style={{ gridTemplateColumns: '110px 1fr' }}>
+        <dl className="kv" style={{ gridTemplateColumns: '130px 1fr' }}>
           <dt>Birim</dt><dd>{s.currentUnit?.workUnitName ?? 'Atanmadı'}</dd>
-          <dt>Danışman</dt><dd>{s.currentAdvisor?.advisorName ?? 'Atanmadı'}</dd>
+          <dt>Sorumlu personel</dt><dd>{s.currentAdvisor?.advisorName ?? 'Atanmadı'}</dd>
         </dl>
         <div className="stack" style={{ marginTop: 14 }}>
+          {isFaculty && <button className="btn" onClick={() => setDialog('edit')}>Öğrenci bilgilerini düzenle</button>}
           {isFaculty && s.isActive && <button className="btn" onClick={() => setDialog('unit')}>Birim ata / değiştir</button>}
-          {canAdvisor && s.isActive && <button className="btn" onClick={() => setDialog('advisor')}>Danışman ata / değiştir</button>}
+          {canAdvisor && s.isActive && <button className="btn" onClick={() => setDialog('advisor')}>Sorumlu personel ata / değiştir</button>}
           {isFaculty && s.isActive && <button className="btn danger" onClick={() => setDialog('end')}>Programdan çıkar</button>}
           {isFaculty && !s.isActive && <button className="btn primary" onClick={() => setDialog('start')}>Programa yeniden dahil et</button>}
         </div>
       </Card>
+      </div>
+      {dialog === 'edit' && <EditStudent student={s} onClose={close} onDone={onChanged} />}
       {dialog === 'unit' && <AssignUnit student={s} onClose={close} onDone={onChanged} />}
       {dialog === 'advisor' && <AssignAdvisor student={s} onClose={close} onDone={onChanged} />}
       {dialog === 'end' && <EndParticipation student={s} onClose={close} onDone={onChanged} />}
@@ -160,20 +175,79 @@ function AssignUnit({ student, onClose, onDone }: DialogProps) {
 
 function AssignAdvisor({ student, onClose, onDone }: DialogProps) {
   const advisors = useLoad(() => api.get<User[]>(`/api/users?role=Advisor&isActive=true&departmentId=${student.departmentId}`), []);
-  const [advisorId, setAdvisorId] = useState('');
-  const { error, busy, submit } = useSubmit(() => api.put(`/api/students/${student.id}/advisor`, { advisorUserId: Number(advisorId) }), { onClose, onDone });
+  const [registry, setRegistry] = useState('');
+  const { error, busy, submit } = useSubmit(
+    () => api.put(`/api/students/${student.id}/advisor`, { advisorRegistryNumber: registry.trim() }),
+    { onClose, onDone },
+  );
   return (
-    <Modal title="Danışman ata" onClose={onClose}>
+    <Modal title="Sorumlu personel ata" onClose={onClose}>
       <form onSubmit={submit}>
         {error && <Alert>{error}</Alert>}
-        <Field label="Danışman öğretim elemanı">
-          <select value={advisorId} onChange={(e) => setAdvisorId(e.target.value)} required>
-            <option value="">Seçin</option>
-            {advisors.data?.map((a) => <option key={a.id} value={a.id}>{a.fullName}</option>)}
+        <Field label="Sorumlu personelin sicil numarası">
+          <input value={registry} onChange={(e) => setRegistry(e.target.value)} list="advisor-registry" required inputMode="numeric" />
+          <datalist id="advisor-registry">
+            {advisors.data?.map((a) => <option key={a.id} value={a.registryNumber ?? ''}>{a.fullName}</option>)}
+          </datalist>
+        </Field>
+        <ul className="plain small muted">
+          {advisors.data?.map((a) => (
+            <li key={a.id}>
+              <button type="button" className="link" onClick={() => setRegistry(a.registryNumber ?? '')}>{a.registryNumber}</button> · {a.fullName}
+            </li>
+          ))}
+        </ul>
+        <p className="muted small">Öğrencinin bölümündeki sorumlu personel atanabilir. Önceki sorumlu geçmişe taşınır.</p>
+        <button className="btn primary wide" disabled={busy || !registry.trim()}>Ata</button>
+      </form>
+    </Modal>
+  );
+}
+
+/** Sekreterlik öğrencinin bütün bilgilerini düzeltebilir (ad, e-posta, TC, numara, bölüm, IBAN, OBİS şifresi). */
+function EditStudent({ student, onClose, onDone }: DialogProps) {
+  const departments = useLoad(() => api.get<Department[]>('/api/departments'), []);
+  const [form, setForm] = useState({
+    fullName: student.fullName,
+    email: student.email,
+    phoneNumber: student.phoneNumber ?? '',
+    nationalId: student.nationalId,
+    studentNumber: student.studentNumber,
+    departmentId: String(student.departmentId),
+    registrationYear: String(student.registrationYear),
+    iban: '',
+    newObisPassword: '',
+  });
+  const set = (k: keyof typeof form) => (e: { target: { value: string } }) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  const { error, busy, submit } = useSubmit(
+    () => api.put(`/api/students/${student.id}`, {
+      ...form,
+      departmentId: Number(form.departmentId),
+      registrationYear: Number(form.registrationYear),
+      iban: form.iban.trim() || null,
+      newObisPassword: form.newObisPassword || null,
+    }),
+    { onClose, onDone },
+  );
+  return (
+    <Modal title="Öğrenci bilgilerini düzenle" onClose={onClose}>
+      <form onSubmit={submit}>
+        {error && <Alert>{error}</Alert>}
+        <Field label="Ad soyad"><input value={form.fullName} onChange={set('fullName')} required /></Field>
+        <Field label="Öğrenci e-postası"><input type="email" value={form.email} onChange={set('email')} required /></Field>
+        <Field label="Telefon"><input value={form.phoneNumber} onChange={set('phoneNumber')} required /></Field>
+        <Field label="T.C. kimlik no"><input value={form.nationalId} onChange={set('nationalId')} maxLength={11} required /></Field>
+        <Field label="Öğrenci numarası"><input value={form.studentNumber} onChange={set('studentNumber')} maxLength={9} required /></Field>
+        <Field label="Bölüm">
+          <select value={form.departmentId} onChange={set('departmentId')}>
+            {departments.data?.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
           </select>
         </Field>
-        <p className="muted small">Önceki danışman geçmişe taşınır.</p>
-        <button className="btn primary wide" disabled={busy || !advisorId}>Ata</button>
+        <Field label="Kayıt yılı"><input type="number" value={form.registrationYear} onChange={set('registrationYear')} required /></Field>
+        <Field label="Yeni IBAN (boş bırakılırsa değişmez)"><input value={form.iban} onChange={set('iban')} placeholder="TR.." /></Field>
+        <Field label="Yeni OBİS şifresi (boş bırakılırsa değişmez)"><input type="password" value={form.newObisPassword} onChange={set('newObisPassword')} autoComplete="new-password" /></Field>
+        <p className="muted small">Bölüm değişirse mevcut sorumlu personel ataması kapanır.</p>
+        <button className="btn primary wide" disabled={busy}>Kaydet</button>
       </form>
     </Modal>
   );
@@ -256,7 +330,7 @@ function AllowanceCard({ studentId, allowance, policyLimit, onChanged }: { stude
   );
 }
 
-function Leaves({ studentId, canReview, canEditAllowance = false, allowance, onAllowanceChanged }: { studentId: number; canReview: boolean; canEditAllowance?: boolean; allowance: number | null; onAllowanceChanged: () => void }) {
+function Leaves({ studentId, canCancel, canEditAllowance = false, allowance, onAllowanceChanged }: { studentId: number; canCancel: boolean; canEditAllowance?: boolean; allowance: number | null; onAllowanceChanged: () => void }) {
   const [year, setYear] = useState(new Date().getFullYear());
   const leaves = useLoad(() => api.get<Leave[]>(`/api/leaves?studentId=${studentId}&year=${year}`), [studentId, year]);
   const balance = useLoad(() => api.get<LeaveBalance>(`/api/leaves/students/${studentId}/balance?year=${year}`), [studentId, year]);
@@ -273,9 +347,9 @@ function Leaves({ studentId, canReview, canEditAllowance = false, allowance, onA
       )}
       {b?.warnings.map((w) => <Alert key={w.code} kind="warn">{w.message}</Alert>)}
       {canEditAllowance && b && <AllowanceCard studentId={studentId} allowance={allowance} policyLimit={allowance === null ? b.limit : null} onChanged={() => { onAllowanceChanged(); balance.reload(); }} />}
-      <Card title="İzin talepleri">
+      <Card title="İzinler" subtitle="Öğrenci izinleri onay beklemez; sekreterlik gerekirse iptal eder.">
         {leaves.error && <Alert>{leaves.error}</Alert>}
-        {leaves.data && <LeaveTable leaves={leaves.data} canReview={canReview} showStudent={false} onChanged={() => { leaves.reload(); balance.reload(); }} />}
+        {leaves.data && <LeaveTable leaves={leaves.data} canCancel={canCancel} showStudent={false} onChanged={() => { leaves.reload(); balance.reload(); }} />}
       </Card>
     </div>
   );

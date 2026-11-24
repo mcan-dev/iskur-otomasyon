@@ -11,12 +11,22 @@ public class User : BaseEntity
 {
     public string FullName { get; set; } = string.Empty;
 
-    /// <summary>Küçük harfe normalize edilmiş e-posta. Giriş adı olarak kullanılır, benzersizdir.</summary>
+    /// <summary>
+    /// Küçük harfe normalize edilmiş e-posta, benzersiz. Öğrenciler üniversite öğrenci e-postasıyla giriş yapar.
+    /// </summary>
     public string Email { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Personel sicil numarası (benzersiz). Personel (sekreterlik, birim yetkilisi, sorumlu personel) bununla giriş yapar.
+    /// Öğrencilerde boştur.
+    /// </summary>
+    public string? RegistryNumber { get; set; }
 
     public string? PhoneNumber { get; set; }
 
-    /// <summary>PBKDF2 ile üretilmiş parola özeti. Parola asla açık metin saklanmaz (belge madde 11).</summary>
+    /// <summary>
+    /// PBKDF2 ile üretilmiş parola özeti; açık metin saklanmaz. Öğrencide bu, bilgi işlemden gelen OBİS şifresinin özetidir.
+    /// </summary>
     public string PasswordHash { get; set; } = string.Empty;
 
     public UserRole Role { get; set; }
@@ -29,13 +39,6 @@ public class User : BaseEntity
     public int? DepartmentId { get; set; }
 
     public bool IsActive { get; set; } = true;
-
-    /// <summary>
-    /// Danışman ve bölüm başkanının kendi yaptığı kayıt başvurusu henüz karara bağlanmadıysa true.
-    /// Fakülte sekreterliği onayladığında (hesap aktif olur) ya da reddettiğinde false olur.
-    /// Sonradan pasifleştirilen bir hesap "başvuru" sayılmaz.
-    /// </summary>
-    public bool IsPendingApproval { get; set; }
 
     public DateTime? LastLoginAt { get; set; }
 

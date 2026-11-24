@@ -41,11 +41,15 @@ public class WorkUnitUpsertRequest
     public bool IsActive { get; set; } = true;
 }
 
-/// <summary>Personel (Fakülte yönetimi / Bölüm Başkanı / Danışman) hesabı oluşturma.</summary>
+/// <summary>Personel (Fakülte sekreterliği / Birim yetkilisi / Sorumlu personel) hesabı oluşturma.</summary>
 public class CreateStaffUserRequest
 {
     [Required, StringLength(200, MinimumLength = 2)]
     public string FullName { get; set; } = string.Empty;
+
+    /// <summary>Personel sicil numarası; giriş adı olarak kullanılır.</summary>
+    [Required, StringLength(20, MinimumLength = 3)]
+    public string RegistryNumber { get; set; } = string.Empty;
 
     [Required, EmailAddress, StringLength(254)]
     public string Email { get; set; } = string.Empty;
@@ -53,7 +57,7 @@ public class CreateStaffUserRequest
     [StringLength(25)]
     public string? PhoneNumber { get; set; }
 
-    /// <summary>Başlangıç parolası. Kullanıcı sonradan değiştirebilir.</summary>
+    /// <summary>Başlangıç şifresi.</summary>
     [Required, StringLength(128)]
     public string Password { get; set; } = string.Empty;
 
@@ -62,6 +66,29 @@ public class CreateStaffUserRequest
 
     /// <summary>DepartmentHead ve Advisor için zorunlu.</summary>
     public int? DepartmentId { get; set; }
+}
+
+/// <summary>Sekreterliğin personel bilgilerini düzeltmesi. Şifre boş bırakılırsa değişmez.</summary>
+public class UpdateStaffUserRequest
+{
+    [Required, StringLength(200, MinimumLength = 2)]
+    public string FullName { get; set; } = string.Empty;
+
+    [Required, StringLength(20, MinimumLength = 3)]
+    public string RegistryNumber { get; set; } = string.Empty;
+
+    [Required, EmailAddress, StringLength(254)]
+    public string Email { get; set; } = string.Empty;
+
+    [StringLength(25)]
+    public string? PhoneNumber { get; set; }
+
+    public UserRole Role { get; set; }
+
+    public int? DepartmentId { get; set; }
+
+    [StringLength(128)]
+    public string? NewPassword { get; set; }
 }
 
 public class SetUserActiveRequest
@@ -75,8 +102,8 @@ public class UserSearchQuery
     public int? DepartmentId { get; set; }
     public bool? IsActive { get; set; }
 
-    /// <summary>true: yalnızca sekreterlik kararını bekleyen başvurular.</summary>
-    public bool? IsPendingApproval { get; set; }
+    /// <summary>Sicil numarasıyla tam eşleşme.</summary>
+    public string? RegistryNumber { get; set; }
 }
 
 public class AuditLogDto

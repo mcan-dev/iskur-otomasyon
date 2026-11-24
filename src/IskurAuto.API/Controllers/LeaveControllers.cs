@@ -27,37 +27,26 @@ public class LeavesController : ControllerBase
     public async Task<ActionResult<IReadOnlyList<LeaveDto>>> Mine([FromQuery] int? year, CancellationToken ct)
         => Ok(await _leaves.ListMineAsync(year, ct));
 
-    /// <summary>İzin talebi oluşturur. Yanıttaki bakiye, bu talep dahil güncel izin durumunu ve uyarıları içerir.</summary>
+    /// <summary>İzin seçimi için ayın takvimi: yalnızca onaylı plandaki, geçmemiş çalışma günleri seçilebilir.</summary>
+    [HttpGet("me/calendar")]
+    [Authorize(Roles = AppRoles.Student)]
+    public async Task<ActionResult<LeaveCalendarDto>> MyCalendar([FromQuery] int year, [FromQuery] int month, CancellationToken ct)
+        => Ok(await _leaves.GetMyCalendarAsync(year, month, ct));
+
+    /// <summary>Seçilen çalışma günleri için izin alır. İzin onay beklemez; sekreterlik bilgilendirilir.</summary>
     [HttpPost("me")]
     [Authorize(Roles = AppRoles.Student)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<LeaveResultDto>> Request([FromBody] CreateLeaveRequest request, CancellationToken ct)
+    public async Task<ActionResult<IReadOnlyList<LeaveDto>>> Request([FromBody] CreateLeaveRequest request, CancellationToken ct)
         => StatusCode(StatusCodes.Status201Created, await _leaves.RequestAsync(request, ct));
 
     [HttpPost("me/{id:int}/cancel")]
     [Authorize(Roles = AppRoles.Student)]
-    public async Task<ActionResult<LeaveDto>> Cancel(int id, CancellationToken ct)
-        => Ok(await _leaves.CancelAsync(id, ct));
+    public async Task<ActionResult<LeaveDto>> CancelMine(int id, CancellationToken ct)
+        => Ok(await _leaves.CancelMineAsync(id, ct));
 
-    /// <summary>Talebe belge ekler (PDF, JPG veya PNG, en fazla 5 MB).</summary>
-    [HttpPost("me/{id:int}/document")]
-    [Authorize(Roles = AppRoles.Student)]
-    [RequestSizeLimit(6 * 1024 * 1024)]
-    public async Task<ActionResult<LeaveDto>> AttachDocument(int id, IFormFile file, CancellationToken ct)
-    {
-        await using var stream = file.OpenReadStream();
-        var upload = new DocumentUpload { Content = stream, FileName = file.FileName, Length = file.Length };
-        return Ok(await _leaves.AttachDocumentAsync(id, upload, ct));
-    }
-
-    [HttpGet("{id:int}/document")]
-    public async Task<IActionResult> Document(int id, CancellationToken ct)
-    {
-        var document = await _leaves.OpenDocumentAsync(id, ct);
-        return File(document.Content, document.ContentType, document.FileName);
-    }
-
+    /// <summary>Öğrencinin izinleri; öğrencinin sorumlusu olan herkes (sorumlu personel, birim yetkilisi, sekreterlik) görür.</summary>
     [HttpGet]
     [Authorize(Roles = AppRoles.AllStaff)]
     public async Task<ActionResult<IReadOnlyList<LeaveDto>>> Search([FromQuery] LeaveSearchQuery query, CancellationToken ct)
@@ -67,11 +56,11 @@ public class LeavesController : ControllerBase
     public async Task<ActionResult<LeaveDto>> GetById(int id, CancellationToken ct)
         => Ok(await _leaves.GetByIdAsync(id, ct));
 
-    /// <summary>Talebi onaylar veya gerekçeyle reddeder.</summary>
-    [HttpPost("{id:int}/review")]
-    [Authorize(Roles = AppRoles.AllStaff)]
-    public async Task<ActionResult<LeaveResultDto>> Review(int id, [FromBody] ReviewLeaveRequest request, CancellationToken ct)
-        => Ok(await _leaves.ReviewAsync(id, request, ct));
+    /// <summary>İzni iptal eder. Yalnızca fakülte sekreterliği; izin onaylama adımı yoktur.</summary>
+    [HttpPost("{id:int}/cancel")]
+    [Authorize(Roles = AppRoles.FacultyAdmin)]
+    public async Task<ActionResult<LeaveDto>> Cancel(int id, [FromBody] CancelLeaveRequest request, CancellationToken ct)
+        => Ok(await _leaves.CancelAsync(id, request, ct));
 
     [HttpGet("students/{studentId:int}/balance")]
     [Authorize(Roles = AppRoles.AllStaff)]

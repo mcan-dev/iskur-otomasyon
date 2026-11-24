@@ -24,9 +24,8 @@ import LeavesPage from './pages/student/LeavesPage';
 import PlanPage from './pages/student/PlanPage';
 import ProfilePage from './pages/student/ProfilePage';
 import TasksPage from './pages/student/TasksPage';
-import Register from './pages/Register';
-import StaffRegister from './pages/StaffRegister';
-import ApplicationsPage from './pages/staff/ApplicationsPage';
+import DisplayPage from './pages/staff/DisplayPage';
+import RosterPage from './pages/staff/RosterPage';
 import ResetPassword from './pages/ResetPassword';
 
 export default function App() {
@@ -51,7 +50,8 @@ export default function App() {
     '/bildirimler': <NoticesPage />,
     '/raporlar': <ReportsPage />,
     '/iliski-kesme': <TerminationsPage />,
-    '/hesap-basvurulari': <ApplicationsPage />,
+    '/calisanlar': <RosterPage />,
+    '/mesai-ekrani': <DisplayPage />,
     '/tanimlar': <DefinitionsPage />,
     '/denetim': <AuditPage />,
   };
@@ -63,8 +63,6 @@ export default function App() {
     <Routes>
       <Route path="/giris" element={<LoginChooser />} />
       <Route path="/giris/:tur" element={<Login />} />
-      <Route path="/kayit" element={<Register />} />
-      <Route path="/kayit/:tur" element={<StaffRegister />} />
       <Route path="/parolami-unuttum" element={<ForgotPassword />} />
       <Route path="/sifre-sifirla" element={<ResetPassword />} />
       <Route element={user ? <AppLayout /> : <Navigate to="/giris" replace />}>

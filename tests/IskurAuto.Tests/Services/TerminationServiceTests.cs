@@ -19,16 +19,10 @@ public class TerminationServiceTests
         Note = "Devamsızlık nedeniyle, inceleme tamamlandı."
     };
 
-    private static async Task ApproveLeaveAsync(TestDb db, SeedResult seed, DateOnly from, DateOnly to)
+    private static Task ApproveLeaveAsync(TestDb db, SeedResult seed, DateOnly from, DateOnly to)
     {
-        db.Current.As(UserRole.Student, seed.MehmetUserId);
-        LeaveResultDto requested;
-        using (var scope = db.NewScope())
-            requested = await scope.Leaves.RequestAsync(new CreateLeaveRequest { Type = LeaveType.Excuse, StartDate = from, EndDate = to, Reason = "Aile işi" });
-
-        db.Current.As(UserRole.FacultyAdmin, seed.AdminId);
-        using (var scope = db.NewScope())
-            await scope.Leaves.ReviewAsync(requested.Leave.Id, new ReviewLeaveRequest { Approve = true });
+        TestData.AddLeaveDays(db, seed.MehmetId, from, to);
+        return Task.CompletedTask;
     }
 
     [Fact]

@@ -16,8 +16,35 @@ public class AttendanceController : ControllerBase
     private const string SessionManagers = AppRoles.FacultyAdmin + "," + AppRoles.DepartmentHead;
 
     private readonly IAttendanceService _attendance;
+    private readonly IAttendanceDisplayService _display;
 
-    public AttendanceController(IAttendanceService attendance) => _attendance = attendance;
+    public AttendanceController(IAttendanceService attendance, IAttendanceDisplayService display)
+    {
+        _attendance = attendance;
+        _display = display;
+    }
+
+    // Mesai karekodu (monitör ekranı)
+
+    /// <summary>Sabah ve akşam karekod saatleri.</summary>
+    [HttpGet("schedule")]
+    public async Task<ActionResult<AttendanceScheduleDto>> Schedule(CancellationToken ct)
+        => Ok(await _display.GetScheduleAsync(ct));
+
+    /// <summary>Sabah ve akşam karekod saatlerini belirler (yalnızca fakülte sekreterliği).</summary>
+    [HttpPut("schedule")]
+    [Authorize(Roles = AppRoles.FacultyAdmin)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<AttendanceScheduleDto>> UpdateSchedule([FromBody] AttendanceScheduleDto request, CancellationToken ct)
+        => Ok(await _display.UpdateScheduleAsync(request, ct));
+
+    /// <summary>
+    /// Monitör ekranı: karekod saatleri içindeyse güncel karekodu (30 saniyede bir yenilenir), değilse sıradaki saati döner.
+    /// </summary>
+    [HttpGet("display")]
+    [Authorize(Roles = SessionManagers)]
+    public async Task<ActionResult<AttendanceDisplayDto>> Display(CancellationToken ct)
+        => Ok(await _display.GetDisplayAsync(ct));
 
     // Oturum ve karekod
 

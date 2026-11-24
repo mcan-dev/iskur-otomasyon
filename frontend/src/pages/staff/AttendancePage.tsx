@@ -5,7 +5,7 @@ import { Alert, Badge, Card, Empty, MonthPicker } from '../../components/ui';
 import { fmtDate, fmtDateTime } from '../../format';
 import { useLoad } from '../../useLoad';
 
-// Danışman: kendi öğrencilerinin aylık devam kayıtları (kapsamı sunucu daraltır).
+// Sorumlu personel: kendi öğrencilerinin aylık devam kayıtları (kapsamı sunucu daraltır).
 export default function AttendancePage() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());

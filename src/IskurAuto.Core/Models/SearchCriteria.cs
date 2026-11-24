@@ -27,7 +27,7 @@ public class UserSearchCriteria
     public UserRole? Role { get; set; }
     public int? DepartmentId { get; set; }
     public bool? IsActive { get; set; }
-    public bool? IsPendingApproval { get; set; }
+    public string? RegistryNumber { get; set; }
 }
 
 public class AuditLogSearchCriteria
@@ -52,6 +52,9 @@ public class WorkPlanSearchCriteria
 public class LeaveSearchCriteria
 {
     public int? Year { get; set; }
+
+    /// <summary>Yıl ile birlikte verilirse yalnızca o ayın izinleri.</summary>
+    public int? Month { get; set; }
     public int? StudentId { get; set; }
     public int? DepartmentId { get; set; }
     public int? AdvisorUserId { get; set; }

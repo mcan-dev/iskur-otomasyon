@@ -11,20 +11,17 @@ public static class LeaveMappers
         Id = l.Id,
         StudentId = l.StudentProfileId,
         StudentName = l.StudentProfile.User.FullName,
+        StudentNumber = l.StudentProfile.StudentNumber,
         DepartmentName = l.StudentProfile.Department.Name,
-        Type = l.Type,
         Status = l.Status,
         StartDate = l.StartDate,
         EndDate = l.EndDate,
         DaysCounted = l.DaysCounted,
-        Reason = l.Reason,
         Description = l.Description,
         AppliedOn = l.AppliedOn,
-        ReviewedByName = l.ReviewedByUser?.FullName,
-        ReviewedAt = l.ReviewedAt,
-        ReviewNote = l.ReviewNote,
-        HasDocument = l.HasDocument,
-        DocumentFileName = l.DocumentFileName
+        CancelledByName = l.CancelledByUser?.FullName,
+        CancelledAt = l.CancelledAt,
+        CancelNote = l.CancelNote
     };
 
     public static AbsenceDto ToDto(this Absence a) => new()
@@ -48,7 +45,6 @@ public static class LeaveMappers
         Year = year,
         Limit = b.Limit,
         Used = b.Used,
-        Pending = b.Pending,
         Remaining = b.Remaining,
         LeaveDays = b.LeaveDays,
         AbsenceDays = b.AbsenceDays,
@@ -58,7 +54,6 @@ public static class LeaveMappers
     private static string Message(LeaveWarning warning, LeaveBalance b) => warning switch
     {
         LeaveWarning.LeaveNearLimit => $"İzin hakkı azalıyor: {b.Remaining:0.##} gün kaldı.",
-        LeaveWarning.LeavePendingExceeds => "Bekleyen talepler onaylanırsa izin hakkı aşılacak.",
         _ => $"İzin hakkı aşıldı ({b.Used:0.##}/{b.Limit} gün)."
     };
 }

@@ -44,7 +44,7 @@ public class UserService : IUserService
             Role = query.Role,
             DepartmentId = query.DepartmentId,
             IsActive = query.IsActive,
-            IsPendingApproval = query.IsPendingApproval
+            RegistryNumber = string.IsNullOrWhiteSpace(query.RegistryNumber) ? null : InputNormalizer.RegistryNumber(query.RegistryNumber)
         };
 
         // Bölüm başkanı (örn. danışman seçmek için) yalnızca kendi bölümündeki personeli listeleyebilir.
@@ -62,11 +62,14 @@ public class UserService : IUserService
 
         var email = InputNormalizer.Email(request.Email);
         var fullName = InputNormalizer.Name(request.FullName);
+        var registry = InputNormalizer.RegistryNumber(request.RegistryNumber);
         var needsDepartment = request.Role is UserRole.DepartmentHead or UserRole.Advisor;
 
         var errors = new ValidationErrors();
         if (!Enum.IsDefined(request.Role) || request.Role == UserRole.Student)
-            errors.Add(nameof(request.Role), "Rol FacultyAdmin, DepartmentHead veya Advisor olmalıdır. Öğrenciler kendi kayıt ekranından kaydolur.");
+            errors.Add(nameof(request.Role), "Rol fakülte sekreterliği, birim yetkilisi veya sorumlu personel olmalıdır. Öğrenci hesapları öğrenci ekranından açılır.");
+        if (registry.Length < 3)
+            errors.Add(nameof(request.RegistryNumber), "Sicil numarası en az 3 karakter olmalıdır.");
         if (fullName.Length < 2)
             errors.Add(nameof(request.FullName), "Ad soyad en az 2 karakter olmalıdır.");
         errors.Add(nameof(request.Password), PasswordPolicy.Validate(request.Password));
@@ -90,6 +93,8 @@ public class UserService : IUserService
 
         if (await _users.EmailExistsAsync(email, ct))
             throw new ConflictException("Bu e-posta adresiyle kayıtlı bir hesap zaten var.");
+        if (await _users.RegistryNumberExistsAsync(registry, ct: ct))
+            throw new ConflictException("Bu sicil numarasıyla kayıtlı bir personel zaten var.");
 
         // Bir bölümde aynı anda tek aktif bölüm başkanı olur (başkan değişirken eskisi önce pasifleştirilir).
         if (request.Role == UserRole.DepartmentHead)
@@ -99,6 +104,7 @@ public class UserService : IUserService
         {
             FullName = fullName,
             Email = email,
+            RegistryNumber = registry,
             PhoneNumber = phone,
             PasswordHash = _hasher.Hash(request.Password),
             Role = request.Role,
@@ -131,21 +137,6 @@ public class UserService : IUserService
         if (user.Id == _current.UserId && !isActive)
             throw new ConflictException("Kendi hesabınızı pasifleştiremezsiniz.");
 
-        // Başvuru kararı: onay hesabı aktif eder, ret hesabı pasif bırakır; ikisinde de başvuru kapanır.
-        if (user.IsPendingApproval)
-        {
-            if (isActive && user.Role == UserRole.DepartmentHead && user.DepartmentId is int headDept)
-                await EnsureNoActiveHeadAsync(headDept, ct);
-
-            user.IsPendingApproval = false;
-            user.IsActive = isActive;
-            await _audit.RecordAsync(isActive ? AuditActions.UserActivated : AuditActions.UserApplicationRejected,
-                nameof(User), user.Id,
-                $"{user.FullName} ({TurkishText.Role(user.Role)}) başvurusu " + (isActive ? "onaylandı" : "reddedildi"), ct: ct);
-            await _uow.SaveChangesAsync(ct);
-            return user.ToDto();
-        }
-
         if (user.IsActive == isActive)
             return user.ToDto();
 
@@ -155,6 +146,77 @@ public class UserService : IUserService
         user.IsActive = isActive;
         await _audit.RecordAsync(isActive ? AuditActions.UserActivated : AuditActions.UserDeactivated,
             nameof(User), user.Id, ct: ct);
+        await _uow.SaveChangesAsync(ct);
+
+        return user.ToDto();
+    }
+
+    public async Task<UserDto> UpdateStaffAsync(int userId, UpdateStaffUserRequest request, CancellationToken ct = default)
+    {
+        _current.RequireRole(UserRole.FacultyAdmin);
+
+        var user = await _users.GetWithDepartmentAsync(userId, ct)
+            ?? throw new NotFoundException("Kullanıcı bulunamadı.");
+        if (user.Role == UserRole.Student)
+            throw new DomainValidationException("Öğrenci bilgileri öğrenci ekranından düzenlenir.");
+
+        var email = InputNormalizer.Email(request.Email);
+        var fullName = InputNormalizer.Name(request.FullName);
+        var registry = InputNormalizer.RegistryNumber(request.RegistryNumber);
+        var needsDepartment = request.Role is UserRole.DepartmentHead or UserRole.Advisor;
+
+        var errors = new ValidationErrors();
+        if (!Enum.IsDefined(request.Role) || request.Role == UserRole.Student)
+            errors.Add(nameof(request.Role), "Rol fakülte sekreterliği, birim yetkilisi veya sorumlu personel olmalıdır.");
+        if (fullName.Length < 2)
+            errors.Add(nameof(request.FullName), "Ad soyad en az 2 karakter olmalıdır.");
+        if (registry.Length < 3)
+            errors.Add(nameof(request.RegistryNumber), "Sicil numarası en az 3 karakter olmalıdır.");
+        if (!string.IsNullOrEmpty(request.NewPassword))
+            errors.Add(nameof(request.NewPassword), PasswordPolicy.Validate(request.NewPassword));
+        if (user.Id == _current.UserId && request.Role != UserRole.FacultyAdmin)
+            errors.Add(nameof(request.Role), "Kendi rolünüzü değiştiremezsiniz.");
+
+        string? phone = null;
+        if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
+        {
+            phone = InputNormalizer.Phone(request.PhoneNumber);
+            if (!InputNormalizer.IsValidMobile(phone))
+                errors.Add(nameof(request.PhoneNumber), "Geçerli bir cep telefonu numarası giriniz.");
+        }
+
+        Department? department = null;
+        if (needsDepartment)
+        {
+            department = request.DepartmentId is int id ? await _departments.GetByIdAsync(id) : null;
+            if (department is null || !department.IsActive)
+                errors.Add(nameof(request.DepartmentId), "Bu rol için geçerli, aktif bir bölüm seçilmelidir.");
+        }
+        errors.ThrowIfAny();
+
+        if (await _users.EmailExistsExceptAsync(email, user.Id, ct))
+            throw new ConflictException("Bu e-posta adresiyle kayıtlı başka bir hesap var.");
+        if (await _users.RegistryNumberExistsAsync(registry, user.Id, ct))
+            throw new ConflictException("Bu sicil numarasıyla kayıtlı başka bir personel var.");
+
+        var becomesHead = request.Role == UserRole.DepartmentHead
+            && user.IsActive
+            && (user.Role != UserRole.DepartmentHead || user.DepartmentId != department!.Id);
+        if (becomesHead)
+            await EnsureNoActiveHeadAsync(department!.Id, ct);
+
+        user.FullName = fullName;
+        user.Email = email;
+        user.RegistryNumber = registry;
+        user.PhoneNumber = phone;
+        user.Role = request.Role;
+        user.DepartmentId = department?.Id;
+        user.Department = department;
+        if (!string.IsNullOrEmpty(request.NewPassword))
+            user.PasswordHash = _hasher.Hash(request.NewPassword);
+
+        await _audit.RecordAsync(AuditActions.StaffUserUpdated, nameof(User), user.Id,
+            $"Personel bilgileri güncellendi. Rol: {TurkishText.Role(user.Role)}", ct: ct);
         await _uow.SaveChangesAsync(ct);
 
         return user.ToDto();
@@ -170,6 +232,6 @@ public class UserService : IUserService
         }, ct);
 
         if (heads.Count > 0)
-            throw new ConflictException("Bu bölümde zaten aktif bir bölüm başkanı var. Önce mevcut başkanı pasifleştirin.");
+            throw new ConflictException("Bu bölümde zaten aktif bir birim yetkilisi var. Önce mevcut birim yetkilisini pasifleştirin.");
     }
 }

@@ -262,7 +262,7 @@ public class ReportService : IReportService
     // ── İzin, devamsızlık ve ilişik kesme ────────────────────────────────────
 
     private static bool IsNearLimit(LeaveBalance b)
-        => b.Warnings.Any(w => w is LeaveWarning.LeaveNearLimit or LeaveWarning.LeavePendingExceeds);
+        => b.Warnings.Any(w => w is LeaveWarning.LeaveNearLimit);
 
     private static bool IsOverLimit(LeaveBalance b)
         => b.Warnings.Any(w => w is LeaveWarning.LeaveLimitExceeded);
@@ -286,7 +286,7 @@ public class ReportService : IReportService
             .Select(s => (Student: s, Balance: LeaveBalanceCalculator.Calculate(policy, leaves[s.Id], absences[s.Id], s.LeaveDayAllowance)))
             .Where(x => include(x.Balance))
             .Select(x => Row(x.Student.StudentNumber, x.Student.User.FullName, x.Student.Department.Name, StatusText(x.Student),
-                x.Balance.Limit, x.Balance.Used, x.Balance.LeaveDays, x.Balance.AbsenceDays, x.Balance.Pending, x.Balance.Remaining,
+                x.Balance.Limit, x.Balance.Used, x.Balance.LeaveDays, x.Balance.AbsenceDays, x.Balance.Remaining,
                 string.Join("; ", x.Balance.Warnings.Select(WarningText))))
             .ToList();
 
@@ -303,7 +303,7 @@ public class ReportService : IReportService
             Columns = new[]
             {
                 "Öğrenci No", "Ad Soyad", "Bölüm", "Durum", "İzin Hakkı", "Kullanılan", "İzin Günü", "Devamsızlık Günü",
-                "Bekleyen", "Kalan", "Uyarı"
+                "Kalan", "Uyarı"
             },
             Rows = rows
         };
@@ -312,12 +312,11 @@ public class ReportService : IReportService
     private static string WarningText(LeaveWarning warning) => warning switch
     {
         LeaveWarning.LeaveNearLimit => "İzin hakkı bitmek üzere",
-        LeaveWarning.LeavePendingExceeds => "Bekleyen talepler hakkı aşıyor",
         LeaveWarning.LeaveLimitExceeded => "İzin hakkı aşıldı",
         _ => warning.ToString()
     };
 
-    // ── Danışman ve öğrenci listeleri ────────────────────────────────────────
+    // ── Sorumlu personel ve öğrenci listeleri ────────────────────────────────────────
 
     private async Task<ReportTable> AdvisorReportAsync(ReportQuery query, StudentSearchCriteria scope,
         IReadOnlyList<StudentProfile> students, CancellationToken ct)
@@ -327,7 +326,7 @@ public class ReportService : IReportService
             StudentId = scope.StudentId, DepartmentId = scope.DepartmentId, AdvisorUserId = scope.AdvisorUserId, Year = query.Year
         }, ct);
 
-        var advisorOf = students.ToDictionary(s => s.Id, s => s.CurrentAdvisorAssignment?.AdvisorUser.FullName ?? "Danışman atanmamış");
+        var advisorOf = students.ToDictionary(s => s.Id, s => s.CurrentAdvisorAssignment?.AdvisorUser.FullName ?? "Sorumlu personel atanmamış");
         var tasksByAdvisor = tasks.Where(t => advisorOf.ContainsKey(t.StudentProfileId)).ToLookup(t => advisorOf[t.StudentProfileId]);
         var today = _clock.Today;
 
@@ -346,8 +345,8 @@ public class ReportService : IReportService
 
         return new ReportTable
         {
-            Title = "Danışman bazında öğrenci ve görev raporu",
-            Columns = new[] { "Danışman", "Aktif Öğrenci", "Pasif Öğrenci", "Açık Görev", "Tamamlanan", "Tamamlanmayan", "Gecikmiş" },
+            Title = "Sorumlu personel bazında öğrenci ve görev raporu",
+            Columns = new[] { "Sorumlu Personel", "Aktif Öğrenci", "Pasif Öğrenci", "Açık Görev", "Tamamlanan", "Tamamlanmayan", "Gecikmiş" },
             Rows = rows
         };
     }
@@ -368,7 +367,7 @@ public class ReportService : IReportService
             Title = "Öğrenci listesi",
             Columns = new[]
             {
-                "Öğrenci No", "Ad Soyad", "Bölüm", "Çalışma Birimi", "Danışman", "Kayıt Yılı",
+                "Öğrenci No", "Ad Soyad", "Bölüm", "Çalışma Birimi", "Sorumlu Personel", "Kayıt Yılı",
                 "Program Başlangıç", "Program Bitiş", "Durum"
             },
             Rows = rows

@@ -16,11 +16,11 @@ public class StudentRepository : GenericRepository<StudentProfile>, IStudentRepo
     public Task<StudentProfile?> GetDetailByUserIdAsync(int userId, CancellationToken ct = default)
         => WithDetails(Context.StudentProfiles).FirstOrDefaultAsync(s => s.UserId == userId, ct);
 
-    public Task<bool> NationalIdExistsAsync(string nationalId, CancellationToken ct = default)
-        => Context.StudentProfiles.AnyAsync(s => s.NationalId == nationalId, ct);
+    public Task<bool> NationalIdExistsAsync(string nationalId, int? exceptStudentId = null, CancellationToken ct = default)
+        => Context.StudentProfiles.AnyAsync(s => s.NationalId == nationalId && (exceptStudentId == null || s.Id != exceptStudentId), ct);
 
-    public Task<bool> StudentNumberExistsAsync(string studentNumber, CancellationToken ct = default)
-        => Context.StudentProfiles.AnyAsync(s => s.StudentNumber == studentNumber, ct);
+    public Task<bool> StudentNumberExistsAsync(string studentNumber, int? exceptStudentId = null, CancellationToken ct = default)
+        => Context.StudentProfiles.AnyAsync(s => s.StudentNumber == studentNumber && (exceptStudentId == null || s.Id != exceptStudentId), ct);
 
     public async Task<PagedResult<StudentProfile>> SearchAsync(
         StudentSearchCriteria criteria, PageRequest page, CancellationToken ct = default)

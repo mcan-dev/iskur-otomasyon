@@ -15,12 +15,12 @@ public static class Mappers
         Id = u.Id,
         FullName = u.FullName,
         Email = u.Email,
+        RegistryNumber = u.RegistryNumber,
         PhoneNumber = u.PhoneNumber,
         Role = u.Role.ToString(),
         DepartmentId = u.DepartmentId,
         DepartmentName = u.Department?.Name,
-        IsActive = u.IsActive,
-        IsPendingApproval = u.IsPendingApproval
+        IsActive = u.IsActive
     };
 
     public static DepartmentDto ToDto(this Department d)

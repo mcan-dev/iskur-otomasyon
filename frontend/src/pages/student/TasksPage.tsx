@@ -18,7 +18,7 @@ export default function TasksPage() {
   const [openId, setOpenId] = useState<number | null>(null);
 
   return (
-    <Card title="Görevlerim" subtitle="Danışmanınızın veya bölümünüzün verdiği görevler ve değerlendirme notları.">
+    <Card title="Görevlerim" subtitle="Sorumlu personelinizin veya biriminizin verdiği görevler ve değerlendirme notları.">
       <div className="tabs" style={{ marginBottom: 14 }}>
         {filters.map((f) => (
           <button key={f.value} className={`tab ${status === f.value ? 'active' : ''}`} onClick={() => setStatus(f.value)}>

@@ -1,4 +1,5 @@
 using IskurAuto.Core.Constants;
+using IskurAuto.Core.Enums;
 using IskurAuto.Core.Exceptions;
 using IskurAuto.Service.DTOs;
 using IskurAuto.Tests.Support;
@@ -81,10 +82,10 @@ public class PasswordResetServiceTests
             await scope.PasswordReset.ResetAsync(new ResetPasswordRequest { Token = token, NewPassword = NewPassword });
 
         using var login = db.NewScope();
-        var ok = await login.Auth.LoginAsync(new LoginRequest { Email = "admin@test.local", Password = NewPassword });
+        var ok = await login.Auth.LoginAsync(new LoginRequest { Username = "100001", Password = NewPassword, Role = UserRole.FacultyAdmin });
         Assert.False(string.IsNullOrEmpty(ok.AccessToken));
         await Assert.ThrowsAsync<AuthenticationFailedException>(() =>
-            login.Auth.LoginAsync(new LoginRequest { Email = "admin@test.local", Password = TestData.Password }));
+            login.Auth.LoginAsync(new LoginRequest { Username = "100001", Password = TestData.Password, Role = UserRole.FacultyAdmin }));
 
         using var verify = db.NewContext();
         Assert.True(await verify.AuditLogs.AnyAsync(a => a.Action == AuditActions.PasswordResetCompleted));
@@ -154,5 +155,27 @@ public class PasswordResetServiceTests
         // zayıf parola denemesi jetonu harcamaz
         using var retry = db.NewScope();
         await retry.PasswordReset.ResetAsync(new ResetPasswordRequest { Token = token, NewPassword = NewPassword });
+    }
+
+    [Fact]
+    public async Task Request_WithRegistryNumber_SendsLinkToTheStaffEmail()
+    {
+        using var db = new TestDb();
+        TestData.Seed(db);
+
+        using var scope = db.NewScope();
+        await scope.PasswordReset.RequestAsync(new ForgotPasswordRequest { Email = "100001" });
+        Assert.Equal("admin@test.local", Assert.Single(scope.Email.Sent).To);
+    }
+
+    [Fact]
+    public async Task Request_ForStudent_SendsNothing_BecauseObisPasswordIsResetInObis()
+    {
+        using var db = new TestDb();
+        TestData.Seed(db);
+
+        using var scope = db.NewScope();
+        await scope.PasswordReset.RequestAsync(new ForgotPasswordRequest { Email = "mehmet@test.local" });
+        Assert.Empty(scope.Email.Sent);
     }
 }

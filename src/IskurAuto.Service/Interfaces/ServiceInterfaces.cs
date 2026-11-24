@@ -11,8 +11,6 @@ namespace IskurAuto.Service.Interfaces;
 public interface IAuthService
 {
     Task<LoginResponse> LoginAsync(LoginRequest request, CancellationToken ct = default);
-    Task<RegistrationResultDto> RegisterStudentAsync(StudentRegistrationRequest request, CancellationToken ct = default);
-    Task<StaffRegistrationResultDto> RegisterStaffAsync(StaffRegistrationRequest request, CancellationToken ct = default);
     Task ChangePasswordAsync(ChangePasswordRequest request, CancellationToken ct = default);
     Task<UserDto> GetCurrentUserAsync(CancellationToken ct = default);
 }
@@ -41,12 +39,16 @@ public interface IStudentService
     Task<StudentDetailDto> SetLeaveAllowanceAsync(int studentId, SetLeaveAllowanceRequest request, CancellationToken ct = default);
     Task<StudentDetailDto> AssignUnitAsync(int studentId, AssignUnitRequest request, CancellationToken ct = default);
     Task<StudentDetailDto> AssignAdvisorAsync(int studentId, AssignAdvisorRequest request, CancellationToken ct = default);
+    Task<BulkAssignResultDto> BulkAssignAsync(BulkAssignRequest request, CancellationToken ct = default);
+    Task<StudentDetailDto> CreateAsync(CreateStudentRequest request, CancellationToken ct = default);
+    Task<StudentDetailDto> UpdateAsync(int studentId, UpdateStudentRequest request, CancellationToken ct = default);
 }
 
 public interface IUserService
 {
     Task<IReadOnlyList<UserDto>> SearchAsync(UserSearchQuery query, CancellationToken ct = default);
     Task<UserDto> CreateStaffAsync(CreateStaffUserRequest request, CancellationToken ct = default);
+    Task<UserDto> UpdateStaffAsync(int userId, UpdateStaffUserRequest request, CancellationToken ct = default);
     Task<UserDto> SetActiveAsync(int userId, bool isActive, CancellationToken ct = default);
 }
 
@@ -88,6 +90,8 @@ public interface IWorkPlanService
     Task<WorkPlanCalendarDto> GetStudentCalendarAsync(int studentId, int year, int month, CancellationToken ct = default);
     Task<WorkPlanDto> SaveForStudentAsync(int studentId, SaveWorkPlanRequest request, CancellationToken ct = default);
     Task<WorkPlanDto> ReviewAsync(int planId, ReviewWorkPlanRequest request, CancellationToken ct = default);
+    Task<WorkLifetimeDto> GetMyLifetimeAsync(CancellationToken ct = default);
+    Task<WorkLifetimeDto> GetStudentLifetimeAsync(int studentId, CancellationToken ct = default);
 }
 
 public interface ICourseDayService
@@ -111,14 +115,13 @@ public interface ILeaveService
 {
     Task<LeaveBalanceDto> GetMyBalanceAsync(int year, CancellationToken ct = default);
     Task<IReadOnlyList<LeaveDto>> ListMineAsync(int? year, CancellationToken ct = default);
-    Task<LeaveResultDto> RequestAsync(CreateLeaveRequest request, CancellationToken ct = default);
-    Task<LeaveDto> CancelAsync(int leaveId, CancellationToken ct = default);
-    Task<LeaveDto> AttachDocumentAsync(int leaveId, DocumentUpload file, CancellationToken ct = default);
-    Task<DocumentDownload> OpenDocumentAsync(int leaveId, CancellationToken ct = default);
+    Task<LeaveCalendarDto> GetMyCalendarAsync(int year, int month, CancellationToken ct = default);
+    Task<IReadOnlyList<LeaveDto>> RequestAsync(CreateLeaveRequest request, CancellationToken ct = default);
+    Task<LeaveDto> CancelMineAsync(int leaveId, CancellationToken ct = default);
 
     Task<IReadOnlyList<LeaveDto>> SearchAsync(LeaveSearchQuery query, CancellationToken ct = default);
     Task<LeaveDto> GetByIdAsync(int leaveId, CancellationToken ct = default);
-    Task<LeaveResultDto> ReviewAsync(int leaveId, ReviewLeaveRequest request, CancellationToken ct = default);
+    Task<LeaveDto> CancelAsync(int leaveId, CancelLeaveRequest request, CancellationToken ct = default);
     Task<LeaveBalanceDto> GetStudentBalanceAsync(int studentId, int year, CancellationToken ct = default);
     Task<IReadOnlyList<LeaveAlertDto>> GetAlertsAsync(int year, CancellationToken ct = default);
 }
@@ -188,4 +191,17 @@ public interface ILeaveSettingsService
 {
     Task<LeavePolicyDto> GetAsync(CancellationToken ct = default);
     Task<LeavePolicyDto> UpdateAsync(LeavePolicyDto request, CancellationToken ct = default);
+}
+
+public interface IAttendanceDisplayService
+{
+    Task<AttendanceScheduleDto> GetScheduleAsync(CancellationToken ct = default);
+    Task<AttendanceScheduleDto> UpdateScheduleAsync(AttendanceScheduleDto request, CancellationToken ct = default);
+    Task<AttendanceDisplayDto> GetDisplayAsync(CancellationToken ct = default);
+}
+
+public interface IWorkRosterService
+{
+    Task<WorkRosterDto> GetMonthAsync(RosterQuery query, CancellationToken ct = default);
+    Task<YearWorkersDto> GetYearAsync(YearWorkersQuery query, CancellationToken ct = default);
 }

@@ -59,19 +59,10 @@ public class ReportServiceTests
         return new Fixture { Db = db, Seed = seed };
     }
 
-    private static async Task ApproveLeaveAsync(Fixture f, DateOnly from, DateOnly to)
+    private static Task ApproveLeaveAsync(Fixture f, DateOnly from, DateOnly to)
     {
-        f.Db.Current.As(UserRole.Student, f.Seed.MehmetUserId);
-        LeaveResultDto requested;
-        using (var scope = f.Db.NewScope())
-            requested = await scope.Leaves.RequestAsync(new CreateLeaveRequest
-            {
-                Type = LeaveType.Excuse, StartDate = from, EndDate = to, Reason = "Aile işi"
-            });
-
-        f.Db.Current.As(UserRole.FacultyAdmin, f.Seed.AdminId);
-        using (var scope = f.Db.NewScope())
-            await scope.Leaves.ReviewAsync(requested.Leave.Id, new ReviewLeaveRequest { Approve = true });
+        TestData.AddLeaveDays(f.Db, f.Seed.MehmetId, from, to);
+        return Task.CompletedTask;
     }
 
     private static async Task<ReportTable> ReportAsync(Fixture f, ReportKind kind, ReportQuery query, UserRole role = UserRole.FacultyAdmin)
@@ -264,7 +255,7 @@ public class ReportServiceTests
         Assert.Equal(1, Cell(table, "Zeynep Arslan", "Aktif Öğrenci", keyColumn: 0));
         Assert.Equal(1, Cell(table, "Zeynep Arslan", "Açık Görev", keyColumn: 0));
         Assert.Equal(1, Cell(table, "Zeynep Arslan", "Tamamlanan", keyColumn: 0));
-        Assert.Equal(1, Cell(table, "Danışman atanmamış", "Aktif Öğrenci", keyColumn: 0));
+        Assert.Equal(1, Cell(table, "Sorumlu personel atanmamış", "Aktif Öğrenci", keyColumn: 0));
     }
 
     [Fact]

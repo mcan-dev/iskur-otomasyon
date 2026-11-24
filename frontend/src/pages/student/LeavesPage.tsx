@@ -1,187 +1,189 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState } from 'react';
 import { api, ApiError } from '../../api/client';
-import type { Leave, LeaveBalance, LeaveResult, LeaveType } from '../../api/types';
-import { Alert, Badge, Card, Empty, Field, Stat } from '../../components/ui';
-import { fmtDate, leaveStatusLabels, leaveTone, leaveTypeLabels, todayIso } from '../../format';
+import type { Leave, LeaveCalendar } from '../../api/types';
+import { Alert, Badge, Card, Empty, Field, MonthPicker, Stat } from '../../components/ui';
+import { fmtDate, leaveStatusLabels, leaveTone, todayIso } from '../../format';
 import { useLoad } from '../../useLoad';
 
+const headers = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+
+/**
+ * İzin: öğrencinin önüne o ayın çalışma takvimi açılır, yalnızca onaylı plandaki çalışma günleri seçilebilir.
+ * Tür ve gerekçe yoktur, açıklama isteğe bağlıdır. İzin onay beklemez; sekreterlik bilgilendirilir.
+ * Ayın bütün çalışma günleri için izin alınamaz (ayda en az bir gün çalışılmalıdır).
+ */
 export default function LeavesPage() {
-  const year = new Date().getFullYear();
-  const balance = useLoad(() => api.get<LeaveBalance>(`/api/leaves/me/balance?year=${year}`), [year]);
+  const now = new Date();
+  const [year, setYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState(now.getMonth() + 1);
+
+  const calendar = useLoad(() => api.get<LeaveCalendar>(`/api/leaves/me/calendar?year=${year}&month=${month}`), [year, month]);
   const leaves = useLoad(() => api.get<Leave[]>(`/api/leaves/me?year=${year}`), [year]);
-  const [warnings, setWarnings] = useState<string[]>([]);
 
-  const b = balance.data;
-
-  return (
-    <div className="stack">
-      <div className="stats">
-        <Stat label={`${year} izin hakkı`} value={b ? `${b.limit} gün` : '–'} tone="blue" />
-        <Stat label="Kullanılan" value={b ? `${b.used} gün` : '–'} hint={b ? `${b.leaveDays} gün izin, ${b.absenceDays} gün devamsızlık${b.pending > 0 ? `, ${b.pending} gün onay bekliyor` : ''}` : undefined} tone="amber" />
-        <Stat label="Kalan" value={b ? `${b.remaining} gün` : '–'} tone="green" />
-      </div>
-      {[...(b?.warnings.map((w) => w.message) ?? []), ...warnings].map((w, i) => (
-        <Alert key={i} kind="warn">{w}</Alert>
-      ))}
-
-      <div className="two-col">
-        <Card title="İzin taleplerim">
-          {leaves.error && <Alert>{leaves.error}</Alert>}
-          {leaves.data?.length === 0 && <Empty>Bu yıl için izin talebiniz yok.</Empty>}
-          <div className="stack">
-            {leaves.data?.map((l) => (
-              <LeaveItem key={l.id} leave={l} onChanged={() => { leaves.reload(); balance.reload(); }} />
-            ))}
-          </div>
-        </Card>
-        <NewLeave
-          onCreated={(result) => {
-            setWarnings(result.balance.warnings.map((w) => w.message));
-            leaves.reload();
-            balance.reload();
-          }}
-        />
-      </div>
-    </div>
-  );
-}
-
-function LeaveItem({ leave, onChanged }: { leave: Leave; onChanged: () => void }) {
-  const [error, setError] = useState('');
-
-  async function run(action: () => Promise<unknown>) {
-    setError('');
-    try {
-      await action();
-      onChanged();
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'İşlem yapılamadı.');
-    }
-  }
-
-  function upload(file: File | undefined) {
-    if (!file) return;
-    const form = new FormData();
-    form.append('file', file);
-    run(() => api.upload(`/api/leaves/me/${leave.id}/document`, form));
-  }
-
-  const same = leave.startDate === leave.endDate;
-  return (
-    <div className="list-item">
-      <div className="row between">
-        <strong>
-          {fmtDate(leave.startDate)}
-          {!same && ` – ${fmtDate(leave.endDate)}`}
-        </strong>
-        <Badge tone={leaveTone[leave.status]}>{leaveStatusLabels[leave.status]}</Badge>
-      </div>
-      <p className="muted small">
-        {leaveTypeLabels[leave.type]} · {leave.daysCounted} gün · Başvuru {fmtDate(leave.appliedOn)}
-      </p>
-      <p>{leave.reason}</p>
-      {leave.reviewNote && <p className="muted small">İnceleme notu: {leave.reviewNote}</p>}
-      {error && <Alert>{error}</Alert>}
-      <div className="row" style={{ marginTop: 8 }}>
-        {leave.hasDocument && (
-          <button className="btn small" onClick={() => run(() => api.download(`/api/leaves/${leave.id}/document`, leave.documentFileName ?? 'belge'))}>
-            Belgeyi indir
-          </button>
-        )}
-        {(leave.status === 'Pending' || leave.status === 'Approved') && (
-          <label className="btn small">
-            {leave.hasDocument ? 'Belgeyi değiştir' : 'Belge ekle'}
-            <input type="file" accept=".pdf,.jpg,.jpeg,.png" hidden onChange={(e) => upload(e.target.files?.[0])} />
-          </label>
-        )}
-        {leave.status === 'Pending' && (
-          <button className="btn small danger" onClick={() => run(() => api.post(`/api/leaves/me/${leave.id}/cancel`))}>
-            İptal et
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function NewLeave({ onCreated }: { onCreated: (r: LeaveResult) => void }) {
-  const today = todayIso();
-  const [type, setType] = useState<LeaveType>('Excuse');
-  const [start, setStart] = useState(today);
-  const [end, setEnd] = useState(today);
-  const [reason, setReason] = useState('');
+  const [picked, setPicked] = useState<Set<string>>(new Set());
   const [description, setDescription] = useState('');
-  const [error, setError] = useState<ApiError | null>(null);
-  const [localError, setLocalError] = useState('');
-  const [done, setDone] = useState('');
+  const [message, setMessage] = useState<{ kind: 'error' | 'warn' | 'info'; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
-  async function submit(e: FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setDone('');
-    setLocalError('');
-    if (!start || !end) return setLocalError('Başlangıç ve bitiş tarihini seçin.');
-    if (end < start) return setLocalError('Bitiş tarihi başlangıçtan önce olamaz.');
-    if (reason.trim().length < 3) return setLocalError('Gerekçe en az 3 karakter olmalıdır.');
+  useEffect(() => setPicked(new Set()), [calendar.data]);
+
+  const cal = calendar.data;
+  const b = cal?.balance;
+  const offset = cal && cal.days.length ? (new Date(cal.days[0].date + 'T00:00:00').getDay() + 6) % 7 : 0;
+
+  const workDays = cal?.days.filter((d) => d.isWorkDay) ?? [];
+  const freeWorkDays = workDays.filter((d) => !d.isOnLeave).length;
+
+  function toggle(date: string) {
+    setMessage(null);
+    setPicked((p) => {
+      const copy = new Set(p);
+      if (copy.has(date)) {
+        copy.delete(date);
+        return copy;
+      }
+      if (copy.size + 1 >= freeWorkDays) {
+        setMessage({ kind: 'warn', text: 'Bir ay içinde en az bir gün çalışmanız gerekir; ayın tüm çalışma günleri için izin alamazsınız.' });
+        return copy;
+      }
+      copy.add(date);
+      return copy;
+    });
+  }
+
+  async function submit() {
     setBusy(true);
+    setMessage(null);
     try {
-      const result = await api.post<LeaveResult>('/api/leaves/me', {
-        type,
-        startDate: start,
-        endDate: end,
-        reason: reason.trim(),
+      const created = await api.post<Leave[]>('/api/leaves/me', {
+        days: [...picked].sort(),
         description: description.trim() || null,
       });
-      setReason('');
       setDescription('');
-      setDone('İzin talebiniz gönderildi; onay bekliyor.');
-      onCreated(result);
+      setMessage({ kind: 'info', text: `${created.length} gün için izniniz kaydedildi. Fakülte sekreterliği bilgilendirildi.` });
+      calendar.reload();
+      leaves.reload();
     } catch (err) {
-      setError(err instanceof ApiError ? err : new ApiError(0, 'Talep oluşturulamadı.'));
+      setMessage({ kind: 'error', text: errorText(err, 'İzin alınamadı.') });
     } finally {
       setBusy(false);
     }
   }
 
-  const fieldMsg = (name: string) => {
-    const key = error && Object.keys(error.fieldErrors).find((k) => k.toLowerCase() === name.toLowerCase());
-    return key && error ? error.fieldErrors[key][0] : undefined;
-  };
-  // Alan altında gösterilemeyen her hata (ör. izin türü) üstte uyarı olarak da listelenir.
-  const shown = ['startdate', 'enddate', 'reason'];
-  const otherErrors = error
-    ? Object.entries(error.fieldErrors).filter(([k]) => !shown.includes(k.toLowerCase())).flatMap(([, v]) => v)
-    : [];
+  async function cancel(leave: Leave) {
+    setMessage(null);
+    try {
+      await api.post(`/api/leaves/me/${leave.id}/cancel`);
+      calendar.reload();
+      leaves.reload();
+    } catch (err) {
+      setMessage({ kind: 'error', text: errorText(err, 'İzin iptal edilemedi.') });
+    }
+  }
+
+  const today = todayIso();
 
   return (
-    <Card title="Yeni izin talebi" subtitle="İzinler gün bazında alınır.">
-      <form onSubmit={submit} noValidate>
-        {done && <Alert kind="info">{done}</Alert>}
-        {localError && <Alert>{localError}</Alert>}
-        {error && Object.keys(error.fieldErrors).length === 0 && <Alert>{error.message}</Alert>}
-        {otherErrors.length > 0 && <Alert>{otherErrors.join(' ')}</Alert>}
-        <Field label="İzin türü">
-          <select value={type} onChange={(e) => setType(e.target.value as LeaveType)}>
-            {(Object.keys(leaveTypeLabels) as LeaveType[]).map((k) => (
-              <option key={k} value={k}>{leaveTypeLabels[k]}</option>
+    <div className="stack">
+      <div className="stats">
+        <Stat label={`${year} izin hakkı`} value={b ? `${b.limit} gün` : '–'} tone="blue" />
+        <Stat label="Kullanılan" value={b ? `${b.used} gün` : '–'} hint={b ? `${b.leaveDays} gün izin, ${b.absenceDays} gün devamsızlık` : undefined} tone="amber" />
+        <Stat label="Kalan" value={b ? `${b.remaining} gün` : '–'} tone="green" />
+      </div>
+      {b?.warnings.map((w, i) => (
+        <Alert key={i} kind="warn">{w.message}</Alert>
+      ))}
+
+      <div className="two-col">
+        <Card title="İzin al" subtitle="Takvimden izin almak istediğiniz çalışma günlerini seçin. Çalışma günü olmayan günler seçilemez.">
+          <div className="row between" style={{ marginBottom: 12 }}>
+            <MonthPicker year={year} month={month} onChange={(y, m) => { setYear(y); setMonth(m); }} />
+          </div>
+          {calendar.error && <Alert>{calendar.error}</Alert>}
+          {message && <Alert kind={message.kind}>{message.text}</Alert>}
+          {cal && !cal.hasApprovedPlan && (
+            <Alert kind="info">Bu ay için onaylanmış bir çalışma planınız yok; izin yalnızca onaylı plandaki çalışma günleri için alınabilir.</Alert>
+          )}
+
+          <div className="cal" style={{ marginTop: 12 }}>
+            {headers.map((h) => (
+              <div key={h} className="cal-head">{h}</div>
             ))}
-          </select>
-        </Field>
-        <Field label="Başlangıç" error={fieldMsg('startDate')}>
-          <input type="date" value={start} onChange={(e) => { setStart(e.target.value); if (e.target.value > end) setEnd(e.target.value); }} />
-        </Field>
-        <Field label="Bitiş" error={fieldMsg('endDate')}>
-          <input type="date" value={end} min={start} onChange={(e) => setEnd(e.target.value)} />
-        </Field>
-        <Field label="Gerekçe" error={fieldMsg('reason')}>
-          <input value={reason} onChange={(e) => setReason(e.target.value)} maxLength={300} />
-        </Field>
-        <Field label="Açıklama (isteğe bağlı)">
-          <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} maxLength={1000} />
-        </Field>
-        <button className="btn primary wide" disabled={busy}>{busy ? 'Gönderiliyor…' : 'Talep Gönder'}</button>
-      </form>
-    </Card>
+            {Array.from({ length: offset }).map((_, i) => (
+              <div key={`o${i}`} className="cal-cell empty-cell" />
+            ))}
+            {cal?.days.map((d) => {
+              const chosen = picked.has(d.date);
+              const cls = d.isOnLeave ? 'leaveOn' : chosen ? 'leavePick' : d.isWorkDay ? 'pickGreen' : 'Gray';
+              const label = d.isOnLeave ? 'İzinli' : chosen ? 'İzin için seçildi' : d.isWorkDay ? (d.canSelect ? 'Çalışma günü' : 'Çalışma günü (geçti)') : '';
+              return (
+                <div
+                  key={d.date}
+                  className={`cal-cell ${cls} ${d.canSelect ? 'clickable' : ''}`}
+                  onClick={() => d.canSelect && toggle(d.date)}
+                  role={d.canSelect ? 'button' : undefined}
+                  title={label}
+                >
+                  <span className="num">{Number(d.date.slice(8))}</span>
+                  {label && <span className="lbl">{label}</span>}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="legend" style={{ marginTop: 12 }}>
+            <span><i className="dot" style={{ background: '#c9efd8' }} />Çalışma günü</span>
+            <span><i className="dot" style={{ background: '#fff1c7' }} />İzin için seçtiğiniz gün</span>
+            <span><i className="dot" style={{ background: '#e4f1ff' }} />İzinli gün</span>
+          </div>
+
+          <Field label="Açıklama (isteğe bağlı)">
+            <textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} maxLength={1000} />
+          </Field>
+          <div className="row">
+            <button className="btn primary" disabled={busy || picked.size === 0} onClick={submit}>
+              {busy ? 'Kaydediliyor…' : 'İzin Al'}
+            </button>
+            <span className="muted">{picked.size} gün seçildi</span>
+          </div>
+        </Card>
+
+        <Card title={`${year} izinlerim`}>
+          {leaves.error && <Alert>{leaves.error}</Alert>}
+          {leaves.data?.length === 0 && <Empty>Bu yıl için izniniz yok.</Empty>}
+          <div className="stack">
+            {leaves.data?.map((l) => (
+              <div key={l.id} className="list-item">
+                <div className="row between">
+                  <strong>
+                    {fmtDate(l.startDate)}
+                    {l.startDate !== l.endDate && ` – ${fmtDate(l.endDate)}`}
+                  </strong>
+                  <Badge tone={leaveTone[l.status]}>{leaveStatusLabels[l.status]}</Badge>
+                </div>
+                <p className="muted small">{l.daysCounted} gün · Alındığı gün {fmtDate(l.appliedOn)}</p>
+                {l.description && <p>{l.description}</p>}
+                {l.status === 'Cancelled' && (
+                  <p className="muted small">
+                    İptal eden: {l.cancelledByName ?? '—'}{l.cancelNote ? ` · ${l.cancelNote}` : ''}
+                  </p>
+                )}
+                {l.status === 'Approved' && l.startDate >= today && (
+                  <div className="row" style={{ marginTop: 8 }}>
+                    <button className="btn small danger" onClick={() => cancel(l)}>İzni iptal et</button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+    </div>
   );
+}
+
+function errorText(err: unknown, fallback: string): string {
+  if (!(err instanceof ApiError)) return fallback;
+  const details = Object.values(err.fieldErrors).flat();
+  return details.length ? details.join(' ') : err.message;
 }

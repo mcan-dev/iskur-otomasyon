@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
-import type { User, AbsenceNotice, AttendanceComparison, Leave, LeaveAlert, LeaveBalance, Paged, PlanCalendar, StudentProfileFull, StudentSummary, StudentTask, WorkPlan } from '../api/types';
+import type { AbsenceNotice, AttendanceComparison, Leave, LeaveAlert, LeaveBalance, Paged, PlanCalendar, StudentProfileFull, StudentSummary, StudentTask, WorkPlan } from '../api/types';
 import { useAuth } from '../auth/AuthContext';
 import { Alert, Badge } from '../components/ui';
 import { Icon } from '../components/Icon';
-import { fmtDate, hoursLabel, planStatusLabels } from '../format';
+import { fmtDate, hoursLabel, planStatusLabels, todayIso } from '../format';
 import { menus, roleLabels } from '../layout/menu';
 import { useLoad } from '../useLoad';
 
@@ -84,7 +84,7 @@ function StudentSummary() {
 
   const p = profile.data;
   const b = balance.data;
-  const pendingLeaves = leaves.data?.filter((l) => l.status === 'Pending').length;
+  const upcomingLeaves = leaves.data?.filter((l) => l.status === 'Approved' && l.startDate >= todayIso()).length;
   const planStatus = calendar.data?.planStatus;
 
   return (
@@ -99,7 +99,7 @@ function StudentSummary() {
       <div className="tiles">
         <Tile icon="clock" label="Bu ay çalışılan saat" value={worked.data?.hasApprovedPlan ? `${hoursLabel(worked.data.workedHours)} saat` : '–'} hint={worked.data?.hasApprovedPlan ? `${worked.data.attendedDays} / ${worked.data.plannedDays} gün` : 'Onaylı plan yok'} tone="green" />
         <Tile icon="building" label="Çalıştığı birim" value={p?.currentUnit?.workUnitName ?? 'Atanmadı'} />
-        <Tile icon="user" label="Danışman" value={p?.currentAdvisor?.advisorName ?? 'Atanmadı'} />
+        <Tile icon="user" label="Sorumlu personel" value={p?.currentAdvisor?.advisorName ?? 'Atanmadı'} />
         <Tile icon="mail" label="Kalan izin hakkı" value={b ? `${b.remaining} gün` : '–'} hint={b ? `${b.year} yılı, ${b.limit} gün üzerinden` : undefined} tone="green" />
       </div>
       <Section title="Sizi Bekleyenler">
@@ -128,9 +128,9 @@ function StudentSummary() {
           <li>
             <Icon name="mail" size={20} />
             <span>
-              <strong>Onay bekleyen izin talepleri</strong>
+              <strong>Yaklaşan izin günlerim</strong>
             </span>
-            <Badge tone={pendingLeaves ? 'amber' : 'gray'}>{pendingLeaves ?? '–'}</Badge>
+            <Badge tone={upcomingLeaves ? 'blue' : 'gray'}>{upcomingLeaves ?? '–'}</Badge>
             <Link to="/izinlerim" className="outline-btn small">
               AÇ
             </Link>
@@ -146,18 +146,23 @@ function StaffSummary({ role }: { role: string }) {
   const [year, month] = [now.getFullYear(), now.getMonth() + 1];
   const students = useLoad(() => api.get<Paged<StudentSummary>>('/api/students?page=1&pageSize=1&isActive=true'), []);
   const alerts = useLoad(() => api.get<LeaveAlert[]>(`/api/leaves/alerts?year=${year}`), []);
-  const leaves = useLoad(() => api.get<Leave[]>(`/api/leaves?year=${year}&status=Pending`), []);
+  const leaves = useLoad(() => api.get<Leave[]>(`/api/leaves?year=${year}&status=Approved`), []);
   const plans = useLoad(() => (role === 'FacultyAdmin' ? api.get<WorkPlan[]>(`/api/work-plans?year=${year}&month=${month}&status=Pending`) : Promise.resolve([] as WorkPlan[])), [role]);
-  const applications = useLoad(() => (role === 'FacultyAdmin' ? api.get<User[]>('/api/users?isPendingApproval=true') : Promise.resolve([] as User[])), [role]);
   const notices = useLoad(() => (role === 'FacultyAdmin' ? Promise.resolve([] as AbsenceNotice[]) : api.get<AbsenceNotice[]>('/api/absence-notices?unreadOnly=true')), [role]);
 
   const a = alerts.data;
+  const today = todayIso();
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+  const weekAgoIso = `${weekAgo.getFullYear()}-${String(weekAgo.getMonth() + 1).padStart(2, '0')}-${String(weekAgo.getDate()).padStart(2, '0')}`;
+  const upcoming = leaves.data?.filter((l) => l.startDate >= today) ?? [];
+  const recent = (leaves.data ?? []).filter((l) => l.appliedOn >= weekAgoIso).sort((x, y) => (x.appliedOn < y.appliedOn ? 1 : -1));
   return (
     <>
       {(students.error || alerts.error) && <Alert kind="warn">Bazı bilgiler yüklenemedi.</Alert>}
       <div className="tiles">
         <Tile icon="users" label="Aktif öğrenci" value={students.data?.totalCount ?? '–'} hint="Yetki alanınızdaki kayıtlar" />
-        <Tile icon="mail" label="Bekleyen izin talebi" value={leaves.data ? leaves.data.length : '–'} hint={`${year} yılı`} tone="amber" />
+        <Tile icon="mail" label="Yaklaşan izin günü" value={leaves.data ? upcoming.length : '–'} hint="Bugün ve sonrası" tone="amber" />
         {role === 'FacultyAdmin' ? (
           <Tile icon="check" label="Onay bekleyen plan" value={plans.data ? plans.data.length : '–'} hint="İçinde bulunulan ay" tone="amber" />
         ) : (
@@ -165,10 +170,31 @@ function StaffSummary({ role }: { role: string }) {
         )}
         <Tile icon="alert" label="Sınıra yaklaşan / aşan" value={a ? a.length : '–'} hint="İzin veya devamsızlık sınırı" tone="red" />
       </div>
-      {role === 'FacultyAdmin' && applications.data && applications.data.length > 0 && (
-        <Alert kind="warn">
-          Onayınızı bekleyen {applications.data.length} hesap başvurusu var (danışman / bölüm başkanı). <Link to="/hesap-basvurulari">Başvurulara git</Link>
-        </Alert>
+      {recent.length > 0 && (
+        <Section title="İzin Bildirimleri (son 7 gün)" to="/izinler" toLabel="TÜM İZİNLER">
+          <div className="scroll-x">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Öğrenci</th>
+                  <th>İzin günü</th>
+                  <th>Alındığı gün</th>
+                  <th>Açıklama</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recent.slice(0, 8).map((l) => (
+                  <tr key={l.id}>
+                    <td>{l.studentName}<div className="muted small">{l.departmentName}</div></td>
+                    <td>{fmtDate(l.startDate)}</td>
+                    <td>{fmtDate(l.appliedOn)}</td>
+                    <td>{l.description ?? '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Section>
       )}
       {a && a.length > 0 && (
         <Section title="Sınıra Yaklaşan Öğrenciler" to="/izinler" toLabel="TÜM UYARILAR">

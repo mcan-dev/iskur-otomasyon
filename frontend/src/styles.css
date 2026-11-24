@@ -243,6 +243,13 @@ textarea { font: inherit; }
 .cal-cell.Yellow { background: #fff8e6; }
 .cal-cell.Gray { background: #f3f5f8; color: var(--muted); }
 .cal-cell.selected { background: #e6edfa; border-color: var(--blue); }
+.cal-cell.clickable { cursor: pointer; }
+.cal-cell.clickable:hover { border-color: var(--blue); }
+.cal-cell.pickGreen { background: #c9efd8; border-color: #2e9e5b; }
+.cal-cell.pickYellow { background: #ffe9a8; border-color: #c99400; }
+.cal-cell.warnRed { background: #ffd6d6; border-color: #d64545; }
+.cal-cell.leaveOn { background: #e4f1ff; border-color: var(--blue); }
+.cal-cell.leavePick { background: #fff1c7; border-color: #c99400; }
 .cal-cell select { font-size: 11px; padding: 2px; margin-top: auto; }
 .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
 .dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
@@ -287,3 +294,12 @@ textarea { font: inherit; }
 .course-day label { display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .course-day select { width: auto; min-width: 150px; }
 .course-day.off select { opacity: .45; }
+.bulk-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; padding: 12px 14px; margin: 12px 0; background: #f4f8ff; border: 1px solid #cfe0fb; }
+.bulk-bar .field { margin: 0; min-width: 200px; }
+button.link { background: none; border: 0; padding: 0; color: var(--blue); cursor: pointer; font: inherit; text-decoration: underline; }
+.qr-display { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; text-align: center; }
+.qr-display .qr-title { font-size: 28px; font-weight: 700; }
+.qr-display .qr-box { background: #fff; padding: 18px; border-radius: 16px; border: 1px solid var(--line); }
+.qr-fullscreen { position: fixed; inset: 0; background: #fff; z-index: 50; overflow: auto; }
+.roster-day { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.roster-day h4 { margin: 0 0 6px; font-size: 14px; }

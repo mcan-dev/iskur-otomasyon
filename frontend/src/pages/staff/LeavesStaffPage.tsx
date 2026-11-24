@@ -4,6 +4,7 @@ import { api } from '../../api/client';
 import type { Absence, Leave, LeaveAlert } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
 import { Alert, Card, Empty, Field } from '../../components/ui';
+import { monthName } from '../../format';
 import { useLoad } from '../../useLoad';
 import { AbsenceTable, Filters, LeaveTable } from './parts';
 
@@ -18,39 +19,50 @@ export default function LeavesStaffPage() {
     <div className="stack">
       <div className="row between">
         <div className="tabs">
-          <button className={`tab ${tab === 'leaves' ? 'active' : ''}`} onClick={() => setTab('leaves')}>İzin talepleri</button>
+          <button className={`tab ${tab === 'leaves' ? 'active' : ''}`} onClick={() => setTab('leaves')}>İzinler</button>
           <button className={`tab ${tab === 'absences' ? 'active' : ''}`} onClick={() => setTab('absences')}>Devamsızlıklar</button>
           <button className={`tab ${tab === 'alerts' ? 'active' : ''}`} onClick={() => setTab('alerts')}>Sınıra yaklaşanlar</button>
         </div>
         <label className="row">Yıl <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} style={{ width: 90 }} /></label>
       </div>
-      {tab === 'leaves' && <Leaves year={year} canReview={user?.role !== 'Student'} />}
+      {tab === 'leaves' && <Leaves year={year} canCancel={user?.role === 'FacultyAdmin'} />}
       {tab === 'absences' && <Absences year={year} canRevoke={user?.role === 'FacultyAdmin'} />}
       {tab === 'alerts' && <Alerts year={year} />}
     </div>
   );
 }
 
-function Leaves({ year, canReview }: { year: number; canReview: boolean }) {
-  const [status, setStatus] = useState('Pending');
+function Leaves({ year, canCancel }: { year: number; canCancel: boolean }) {
+  const [status, setStatus] = useState('Approved');
+  const [month, setMonth] = useState('');
   const query = new URLSearchParams({ year: String(year) });
   if (status) query.set('status', status);
+  if (month) query.set('month', month);
   const leaves = useLoad(() => api.get<Leave[]>(`/api/leaves?${query}`), [query.toString()]);
   return (
-    <Card title="İzin talepleri">
+    <Card
+      title="Öğrenci izinleri"
+      subtitle="İzinler öğrenci tarafından çalışma günlerinden seçilir ve onay beklemeden geçerli olur. Fakülte sekreterliği gerekirse iptal eder."
+    >
       <Filters>
         <Field label="Durum">
           <select value={status} onChange={(e) => setStatus(e.target.value)}>
             <option value="">Tümü</option>
-            <option value="Pending">Onay bekleyen</option>
-            <option value="Approved">Onaylanan</option>
-            <option value="Rejected">Reddedilen</option>
+            <option value="Approved">Geçerli</option>
             <option value="Cancelled">İptal edilen</option>
+          </select>
+        </Field>
+        <Field label="Ay">
+          <select value={month} onChange={(e) => setMonth(e.target.value)}>
+            <option value="">Tüm yıl</option>
+            {Array.from({ length: 12 }, (_, i) => (
+              <option key={i + 1} value={i + 1}>{monthName(i + 1)}</option>
+            ))}
           </select>
         </Field>
       </Filters>
       {leaves.error && <Alert>{leaves.error}</Alert>}
-      {leaves.data && <LeaveTable leaves={leaves.data} canReview={canReview} onChanged={leaves.reload} />}
+      {leaves.data && <LeaveTable leaves={leaves.data} canCancel={canCancel} onChanged={leaves.reload} />}
     </Card>
   );
 }

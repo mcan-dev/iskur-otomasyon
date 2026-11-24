@@ -99,6 +99,13 @@ public class UpdateMyProfileRequest
 
     [Required, StringLength(40)]
     public string Iban { get; set; } = string.Empty;
+
+    /// <summary>Hesap sahibinin adı soyadı; öğrencinin adıyla aynı olmalıdır (IBAN öğrencinin kendisine ait olmalı).</summary>
+    [Required, StringLength(150)]
+    public string IbanHolderName { get; set; } = string.Empty;
+
+    /// <summary>Öğrencinin "bu IBAN bana ait, şubeli bir bankadadır" beyanı.</summary>
+    public bool ConfirmOwnIban { get; set; }
 }
 
 public class EndParticipationRequest
@@ -129,8 +136,104 @@ public class AssignUnitRequest
     public int WorkUnitId { get; set; }
 }
 
+/// <summary>Sorumlu personel ataması; personel Id'si ya da sicil numarasıyla seçilir.</summary>
 public class AssignAdvisorRequest
 {
+    public int? AdvisorUserId { get; set; }
+
+    /// <summary>Sorumlu personelin sicil numarası (Id yerine).</summary>
+    [StringLength(20)]
+    public string? AdvisorRegistryNumber { get; set; }
+}
+
+/// <summary>Birden çok öğrenciyi tek işlemde birime ve/veya sorumlu personele atama.</summary>
+public class BulkAssignRequest
+{
+    [Required, MinLength(1)]
+    public List<int> StudentIds { get; set; } = new();
+
+    public int? WorkUnitId { get; set; }
+
+    public int? AdvisorUserId { get; set; }
+
+    /// <summary>Sorumlu personelin sicil numarası (Id yerine).</summary>
+    [StringLength(20)]
+    public string? AdvisorRegistryNumber { get; set; }
+}
+
+public class BulkAssignResultDto
+{
+    public int Assigned { get; set; }
+    public List<BulkAssignErrorDto> Errors { get; set; } = new();
+}
+
+public class BulkAssignErrorDto
+{
+    public int StudentId { get; set; }
+    public string StudentName { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Bilgi işlemden gelen öğrenci bilgileriyle öğrenci hesabı açma (yalnızca fakülte sekreterliği).
+/// Öğrenci sisteme öğrenci e-postası ve OBİS şifresiyle girer; kendi kendine kayıt olamaz.
+/// </summary>
+public class CreateStudentRequest
+{
+    [Required, StringLength(200, MinimumLength = 2)]
+    public string FullName { get; set; } = string.Empty;
+
+    /// <summary>Üniversite öğrenci e-postası (giriş adı).</summary>
+    [Required, EmailAddress, StringLength(254)]
+    public string Email { get; set; } = string.Empty;
+
+    /// <summary>Bilgi işlemden alınan OBİS şifresi (yalnızca özeti saklanır).</summary>
+    [Required, StringLength(128)]
+    public string ObisPassword { get; set; } = string.Empty;
+
+    [Required, StringLength(25)]
+    public string PhoneNumber { get; set; } = string.Empty;
+
+    [Required, StringLength(11, MinimumLength = 11)]
+    public string NationalId { get; set; } = string.Empty;
+
+    [Required, StringLength(9, MinimumLength = 3)]
+    public string StudentNumber { get; set; } = string.Empty;
+
     [Range(1, int.MaxValue)]
-    public int AdvisorUserId { get; set; }
+    public int DepartmentId { get; set; }
+
+    [Range(2000, 2100)]
+    public int RegistrationYear { get; set; }
+}
+
+/// <summary>Sekreterliğin öğrenci bilgilerini düzeltmesi (süper yetki). Boş bırakılan şifre ve IBAN değişmez.</summary>
+public class UpdateStudentRequest
+{
+    [Required, StringLength(200, MinimumLength = 2)]
+    public string FullName { get; set; } = string.Empty;
+
+    [Required, EmailAddress, StringLength(254)]
+    public string Email { get; set; } = string.Empty;
+
+    [Required, StringLength(25)]
+    public string PhoneNumber { get; set; } = string.Empty;
+
+    [Required, StringLength(11, MinimumLength = 11)]
+    public string NationalId { get; set; } = string.Empty;
+
+    [Required, StringLength(9, MinimumLength = 3)]
+    public string StudentNumber { get; set; } = string.Empty;
+
+    [Range(1, int.MaxValue)]
+    public int DepartmentId { get; set; }
+
+    [Range(2000, 2100)]
+    public int RegistrationYear { get; set; }
+
+    [StringLength(40)]
+    public string? Iban { get; set; }
+
+    [StringLength(128)]
+    public string? NewObisPassword { get; set; }
 }

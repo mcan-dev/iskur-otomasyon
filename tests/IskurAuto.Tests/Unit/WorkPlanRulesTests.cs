@@ -18,10 +18,11 @@ public class WorkPlanRulesTests
         IEnumerable<ExamPeriod>? exams = null,
         IEnumerable<DayOfWeek>? lessonDays = null,
         ProgramPeriod? period = null)
-        => new(2026, 11, holidays ?? [], exams ?? [], (lessonDays ?? []).Select(Lesson),
+        => new(2026, 11, holidays ?? [], exams ?? [], (lessonDays ?? []).Select(d => Lesson(d)),
             [period ?? new ProgramPeriod(new DateOnly(2026, 9, 1), null)]);
 
-    private static StudentCourseDay Lesson(DayOfWeek day) => new() { DayOfWeek = day };
+    private static StudentCourseDay Lesson(DayOfWeek day, CourseSession session = CourseSession.Morning)
+        => new() { DayOfWeek = day, Session = session };
 
     private static PlannedDay Day(int day, string? note = null)
         => new(new DateOnly(2026, 11, day), note);
@@ -109,11 +110,32 @@ public class WorkPlanRulesTests
     }
 
     [Fact]
-    public void Validate_LessonDayWithoutNote_IsAllowed()
+    public void Validate_HalfDayLessonDayWithoutNote_IsAllowed()
     {
         var days = new[] { Day(3), Day(10), Day(17), Day(24) };
 
         Assert.Empty(WorkPlanRules.Validate(November(lessonDays: [DayOfWeek.Tuesday]), days, Settings));
+    }
+
+    [Fact]
+    public void Validate_FullDayLessonDay_IsRejected()
+    {
+        var month = new PlanMonth(2026, 11, [], [], [Lesson(DayOfWeek.Tuesday, CourseSession.FullDay)],
+            [new ProgramPeriod(new DateOnly(2026, 9, 1), null)]);
+
+        var errors = WorkPlanRules.Validate(month, [Day(3), Day(10), Day(17), Day(24)], Settings);
+
+        Assert.Equal(4, errors.Count(e => e.Contains("tam gün dersiniz")));
+    }
+
+    [Fact]
+    public void FullDayLessonDay_IsNotSelectable_SoTheWeekRuleStillAsksForAnotherDay()
+    {
+        var month = new PlanMonth(2026, 11, [], [], [Lesson(DayOfWeek.Tuesday, CourseSession.FullDay)],
+            [new ProgramPeriod(new DateOnly(2026, 9, 1), null)]);
+
+        Assert.Equal(DayBlock.FullDayLesson, month.BlockOf(new DateOnly(2026, 11, 3)));
+        Assert.Empty(WorkPlanRules.Validate(month, [Day(4), Day(11), Day(18), Day(25)], Settings));
     }
 
     [Fact]
@@ -177,9 +199,10 @@ public class WorkPlanSettingsTests
 public class WorkPlanCalendarTests
 {
     private static PlanMonth November(IEnumerable<DateOnly>? holidays = null, IEnumerable<DayOfWeek>? lessonDays = null)
-        => new(2026, 11, holidays ?? [], [], (lessonDays ?? []).Select(Lesson), [new ProgramPeriod(new DateOnly(2026, 9, 1), null)]);
+        => new(2026, 11, holidays ?? [], [], (lessonDays ?? []).Select(d => Lesson(d)), [new ProgramPeriod(new DateOnly(2026, 9, 1), null)]);
 
-    private static StudentCourseDay Lesson(DayOfWeek day) => new() { DayOfWeek = day };
+    private static StudentCourseDay Lesson(DayOfWeek day, CourseSession session = CourseSession.Morning)
+        => new() { DayOfWeek = day, Session = session };
 
     private static CalendarDayDto Find(List<CalendarDayDto> calendar, int day)
         => calendar.Single(d => d.Date == new DateOnly(2026, 11, day));
@@ -210,18 +233,44 @@ public class WorkPlanCalendarTests
         var selected = Find(calendar, 3);
         Assert.Equal(CalendarColor.Green, selected.Color);
         Assert.True(selected.IsSelected);
-        Assert.Equal("Seçildi", selected.Label);
+        Assert.Equal("Seçildi, boş gün", selected.Label);
     }
 
     [Fact]
-    public void ToCalendar_LessonDayIsYellow_EvenWhenSelected()
+    public void ToCalendar_SelectedHalfDayLessonDayIsYellow_AndUnselectedFreeDaysOfThatWeekAreRed()
     {
         var plan = new MonthlyWorkPlan();
         plan.Days.Add(new WorkPlanDay { Date = new DateOnly(2026, 11, 3), IsLessonDay = true });
 
         var calendar = November(lessonDays: [DayOfWeek.Tuesday]).ToCalendar(plan);
 
-        Assert.Equal(CalendarColor.Yellow, Find(calendar, 3).Color);
-        Assert.Equal(CalendarColor.Yellow, Find(calendar, 10).Color);
+        Assert.Equal(CalendarColor.Yellow, Find(calendar, 3).Color);     // seçilen yarım gün dersli gün
+        Assert.Equal(CalendarColor.Red, Find(calendar, 4).Color);        // aynı haftanın seçilmeyen boş günü
+        Assert.True(Find(calendar, 4).IsSelectable);
+        Assert.Equal(CalendarColor.Gray, Find(calendar, 10).Color);      // başka hafta, seçilmemiş dersli gün
+        Assert.Equal(CalendarColor.Gray, Find(calendar, 11).Color);      // o haftada yarım gün seçilmedi
+    }
+
+    [Fact]
+    public void ToCalendar_FreeDaySelectedInsteadOfHalfDay_HasNoRedWarning()
+    {
+        var plan = new MonthlyWorkPlan();
+        plan.Days.Add(new WorkPlanDay { Date = new DateOnly(2026, 11, 4) });
+
+        var calendar = November(lessonDays: [DayOfWeek.Tuesday]).ToCalendar(plan);
+
+        Assert.Equal(CalendarColor.Green, Find(calendar, 4).Color);
+        Assert.DoesNotContain(calendar, d => d.Color == CalendarColor.Red && d.IsSelectable);
+    }
+
+    [Fact]
+    public void ToCalendar_FullDayLessonDayIsRedAndNotSelectable()
+    {
+        var month = new PlanMonth(2026, 11, [], [], [Lesson(DayOfWeek.Tuesday, CourseSession.FullDay)],
+            [new ProgramPeriod(new DateOnly(2026, 9, 1), null)]);
+
+        var day = Find(month.ToCalendar(null), 3);
+        Assert.Equal(CalendarColor.Red, day.Color);
+        Assert.False(day.IsSelectable);
     }
 }

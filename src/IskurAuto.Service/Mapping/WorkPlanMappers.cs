@@ -43,9 +43,23 @@ public static class WorkPlanMappers
     public static ExamPeriodDto ToDto(this ExamPeriod e)
         => new() { Id = e.Id, Name = e.Name, StartDate = e.StartDate, EndDate = e.EndDate };
 
+    /// <summary>
+    /// Takvim renkleri: yarım gün dersli seçilen gün sarı, boş (dersi olmayan) seçilen gün yeşil.
+    /// Aynı hafta içinde yarım gün dersli bir gün seçilip tamamen boş bir gün seçilmemişse o boş gün kırmızı yanar.
+    /// Hafta sonu, tatil, program dışı ve tam gün dersli günler seçilemez.
+    /// </summary>
     public static List<CalendarDayDto> ToCalendar(this PlanMonth month, MonthlyWorkPlan? plan)
     {
         var selected = plan?.Days.ToDictionary(d => d.Date) ?? new Dictionary<DateOnly, WorkPlanDay>();
+
+        bool IsHalfDay(DateOnly d) => month.LessonSession(d) is CourseSession.Morning or CourseSession.Afternoon;
+        bool IsFree(DateOnly d) => month.BlockOf(d) == DayBlock.None && month.LessonSession(d) is null;
+
+        // Haftada yarım gün dersli bir gün seçildiyse, seçilmeyen boş günler kırmızı gösterilir.
+        var weeksWithHalfDaySelected = selected.Keys
+            .Where(IsHalfDay)
+            .Select(PlanMonth.WeekStart)
+            .ToHashSet();
 
         return month.Days.Select(date =>
         {
@@ -58,9 +72,12 @@ public static class WorkPlanMappers
                 DayBlock.Weekend => (CalendarColor.Red, "Hafta sonu"),
                 DayBlock.Holiday => (CalendarColor.Red, "Resmî tatil"),
                 DayBlock.OutsideProgram => (CalendarColor.Red, "Program dışı"),
-                _ when chosen is not null && lesson => (CalendarColor.Yellow, "Seçildi, dersli gün"),
-                _ when chosen is not null => (CalendarColor.Green, "Seçildi"),
-                _ when lesson => (CalendarColor.Yellow, "Dersli gün"),
+                DayBlock.FullDayLesson => (CalendarColor.Red, "Tam gün ders, seçilemez"),
+                _ when chosen is not null && IsHalfDay(date) => (CalendarColor.Yellow, "Seçildi, yarım gün dersli gün"),
+                _ when chosen is not null => (CalendarColor.Green, "Seçildi, boş gün"),
+                _ when IsFree(date) && weeksWithHalfDaySelected.Contains(PlanMonth.WeekStart(date))
+                    => (CalendarColor.Red, "Boş gün seçilmedi; bu hafta yarım gün dersli gün seçildi"),
+                _ when lesson => (CalendarColor.Gray, "Yarım gün dersli gün"),
                 _ => (CalendarColor.Gray, "Boş gün, henüz seçilmedi")
             };
 
@@ -78,5 +95,4 @@ public static class WorkPlanMappers
             };
         }).ToList();
     }
-
 }

@@ -1,80 +1,71 @@
 # Kullanım kılavuzu
 
-Sistemde dört rol vardır. Her kullanıcı yalnızca kendi rolünün işlemlerini yapabilir; kapsam dışı kayıtlar hiç görünmez.
+Sistemde dört rol vardır: Öğrenci, Sorumlu personel (eski adıyla danışman), Birim yetkilisi (eski adıyla bölüm başkanı) ve Fakülte Sekreterliği / Dekanlık. Rol adları değişti; yetkiler aynı kaldı. Her kullanıcı yalnızca kendi rolünün işlemlerini yapabilir; kapsam dışı kayıtlar hiç görünmez.
 Uç noktaların listesi için [API.md](API.md) dosyasına bakın.
 
 ## Ortak işlemler
 
-- Dört rolün her birinin kendi giriş sayfası vardır (`/giris` sayfasından seçilir): Öğrenci, Danışman Öğretim Elemanı, Bölüm Başkanı, Fakülte Sekreterliği / Dekanlık. Hesap, yalnızca kendi rolünün giriş sayfasından girebilir.
-- Giriş e-posta ve parola iledir. Parola, giriş yapıldıktan sonra değiştirilebilir; unutulursa e-postayla sıfırlanır.
-- Hiçbir kayıt silinmez. Yanlış girilen kayıt (devamsızlık, devam, karar vb.) gerekçeyle geri alınır veya iptal edilir; geçmiş korunur.
+- Her rolün kendi giriş sayfası vardır (`/giris` sayfasından seçilir). Hesap yalnızca kendi rolünün giriş sayfasından girebilir.
+- **Kayıt olma yoktur.** Bilgiler, fakültede İŞKUR kapsamında çalışan öğrenciler için bilgi işlemden alınır:
+  - Öğrenci, **öğrenci e-postası ve OBİS şifresiyle** giriş yapar. Öğrenci hesabını Fakülte Sekreterliği "Öğrenciler > Öğrenci ekle" ile açar. OBİS şifresi bu sistemde değiştirilmez; OBİS'te değişirse sekreterlik öğrencinin sayfasından yeni şifreyi girer.
+  - Personel **sicil numarası ve şifresiyle** giriş yapar. Personel hesabını Fakülte Sekreterliği "Tanımlar ve Hesaplar > Personel hesapları" ile açar. Personel şifresini kendisi değiştirir; unutursa "Şifremi unuttum" ile (sicil no veya e-posta) sıfırlama bağlantısı alır.
+- Hiçbir kayıt silinmez. Yanlış girilen kayıt gerekçeyle geri alınır veya iptal edilir; geçmiş korunur.
 - Önemli işlemler denetim kaydına yazılır. Kayıtlarda kişisel veri tutulmaz.
 
 ## Öğrenci
 
-1. **Kayıt:** İlk kayıt formu herkese açıktır. Bölüm seçilir, TC, öğrenci numarası ve iletişim bilgileri girilir. IBAN kayıtta istenmez; öğrenci profil ekranından kendisi girer (ay sonu dökümü için gereklidir).
-   Danışman ve bölüm başkanı giriş sayfasındaki "Başvuru Yap" düğmesiyle başvurur. Başvuru pasif hesap olarak açılır (giriş denemesinde "Hesabınız aktif değil" yazar); Fakülte Sekreterliği soldaki **Hesap Başvuruları** ekranından başvuruyu onaylar ya da reddeder. Fakülte Sekreterliği hesabı başvuruyla açılamaz: sekreterlik yeni bir sekreterlik hesabını "Tanımlar ve Hesaplar > Personel hesapları" üzerinden açar. İlk fakülte hesabı kurulumda tanımlanır (`Bootstrap` ayarları, bkz. KURULUM.md).
-   Hesap ve ilk program katılım dönemi birlikte oluşur.
-2. **Profil:** Telefon ve IBAN bilgisi kendi ekranından güncellenir.
-3. **Ders günleri:** Dersli günler elle işaretlenir ve her gün için öğleden önce, öğleden sonra ya da tam gün seçilir; takvimde bu günler ve ders zamanı ayrıca görünür. IBAN kaydedilmeden gün seçimi ve plan kaydedilemez; Kaydet'e basınca "IBAN'ı giriniz" uyarısı çıkar ve Profilim sayfasına yönlendirir.
-4. **Aylık plan:**
-   - Her hafta için 1 ile 3 gün, bir ay için en fazla 14 gün seçilir; sınırlar aşılacak seçim ekranda engellenir ve uyarı verilir. Hafta, perşembe gününün düştüğü aya sayılır.
-   - Takvimde tatiller, sınav dönemleri ve ders günleri renkle işaretlidir.
-   - Ders günleri takvimde işaretlidir ancak dersli günü seçmek için açıklama gerekmez.
-   - Plan, ayın ayarlardan belirlenen gününe kadar (varsayılan 5) gönderilebilir. "Planı Gönder"den sonra plan yalnızca onay bekler ve öğrenci tarafından değiştirilemez; Fakülte Sekreterliği onaylar veya gerekçeyle reddeder. Reddedilirse öğrenci günleri yeniden seçip gönderir.
-   - Plan durumu ve geçmiş planlar listeden izlenir.
-5. **İzin:** Talep izin türü, başlangıç ve bitiş tarihi (gün bazında) ile açılır. Tek bir izin hakkı vardır (varsayılan yılda 10 gün); onaylı izinler ve fakültenin girdiği devamsızlıklar aynı haktan düşer, mazeretli/mazeretsiz ayrımı yoktur. Kalan hak ve uyarılar talebin yanıtında görünür.
-   Rapor gibi belgeler PDF, JPG veya PNG (en çok 5 MB) olarak eklenir. Onaylanmadan önce talep iptal edilebilir.
-6. **Devam:** Çalışma günü başında, fakülte ekranındaki karekod telefonla okutulur. Karekod her 30 saniyede yenilenir;
-   eski görüntü çalışmaz. Okutma reddedilirse sebep ekranda yazar (oturum kapalı, bugün planda yok, izinli vb.).
-   Okutamayan öğrenci Fakülte Sekreterliğine başvurur, kayıt gerekçeyle elle girilir.
-7. **Karşılaştırma ve saatler:** Planlanan ve gerçekleşen günler, toplam çalışma saati ve kalan izin hakkı ekranda görünür. Geçmiş Kayıtlarım sayfasındaki "Çalışılan günler" sekmesi seçilen ayda kaç saat ve hangi günlerde çalışıldığını gösterir.
-8. **Görevler:** Danışmanın verdiği görevler, notlar ve tamamlanma durumu izlenir. Süresi geçip açık kalan görev "gecikmiş" görünür.
+1. **Profil ve IBAN:** Telefon ve IBAN kendi ekranından güncellenir. IBAN öğrencinin kendisine ait olmalıdır: hesap sahibi adı soyadı kayıtlı adla aynı yazılır ve "Bu IBAN bana aittir" onaylanır. Yalnızca şubesi olan bankaların hesapları kabul edilir; Enpara, Colendi, Hayat Finans gibi şubesiz dijital bankalar ve Papara gibi elektronik para hesapları reddedilir.
+2. **Ders günleri:** Dersli günler işaretlenir ve her gün için öğleden önce, öğleden sonra ya da tam gün seçilir. IBAN kaydedilmeden ders günü ve plan kaydedilemez.
+3. **Aylık plan:**
+   - Her hafta 1–3 gün, ayda en fazla 14 gün seçilir. Hafta, perşembe gününün düştüğü aya sayılır; sınav dönemi haftalarında en az gün şartı aranmaz.
+   - **Tam gün dersi olan gün çalışma günü olarak seçilemez.**
+   - Renkler: yarım gün dersli günü seçerseniz **sarı**, boş (dersi olmayan) günü seçerseniz **yeşil** görünür. Aynı hafta içinde tamamen boş bir gün varken yarım gün dersli günü seçtiyseniz, seçmediğiniz boş gün **kırmızı** yanar. Hafta sonu, tatil ve tam gün dersli günler de kırmızıdır ve seçilemez.
+   - Üniversite hayatı boyunca en fazla **140 iş günü** çalışılabilir. Çalışılan ve kalan gün plan ekranında ve profilde görünür; sınırı aşan plan kaydedilmez.
+   - Plan, ayın 5'ine kadar gönderilir; Fakülte Sekreterliği onaylar veya gerekçeyle reddeder.
+4. **İzin:**
+   - İzin sayfasında o ayın çalışma takvimi açılır. Yalnızca **onaylı plandaki çalışma günleri** seçilebilir; çalışma günü olmayan ve geçmiş günler seçilemez.
+   - İzin türü ve gerekçe yoktur; açıklama isteğe bağlıdır.
+   - İzin **onay beklemez**: "İzin Al" denince hemen geçerli olur, Fakülte Sekreterliği bilgilendirilir.
+   - Ayda en az bir gün çalışmak zorunludur; ayın bütün çalışma günleri için izin alınamaz.
+   - Tek bir izin hakkı vardır (varsayılan yılda 10 gün); izinler ve devamsızlıklar aynı haktan düşer. Gelecekteki bir izin öğrenci tarafından iptal edilebilir.
+5. **Devam:** Fakültedeki monitörde sabah mesai başlangıcında ve akşam mesai bitişinde karekod gösterilir; telefonla okutulur. Karekod 30 saniyede bir değişir. **Yalnızca çalışma günü olan günlerde** okutulabilir; plan dışı günde, izinliyken veya saat dışında okutma reddedilir ve sebebi yazılır.
+6. **Karşılaştırma ve saatler:** Planlanan ve gerçekleşen günler, çalışma saati ve kalan izin hakkı görünür.
+7. **Görevler:** Sorumlu personelin verdiği görevler ve notlar izlenir.
 
-## Danışman
+## Sorumlu personel
 
-- Kendi öğrencilerinin planlarını, devamlarını, izinlerini ve çalışma saatlerini görür.
-- **İzin onayı:** Yalnızca kendi öğrencilerinin izin taleplerini onaylar veya gerekçeyle reddeder (İzin Durumu ekranı).
-- **Görev:** Öğrenciye başlık, açıklama ve bitiş tarihiyle görev verir. Sonradan başlık ve tarihler değişmez; durum ve notlar değerlendirme olarak eklenir.
-  Görev "Tamamlandı" veya "Tamamlanmadı" olarak işaretlenir. Yalnızca öğrencinin güncel danışmanı değerlendirme yapabilir.
-- **Devamsızlık bildirimi:** Öğrencinin gelmediği veya devamda sorun olan gün için bölüm başkanına bildirim gönderir.
-- Geçmiş görev ve değerlendirmelere ulaşır. Rapor almaz; raporlar yalnızca Fakülte Sekreterliği / Dekanlığa aittir.
+- Kendi öğrencilerinin planlarını, devamlarını, izinlerini ve çalışma saatlerini görür; izinleri görür ama onaylamaz (izin onay gerektirmez).
+- **Kim ne zaman çalışıyor:** Öğrencilerinin hangi gün çalıştığını günlere göre görür.
+- Görev verir, değerlendirme yazar, birim yetkilisine devamsızlık bildirimi gönderir.
 
-## Bölüm başkanı
+## Birim yetkilisi
 
 - Bölümündeki tüm öğrencileri, planları, devamları, izinleri ve devamsızlıkları görür.
-- **Danışman atama:** Öğrencinin danışmanını değiştirir; önceki danışman geçmişte kalır.
-- **İzin onayı:** Bölümündeki öğrencilerin izin taleplerini onaylar veya gerekçeyle reddeder. Başka bölümün talebi görünmez.
-- **Devam oturumu:** Bölümü için devam oturumu açıp kapatır ve karekodu ekranda gösterir.
-- **Görev:** Bölümündeki öğrencilere görev verebilir; danışman notlarını ve görev durumlarını izler.
-- **Bildirimler:** Danışmanlardan gelen devamsızlık bildirimlerini inceler ve okundu olarak işaretler.
+- **Sorumlu personel atama:** Öğrenci listesinde birden çok öğrenciyi işaretleyip tek işlemde, sorumlu personelin **sicil numarasıyla** atar. Önceki atama geçmişte kalır.
+- **Kim ne zaman çalışıyor:** Günlere göre çalışanları ve **geçmiş yıllarda** (ör. 2025) çalışanları görür.
+- Çalışılan ve kalan iş günü (140 gün) bilgisini öğrenci sayfasında görür.
+- Mesai karekod ekranını açabilir; bölümü için ek devam oturumu açabilir.
 
 ## Fakülte Sekreterliği / Dekanlık
 
-Fakültedeki tüm kayıtları görür ve yönetir.
+Fakültedeki tüm kayıtları görür ve düzenler (süper yetkili).
 
-- **Hesaplar ve tanımlar:** Personel hesapları, bölümler ve çalışma birimleri. Hesap silinmez, pasif yapılır.
-- **Öğrenci yönetimi:** Öğrenciyi çalışma birimine atar, danışman atar, programa dahil eder veya katılımı sonlandırır.
-  Her değişiklik tarihli geçmiş olarak saklanır.
+- **Öğrenci hesapları:** "Öğrenciler > Öğrenci ekle" ile bilgi işlemden gelen öğrenci e-postası ve OBİS şifresiyle hesap açar. Öğrencinin sayfasında "Öğrenci bilgilerini düzenle" ile ad, e-posta, TC, numara, bölüm, kayıt yılı, IBAN ve OBİS şifresini değiştirir.
+- **Personel hesapları:** Sicil numarasıyla personel açar, düzenler, pasif yapar.
+- **Toplu atama:** Öğrenciler ekranında bölüm seçince o bölümün öğrencileri listelenir; birden çok öğrenci işaretlenip tek işlemde çalışma birimine ve/veya sorumlu personele (sicil no ile) atanır.
 - **Plan onayı:** Öğrenci planlarını onaylar veya reddeder; gerekirse öğrenci adına plan girer.
-- **İzin:** Talepleri onaylar veya reddeder, izin hakkına yaklaşanları uyarılardan izler.
-  Genel izin hakkı ayarlardan, belirli bir öğrencinin hakkı ise öğrencinin sayfasındaki İzin sekmesinden ("İzin hakkını düzenle") değiştirilir; fakülte sekreterliği ve dekanlık bu sekmede öğrencinin izin durumunu da görür.
-- **Devamsızlık:** Devamsızlık yalnızca bu rol tarafından girilir. Hatalı kayıt gerekçeyle geri alınır.
-- **Devam oturumu:** Fakülte genelinde veya bir bölüm için oturum açar, karekodu gösterir, elle devam girer veya iptal eder.
-- **Raporlar (yalnızca bu rolde):** Yıl, ay, bölüm, danışman, öğrenci ve çalışma durumu filtreleriyle aylık ve yıllık çalışma, izin ve devamsızlık, danışman, öğrenci listesi, sınıra yaklaşanlar ve
-  ilişik kesme incelemesi raporları ekranda görüntülenir; CSV ve Excel olarak indirilir.
-- **Aylık döküm:** Öğrenci bazında TC, ad soyad, IBAN, birim, planlanan ve gerçekleşen gün, toplam saat ve izinli gün sayısını içerir.
-  Yalnızca bu rol görür; her görüntüleme ve indirme denetim kaydına yazılır.
-- **İlişik kesme:** İnceleme raporundan sonra karar (dayanak, tarih, not) kaydedilir. Öğrencinin katılımı aynı işlemde sonlanır.
-  Karar sonradan değiştirilemez; kaydın o anki izin ve devamsızlık sayıları karara eklenir.
-- **Denetim kayıtları:** Kim, ne zaman, hangi işlemi yaptı bilgisi listelenir.
+- **İzin:** İzinleri onaylamaz; tüm izinleri ve ana sayfadaki "İzin bildirimleri"ni izler, gerektiğinde bir izni gerekçesiz ya da notla **iptal eder**. Genel izin hakkını ayarlardan, öğrenciye özel toplam izin gün sayısını öğrencinin İzin sekmesinden belirler.
+- **Mesai karekod ekranı:** Sabah ve akşam karekod saatlerini belirler. Monitörde bu ekran açık bırakılır; saat aralığı içinde karekod kendiliğinden görünür ve 30 saniyede bir değişir.
+- **Kim ne zaman çalışıyor:** Günlere ve yıllara göre çalışan öğrenciler.
+- **Devamsızlık, raporlar, ay sonu dökümü, ilişik kesme, denetim kayıtları:** Önceki gibi.
 
 ## Sık karşılaşılan durumlar
 
 | Durum | Ne yapılır |
 |---|---|
-| Öğrenci planı kaydedemiyor | Haftalık 1-3 gün, aylık 14 gün sınırına ve gönderim son gününe bakın; onay bekleyen plan değiştirilemez; hata mesajı ihlal edilen kuralı açıklar. |
-| Karekod reddedildi | Mesajdaki sebebe bakın. Okutma sırasında ekrandaki kod güncel olmalı; öğrenci o gün için onaylı planda olmalı. |
-| Yanlış devamsızlık girildi | Fakülte Sekreterliği kaydı gerekçeyle geri alır. |
-| Öğrenci danışman değiştirdi | Bölüm başkanı veya Fakülte Sekreterliği yeni danışmanı atar; eski görevler eski danışmanın kaydı olarak kalır. |
-| Parola unutuldu | Giriş ekranındaki "Parolamı unuttum" bağlantısıyla e-posta adresi girilir; gelen bağlantıyla 30 dakika içinde yeni parola belirlenir. |
+| Öğrenci giriş yapamıyor | Öğrenci e-postası ve OBİS şifresiyle girmeli. OBİS şifresi değiştiyse sekreterlik yeni şifreyi öğrencinin sayfasından girer. |
+| Personel giriş yapamıyor | Sicil numarasıyla girmeli; şifreyi unuttuysa "Şifremi unuttum". "Hesabınız aktif değil" yazıyorsa sekreterlik hesabı aktif yapar. |
+| Öğrenci bir günü seçemiyor | Tam gün dersli gün, hafta sonu veya tatil seçilemez. 140 iş günü sınırı dolmuş olabilir. |
+| İzin alınamıyor | O ay için onaylı plan olmalı; yalnızca çalışma günleri seçilir; ayın tüm çalışma günleri izinle kapatılamaz; izin hakkı yetmiyor olabilir. |
+| Karekod reddedildi | Bugün onaylı planda çalışma günü olmalı, öğrenci izinli olmamalı ve karekod saatleri içinde okutulmalı. |
+| IBAN kabul edilmiyor | Hesap sahibi adı öğrencinin adıyla aynı olmalı; dijital banka ve Papara gibi hesaplar kabul edilmez. |

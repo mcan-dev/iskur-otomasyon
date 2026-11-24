@@ -20,6 +20,7 @@ public class WorkPlanService : IWorkPlanService
     private readonly IHolidayRepository _holidays;
     private readonly IExamPeriodRepository _examPeriods;
     private readonly IStudentCourseDayRepository _courseDays;
+    private readonly IAttendanceRecordRepository _attendance;
     private readonly IUnitOfWork _uow;
     private readonly IClock _clock;
     private readonly IAuditService _audit;
@@ -28,9 +29,11 @@ public class WorkPlanService : IWorkPlanService
 
     public WorkPlanService(
         IWorkPlanRepository plans, IStudentRepository students, IHolidayRepository holidays,
-        IExamPeriodRepository examPeriods, IStudentCourseDayRepository courseDays, IUnitOfWork uow,
+        IExamPeriodRepository examPeriods, IStudentCourseDayRepository courseDays,
+        IAttendanceRecordRepository attendance, IUnitOfWork uow,
         IClock clock, IAuditService audit, ICurrentUser current, WorkPlanSettings settings)
     {
+        _attendance = attendance;
         _plans = plans;
         _students = students;
         _holidays = holidays;
@@ -150,6 +153,20 @@ public class WorkPlanService : IWorkPlanService
         return await SaveAsync(student, existing, request, ct);
     }
 
+    public async Task<WorkLifetimeDto> GetMyLifetimeAsync(CancellationToken ct = default)
+    {
+        _current.RequireRole(UserRole.Student);
+        var student = await LoadMineAsync(ct);
+        return await LifetimeAsync(student.Id, ct);
+    }
+
+    public async Task<WorkLifetimeDto> GetStudentLifetimeAsync(int studentId, CancellationToken ct = default)
+    {
+        _current.RequireRole(UserRole.FacultyAdmin, UserRole.DepartmentHead, UserRole.Advisor);
+        var student = await LoadAsync(studentId, ct);
+        return await LifetimeAsync(student.Id, ct);
+    }
+
     public async Task<WorkPlanDto> ReviewAsync(int planId, ReviewWorkPlanRequest request, CancellationToken ct = default)
     {
         _current.RequireRole(UserRole.FacultyAdmin);
@@ -185,6 +202,8 @@ public class WorkPlanService : IWorkPlanService
         if (errors.Count > 0)
             throw new DomainValidationException(new Dictionary<string, string[]> { ["Days"] = errors.ToArray() });
 
+        await EnsureLifetimeLimitAsync(student.Id, request.Year, request.Month, days, ct);
+
         if (plan is null)
         {
             plan = new MonthlyWorkPlan { StudentProfileId = student.Id, Year = request.Year, Month = request.Month };
@@ -209,6 +228,55 @@ public class WorkPlanService : IWorkPlanService
 
         return (await _plans.GetDetailAsync(plan.Id, ct))!.ToDto(_settings);
     }
+
+    /// <summary>
+    /// Üniversite hayatı boyunca en fazla <see cref="WorkPlanSettings.LifetimeMaxDays"/> iş günü çalışılabilir:
+    /// çalışılmış günler + diğer planlardaki gelecek günler + bu plandaki gelecek günler sınırı aşamaz.
+    /// </summary>
+    private async Task EnsureLifetimeLimitAsync(int studentId, int year, int month, List<PlannedDay> days, CancellationToken ct)
+    {
+        var today = _clock.Today;
+        var figures = await LifetimeAsync(studentId, ct, exceptYear: year, exceptMonth: month);
+        var workedDates = await WorkedDatesAsync(studentId, ct);
+        var upcomingHere = days.Count(d => d.Date >= today && !workedDates.Contains(d.Date));
+        var total = figures.WorkedDays + figures.UpcomingPlannedDays + upcomingHere;
+
+        if (total > figures.Limit)
+        {
+            var available = Math.Max(0, figures.Limit - figures.WorkedDays - figures.UpcomingPlannedDays);
+            throw new DomainValidationException("Days",
+                $"Üniversite hayatı boyunca en fazla {figures.Limit} iş günü çalışılabilir. Çalışılan: {figures.WorkedDays} gün, " +
+                $"diğer planlarda bekleyen: {figures.UpcomingPlannedDays} gün; bu ay en fazla {available} gün seçebilirsiniz.");
+        }
+    }
+
+    private async Task<WorkLifetimeDto> LifetimeAsync(int studentId, CancellationToken ct, int? exceptYear = null, int? exceptMonth = null)
+    {
+        var today = _clock.Today;
+
+        var workedDates = await WorkedDatesAsync(studentId, ct);
+        var worked = workedDates.Count;
+
+        var upcoming = (await _plans.ListByStudentAsync(studentId, ct))
+            .Where(p => p.Status is WorkPlanStatus.Approved or WorkPlanStatus.Pending)
+            .Where(p => !(p.Year == exceptYear && p.Month == exceptMonth))
+            .SelectMany(p => p.Days)
+            .Count(d => d.Date >= today && !workedDates.Contains(d.Date));
+
+        return new WorkLifetimeDto
+        {
+            StudentId = studentId,
+            Limit = _settings.LifetimeMaxDays,
+            WorkedDays = worked,
+            UpcomingPlannedDays = upcoming,
+            RemainingDays = Math.Max(0, _settings.LifetimeMaxDays - worked)
+        };
+    }
+
+    /// <summary>İptal edilmemiş devam kaydı olan günler (sabah ve akşam okutması aynı gün sayılır).</summary>
+    private async Task<HashSet<DateOnly>> WorkedDatesAsync(int studentId, CancellationToken ct)
+        => (await _attendance.SearchAsync(new AttendanceSearchCriteria { StudentId = studentId }, ct))
+            .Select(r => r.Date).ToHashSet();
 
     private void ApplyDays(MonthlyWorkPlan plan, List<PlannedDay> days, PlanMonth month)
     {

@@ -135,13 +135,13 @@ function Leaves({ year }: { year: number }) {
   if (!leaves.data?.length) return <Empty>Bu yıl için izin kaydı yok.</Empty>;
   return (
     <table className="table">
-      <thead><tr><th>Tarih</th><th>Süre</th><th>Gerekçe</th><th>Durum</th></tr></thead>
+      <thead><tr><th>Tarih</th><th>Süre</th><th>Açıklama</th><th>Durum</th></tr></thead>
       <tbody>
         {leaves.data.map((l) => (
           <tr key={l.id}>
             <td>{fmtDate(l.startDate)}{l.startDate !== l.endDate && ` – ${fmtDate(l.endDate)}`}</td>
             <td>{l.daysCounted} gün</td>
-            <td>{l.reason}</td>
+            <td>{l.description ?? '—'}</td>
             <td><Badge tone={leaveTone[l.status]}>{leaveStatusLabels[l.status]}</Badge></td>
           </tr>
         ))}

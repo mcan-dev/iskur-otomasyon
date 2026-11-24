@@ -181,16 +181,208 @@ public class StudentVisibilityTests
         using (var scope = db.NewScope())
         {
             await Assert.ThrowsAsync<DomainValidationException>(() =>
-                scope.Students.UpdateMyProfileAsync(new UpdateMyProfileRequest { PhoneNumber = "123", Iban = "TR00" }));
+                scope.Students.UpdateMyProfileAsync(new UpdateMyProfileRequest { PhoneNumber = "123", Iban = "TR00", IbanHolderName = "Mehmet Öztürk", ConfirmOwnIban = true }));
 
             var updated = await scope.Students.UpdateMyProfileAsync(new UpdateMyProfileRequest
             {
                 PhoneNumber = "+90 533 000 11 22",
-                Iban = "tr13 0006 2000 0000 0000 0000 02"
+                Iban = "tr13 0006 2000 0000 0000 0000 02",
+                IbanHolderName = " mehmet  ÖZTÜRK ",
+                ConfirmOwnIban = true
             });
             Assert.Equal("05330001122", updated.PhoneNumber);
             Assert.Equal("TR130006200000000000000002", updated.Iban);
         }
+    }
+
+    [Fact]
+    public async Task UpdateMyProfile_IbanMustBelongToTheStudent()
+    {
+        using var db = new TestDb();
+        var seed = TestData.Seed(db);
+        db.Current.As(UserRole.Student, seed.MehmetUserId);
+        using var scope = db.NewScope();
+
+        var otherName = await Assert.ThrowsAsync<DomainValidationException>(() => scope.Students.UpdateMyProfileAsync(new UpdateMyProfileRequest
+        {
+            PhoneNumber = "05330001122", Iban = "TR130006200000000000000002", IbanHolderName = "Ahmet Öztürk", ConfirmOwnIban = true
+        }));
+        Assert.True(otherName.Errors.ContainsKey("IbanHolderName"));
+
+        var notConfirmed = await Assert.ThrowsAsync<DomainValidationException>(() => scope.Students.UpdateMyProfileAsync(new UpdateMyProfileRequest
+        {
+            PhoneNumber = "05330001122", Iban = "TR130006200000000000000002", IbanHolderName = "Mehmet Öztürk", ConfirmOwnIban = false
+        }));
+        Assert.True(notConfirmed.Errors.ContainsKey("ConfirmOwnIban"));
+    }
+
+    [Theory]
+    [InlineData("TR240015700000000000000101")]   // Enpara Bank (00157)
+    [InlineData("TR590082900000000000000101")]   // Papara elektronik para (00829)
+    public async Task UpdateMyProfile_RejectsDigitalBanksAndEMoneyAccounts(string iban)
+    {
+        using var db = new TestDb();
+        var seed = TestData.Seed(db);
+        db.Current.As(UserRole.Student, seed.MehmetUserId);
+        using var scope = db.NewScope();
+
+        var ex = await Assert.ThrowsAsync<DomainValidationException>(() => scope.Students.UpdateMyProfileAsync(new UpdateMyProfileRequest
+        {
+            PhoneNumber = "05330001122", Iban = WithValidCheckDigits(iban), IbanHolderName = "Mehmet Öztürk", ConfirmOwnIban = true
+        }));
+        Assert.True(ex.Errors.ContainsKey("Iban"));
+    }
+
+    /// <summary>Verilen IBAN'ın kontrol hanelerini (3-4. haneler) mod-97 kuralına göre düzeltir.</summary>
+    private static string WithValidCheckDigits(string iban)
+    {
+        var account = iban[4..];
+        var digits = account + "2927" + "00";        // T=29, R=27
+        var remainder = digits.Aggregate(0, (r, c) => (r * 10 + (c - '0')) % 97);
+        return $"TR{98 - remainder:00}{account}";
+    }
+}
+
+public class StudentManagementTests
+{
+    private static async Task<int> AddAdvisorAsync(TestDb db, int departmentId, string registry, string name)
+    {
+        using var ctx = db.NewContext();
+        var user = new IskurAuto.Core.Entities.User
+        {
+            FullName = name, RegistryNumber = registry, Email = $"{registry}@test.local",
+            PasswordHash = db.Hasher.Hash(TestData.Password), Role = UserRole.Advisor, DepartmentId = departmentId
+        };
+        ctx.Users.Add(user);
+        await ctx.SaveChangesAsync();
+        return user.Id;
+    }
+
+    private static async Task<int> AddStudentAsync(TestDb db, int departmentId, string number, string nationalId)
+    {
+        using var ctx = db.NewContext();
+        var profile = new IskurAuto.Core.Entities.StudentProfile
+        {
+            User = new IskurAuto.Core.Entities.User { FullName = $"Öğrenci {number}", Email = $"{number}@ogr.test", PasswordHash = "x", Role = UserRole.Student },
+            NationalId = nationalId, Iban = "TR400006200000000000000001", StudentNumber = number, DepartmentId = departmentId, RegistrationYear = 2025
+        };
+        profile.Participations.Add(new IskurAuto.Core.Entities.ProgramParticipation { StartDate = db.Clock.Today.AddDays(-10) });
+        ctx.StudentProfiles.Add(profile);
+        await ctx.SaveChangesAsync();
+        return profile.Id;
+    }
+
+    [Fact]
+    public async Task AssignAdvisor_ByRegistryNumber()
+    {
+        using var db = new TestDb();
+        var seed = TestData.Seed(db);
+        await AddAdvisorAsync(db, seed.BmId, "300050", "Ali Veli");
+        db.Current.As(UserRole.FacultyAdmin, seed.AdminId);
+
+        using var scope = db.NewScope();
+        var detail = await scope.Students.AssignAdvisorAsync(seed.MehmetId, new AssignAdvisorRequest { AdvisorRegistryNumber = " 300050 " });
+        Assert.Equal("Ali Veli", detail.CurrentAdvisor!.AdvisorName);
+
+        // Bilinmeyen ya da sorumlu personel olmayan sicil numarası reddedilir.
+        await Assert.ThrowsAsync<DomainValidationException>(() =>
+            scope.Students.AssignAdvisorAsync(seed.MehmetId, new AssignAdvisorRequest { AdvisorRegistryNumber = "999999" }));
+        await Assert.ThrowsAsync<DomainValidationException>(() =>
+            scope.Students.AssignAdvisorAsync(seed.MehmetId, new AssignAdvisorRequest { AdvisorRegistryNumber = "100001" }));
+    }
+
+    [Fact]
+    public async Task BulkAssign_AssignsAllSelectedStudentsInOneOperation_AndReportsTheOnesThatFail()
+    {
+        using var db = new TestDb();
+        var seed = TestData.Seed(db);
+        var second = await AddStudentAsync(db, seed.BmId, "230000009", "10000000146");
+        await AddAdvisorAsync(db, seed.BmId, "300050", "Ali Veli");
+        db.Current.As(UserRole.FacultyAdmin, seed.AdminId);
+
+        using (var scope = db.NewScope())
+        {
+            var result = await scope.Students.BulkAssignAsync(new BulkAssignRequest
+            {
+                StudentIds = new() { seed.MehmetId, second, seed.ElifId },
+                WorkUnitId = seed.LibraryId,
+                AdvisorRegistryNumber = "300050"
+            });
+
+            // Elif başka bölümde: birimi atanır ama BM'nin sorumlu personeli atanamaz → hata listesinde.
+            Assert.Equal(2, result.Assigned);
+            var error = Assert.Single(result.Errors);
+            Assert.Equal(seed.ElifId, error.StudentId);
+        }
+
+        using var verify = db.NewContext();
+        foreach (var id in new[] { seed.MehmetId, second })
+        {
+            Assert.True(await verify.StudentUnitAssignments.AnyAsync(a => a.StudentProfileId == id && a.EndDate == null && a.WorkUnitId == seed.LibraryId));
+            Assert.True(await verify.AdvisorAssignments.AnyAsync(a => a.StudentProfileId == id && a.EndDate == null && a.AdvisorUser.RegistryNumber == "300050"));
+        }
+    }
+
+    [Fact]
+    public async Task BulkAssign_DepartmentHead_CanAssignAdvisorsButNotUnits()
+    {
+        using var db = new TestDb();
+        var seed = TestData.Seed(db);
+        await AddAdvisorAsync(db, seed.BmId, "300050", "Ali Veli");
+        db.Current.As(UserRole.DepartmentHead, seed.HeadId, seed.BmId);
+        using var scope = db.NewScope();
+
+        await Assert.ThrowsAsync<ForbiddenException>(() => scope.Students.BulkAssignAsync(new BulkAssignRequest
+        {
+            StudentIds = new() { seed.MehmetId }, WorkUnitId = seed.LibraryId
+        }));
+
+        var result = await scope.Students.BulkAssignAsync(new BulkAssignRequest
+        {
+            StudentIds = new() { seed.MehmetId, seed.ElifId }, AdvisorRegistryNumber = "300050"
+        });
+        Assert.Equal(1, result.Assigned);                       // Elif başka bölümde: görünmez
+        Assert.Equal(seed.ElifId, Assert.Single(result.Errors).StudentId);
+    }
+
+    [Fact]
+    public async Task UpdateStudent_ByFaculty_EditsEverything_AndChangingDepartmentClosesTheAdvisorAssignment()
+    {
+        using var db = new TestDb();
+        var seed = TestData.Seed(db);
+        db.Current.As(UserRole.FacultyAdmin, seed.AdminId);
+
+        using (var scope = db.NewScope())
+        {
+            var updated = await scope.Students.UpdateAsync(seed.MehmetId, new UpdateStudentRequest
+            {
+                FullName = "Mehmet Can Öztürk", Email = "230000001@ogr.selcuk.edu.tr", PhoneNumber = "05330001122",
+                NationalId = "12345678950", StudentNumber = "230000001", DepartmentId = seed.YmId, RegistrationYear = 2023,
+                NewObisPassword = "YeniObis1"
+            });
+            Assert.Equal("Mehmet Can Öztürk", updated.FullName);
+            Assert.Equal("Yazılım Mühendisliği", updated.DepartmentName);
+            Assert.Null(updated.CurrentAdvisor);
+        }
+
+        db.Current.Anonymous();
+        using var login = db.NewScope();
+        await login.Auth.LoginAsync(new LoginRequest { Username = "230000001@ogr.selcuk.edu.tr", Password = "YeniObis1", Role = UserRole.Student });
+    }
+
+    [Fact]
+    public async Task UpdateStudent_OnlyFaculty()
+    {
+        using var db = new TestDb();
+        var seed = TestData.Seed(db);
+        db.Current.As(UserRole.DepartmentHead, seed.HeadId, seed.BmId);
+        using var scope = db.NewScope();
+
+        await Assert.ThrowsAsync<ForbiddenException>(() => scope.Students.UpdateAsync(seed.MehmetId, new UpdateStudentRequest
+        {
+            FullName = "X", Email = "x@test.local", PhoneNumber = "05330001122", NationalId = "12345678950",
+            StudentNumber = "230000001", DepartmentId = seed.BmId, RegistrationYear = 2023
+        }));
     }
 }
 

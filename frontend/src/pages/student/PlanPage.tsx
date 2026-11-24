@@ -1,12 +1,39 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, ApiError } from '../../api/client';
-import type { CourseDay, CourseSession, PlanCalendar, WorkPlan } from '../../api/types';
-import { Alert, Badge, Card, MonthPicker } from '../../components/ui';
+import type { CalendarDay, CourseDay, CourseSession, PlanCalendar, WorkLifetime, WorkPlan } from '../../api/types';
+import { Alert, Badge, Card, MonthPicker, Stat } from '../../components/ui';
 import { courseSessionLabels, fmtDate, fmtDateTime, hoursLabel, planStatusLabels, planTone, weekdays } from '../../format';
 import { useLoad } from '../../useLoad';
 
 const headers = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+
+const isHalfDay = (d: CalendarDay) => d.lessonSession === 'Morning' || d.lessonSession === 'Afternoon';
+
+function weekOf(date: string): string {
+  const d = new Date(date + 'T00:00:00');
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+}
+
+/**
+ * Hücre rengi (sunucudaki kuralın aynısı, seçim değiştikçe anında güncellenir):
+ * yarım gün dersli seçilen gün sarı, boş seçilen gün yeşil; aynı haftada yarım gün dersli gün seçilip
+ * tamamen boş bir gün seçilmemişse o boş gün kırmızı. Seçilemeyen günler (hafta sonu, tatil, tam gün ders) kırmızı.
+ */
+export function dayTone(d: CalendarDay, picked: Set<string>, days: CalendarDay[]): { cls: string; label: string } {
+  if (!d.isSelectable) return { cls: 'Red', label: d.label };
+  const chosen = picked.has(d.date);
+  if (chosen && isHalfDay(d)) return { cls: 'pickYellow', label: 'Seçildi, yarım gün dersli' };
+  if (chosen) return { cls: 'pickGreen', label: 'Seçildi, boş gün' };
+  const free = !d.lessonSession;
+  if (free) {
+    const week = weekOf(d.date);
+    const halfDayPicked = days.some((x) => weekOf(x.date) === week && picked.has(x.date) && isHalfDay(x));
+    if (halfDayPicked) return { cls: 'warnRed', label: 'Boş gün seçilmedi; bu hafta yarım gün dersli gün seçildi' };
+  }
+  return { cls: 'Gray', label: isHalfDay(d) ? 'Yarım gün dersli gün' : 'Boş gün' };
+}
 
 export default function PlanPage() {
   const now = new Date();
@@ -15,6 +42,7 @@ export default function PlanPage() {
 
   const calendar = useLoad(() => api.get<PlanCalendar>(`/api/work-plans/me/calendar?year=${year}&month=${month}`), [year, month]);
   const plan = useLoad(() => api.get<WorkPlan>(`/api/work-plans/me?year=${year}&month=${month}`).catch(() => null), [year, month]);
+  const lifetime = useLoad(() => api.get<WorkLifetime>('/api/work-plans/me/lifetime'), []);
 
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [note, setNote] = useState('');
@@ -108,6 +136,7 @@ export default function PlanPage() {
       });
       calendar.reload();
       plan.reload();
+      lifetime.reload();
       setMessage({ kind: 'info', text: 'Planınız onaya gönderildi. Onay bekleniyor; bu süreçte değişiklik yapılamaz.' });
     } catch (err) {
       setMessage(failure(err, 'Plan kaydedilemedi.'));
@@ -159,16 +188,17 @@ export default function PlanPage() {
             {cal?.days.map((d) => {
               const chosen = picked.has(d.date);
               const selectable = canEdit && d.isSelectable;
+              const tone = dayTone(d, picked, cal.days);
               return (
                 <div
                   key={d.date}
-                  className={`cal-cell ${d.color} ${chosen ? 'selected' : ''}`}
+                  className={`cal-cell ${tone.cls} ${selectable ? 'clickable' : ''}`}
                   onClick={() => selectable && toggle(d.date)}
-                  title={d.label}
+                  title={tone.label}
                   role={selectable ? 'button' : undefined}
                 >
                   <span className="num">{Number(d.date.slice(8))}</span>
-                  <span className="lbl">{d.label}</span>
+                  <span className="lbl">{tone.label}</span>
                   {d.lessonSession && <span className="lbl">Ders: {courseSessionLabels[d.lessonSession].toLowerCase()}</span>}
                   {d.isExamPeriod && d.isSelectable && <span className="lbl exam">Sınav dönemi</span>}
                   {chosen && <span className="lbl">{hoursLabel(cal?.dailyHours)} saat</span>}
@@ -178,10 +208,10 @@ export default function PlanPage() {
           </div>
 
           <div className="legend" style={{ marginTop: 12 }}>
-            <span><i className="dot" style={{ background: '#bfe7d0' }} />Seçilebilir</span>
-            <span><i className="dot" style={{ background: '#fdf1f1' }} />Tatil / kapalı</span>
-            <span><i className="dot" style={{ background: '#fff8e6' }} />Ders veya sınav</span>
-            <span><i className="dot" style={{ background: '#e4f1ff' }} />Seçtiğiniz gün</span>
+            <span><i className="dot" style={{ background: '#c9efd8' }} />Seçilen boş gün</span>
+            <span><i className="dot" style={{ background: '#ffe9a8' }} />Seçilen yarım gün dersli gün</span>
+            <span><i className="dot" style={{ background: '#ffd6d6' }} />Seçilmemiş boş gün (yarım gün yerine bunu seçin)</span>
+            <span><i className="dot" style={{ background: '#fdf1f1' }} />Seçilemez (hafta sonu, tatil, tam gün ders)</span>
           </div>
 
           <label className="field" style={{ marginTop: 16 }}>
@@ -198,6 +228,14 @@ export default function PlanPage() {
       </div>
 
       <div className="stack">
+        <Card title="Çalışma günü hakkı" subtitle={`Üniversite hayatı boyunca en fazla ${lifetime.data?.limit ?? 140} iş günü çalışılabilir.`}>
+          {lifetime.error && <Alert>{lifetime.error}</Alert>}
+          <div className="stats">
+            <Stat label="Çalışılan" value={lifetime.data ? `${lifetime.data.workedDays} gün` : '–'} tone="blue" />
+            <Stat label="Kalan" value={lifetime.data ? `${lifetime.data.remainingDays} gün` : '–'} tone="green"
+              hint={lifetime.data && lifetime.data.upcomingPlannedDays > 0 ? `${lifetime.data.upcomingPlannedDays} gün planlarda bekliyor` : undefined} />
+          </div>
+        </Card>
         <Card title="Plan durumu">
           {plan.data ? (
             <dl className="kv">

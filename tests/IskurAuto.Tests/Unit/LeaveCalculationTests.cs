@@ -6,63 +6,12 @@ using Xunit;
 
 namespace IskurAuto.Tests.Unit;
 
-public class LeaveDayCounterTests
-{
-    private static readonly IReadOnlySet<DateOnly> NoHolidays = new HashSet<DateOnly>();
-
-    private static DateOnly Nov(int day) => new(2026, 11, day);
-
-    private static MonthlyWorkPlan Plan(params int[] days)
-    {
-        var plan = new MonthlyWorkPlan { Year = 2026, Month = 11 };
-        foreach (var day in days)
-            plan.Days.Add(new WorkPlanDay { Date = Nov(day) });
-        return plan;
-    }
-
-    [Fact]
-    public void Count_WithoutPlan_CountsEveryWeekday()
-        => Assert.Equal(5m, LeaveDayCounter.Count(Nov(2), Nov(6), NoHolidays, []));
-
-    [Fact]
-    public void Count_SkipsWeekendsAndHolidays()
-    {
-        var holidays = new HashSet<DateOnly> { Nov(4) };
-
-        Assert.Equal(4m, LeaveDayCounter.Count(Nov(2), Nov(8), holidays, []));
-    }
-
-    [Fact]
-    public void Count_WithPlan_CountsOnlyPlannedDays()
-    {
-        var plans = new[] { Plan(3, 5) };
-
-        Assert.Equal(2m, LeaveDayCounter.Count(Nov(2), Nov(6), NoHolidays, plans));
-    }
-
-    [Fact]
-    public void Count_WithPlanButNoPlannedDayInRange_IsZero()
-    {
-        var plans = new[] { Plan(10) };
-
-        Assert.Equal(0m, LeaveDayCounter.Count(Nov(2), Nov(6), NoHolidays, plans));
-    }
-
-    [Fact]
-    public void Count_MonthWithoutPlan_StillCountsWeekdays()
-    {
-        var plans = new[] { Plan(3) };
-
-        Assert.Equal(2m, LeaveDayCounter.Count(new DateOnly(2026, 12, 1), new DateOnly(2026, 12, 2), NoHolidays, plans));
-    }
-}
-
 public class LeaveBalanceCalculatorTests
 {
     private static readonly LeavePolicy Policy = new();
 
-    private static LeaveRequest Leave(decimal days, LeaveStatus status = LeaveStatus.Approved, LeaveType type = LeaveType.Excuse)
-        => new() { DaysCounted = days, Status = status, Type = type };
+    private static LeaveRequest Leave(decimal days, LeaveStatus status = LeaveStatus.Approved)
+        => new() { DaysCounted = days, Status = status };
 
     private static Absence Absent(AbsenceType type = AbsenceType.Unexcused, bool revoked = false)
         => new() { Type = type, RevokedAt = revoked ? DateTime.UtcNow : null };
@@ -84,22 +33,22 @@ public class LeaveBalanceCalculatorTests
     }
 
     [Fact]
-    public void ApprovedLeaves_ReduceRemaining_PendingDoesNot()
+    public void ValidLeaves_ReduceRemaining()
     {
-        var balance = Calc([Leave(3), Leave(2, LeaveStatus.Pending)]);
+        var balance = Calc([Leave(1), Leave(1), Leave(1)]);
 
         Assert.Equal(3m, balance.Used);
-        Assert.Equal(2m, balance.Pending);
         Assert.Equal(7m, balance.Remaining);
         Assert.Empty(balance.Warnings);
     }
 
     [Fact]
-    public void RejectedAndCancelledLeaves_AreIgnored()
+    public void CancelledLeaves_AreIgnored()
     {
-        var balance = Calc([Leave(4, LeaveStatus.Rejected), Leave(4, LeaveStatus.Cancelled)]);
+        var balance = Calc([Leave(4, LeaveStatus.Cancelled), Leave(1, LeaveStatus.Cancelled)]);
 
-        Assert.Equal(0m, balance.Used + balance.Pending);
+        Assert.Equal(0m, balance.Used);
+        Assert.Equal(10m, balance.Remaining);
     }
 
     [Fact]
@@ -108,14 +57,6 @@ public class LeaveBalanceCalculatorTests
         var balance = Calc([Leave(8)]);
 
         AssertWarnings(balance, LeaveWarning.LeaveNearLimit);
-    }
-
-    [Fact]
-    public void PendingRequestsThatWouldExceed_AreFlagged()
-    {
-        var balance = Calc([Leave(5), Leave(6, LeaveStatus.Pending)]);
-
-        AssertWarnings(balance, LeaveWarning.LeavePendingExceeds);
     }
 
     [Fact]
@@ -133,15 +74,6 @@ public class LeaveBalanceCalculatorTests
         var balance = Calc([Leave(11)]);
 
         AssertWarnings(balance, LeaveWarning.LeaveLimitExceeded);
-    }
-
-    [Fact]
-    public void HealthLeave_CountsLikeAnyOtherLeave()
-    {
-        var balance = Calc([Leave(6, type: LeaveType.Health)]);
-
-        Assert.Equal(6m, balance.Used);
-        Assert.Equal(4m, balance.Remaining);
     }
 
     [Fact]

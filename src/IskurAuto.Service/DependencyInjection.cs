@@ -38,6 +38,8 @@ public static class DependencyInjection
         services.AddScoped<IReportService, ReportService>();
         services.AddScoped<ITerminationService, TerminationService>();
         services.AddScoped<IPasswordResetService, PasswordResetService>();
+        services.AddScoped<IAttendanceDisplayService, AttendanceDisplayService>();
+        services.AddScoped<IWorkRosterService, WorkRosterService>();
 
         return services;
     }

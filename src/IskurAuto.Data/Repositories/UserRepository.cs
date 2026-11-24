@@ -14,6 +14,16 @@ public class UserRepository : GenericRepository<User>, IUserRepository
         => Context.Users.Include(u => u.Department)
             .FirstOrDefaultAsync(u => u.Email == normalizedEmail, ct);
 
+    public Task<User?> GetByRegistryNumberAsync(string registryNumber, CancellationToken ct = default)
+        => Context.Users.Include(u => u.Department)
+            .FirstOrDefaultAsync(u => u.RegistryNumber == registryNumber, ct);
+
+    public Task<bool> RegistryNumberExistsAsync(string registryNumber, int? exceptUserId = null, CancellationToken ct = default)
+        => Context.Users.AnyAsync(u => u.RegistryNumber == registryNumber && (exceptUserId == null || u.Id != exceptUserId), ct);
+
+    public Task<bool> EmailExistsExceptAsync(string normalizedEmail, int exceptUserId, CancellationToken ct = default)
+        => Context.Users.AnyAsync(u => u.Email == normalizedEmail && u.Id != exceptUserId, ct);
+
     public Task<User?> GetWithDepartmentAsync(int id, CancellationToken ct = default)
         => Context.Users.Include(u => u.Department)
             .FirstOrDefaultAsync(u => u.Id == id, ct);
@@ -28,7 +38,7 @@ public class UserRepository : GenericRepository<User>, IUserRepository
         if (criteria.Role.HasValue)         query = query.Where(u => u.Role == criteria.Role.Value);
         if (criteria.DepartmentId.HasValue) query = query.Where(u => u.DepartmentId == criteria.DepartmentId.Value);
         if (criteria.IsActive.HasValue)     query = query.Where(u => u.IsActive == criteria.IsActive.Value);
-        if (criteria.IsPendingApproval.HasValue) query = query.Where(u => u.IsPendingApproval == criteria.IsPendingApproval.Value);
+        if (criteria.RegistryNumber is { Length: > 0 } registry) query = query.Where(u => u.RegistryNumber == registry);
 
         return await query.OrderBy(u => u.FullName).ThenBy(u => u.Id).ToListAsync(ct);
     }

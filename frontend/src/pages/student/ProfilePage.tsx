@@ -24,13 +24,13 @@ export default function ProfilePage() {
               <dt>Kayıt yılı</dt><dd>{p.registrationYear}</dd>
               <dt>Durum</dt><dd><Badge tone={p.isActive ? 'green' : 'gray'}>{p.isActive ? 'Aktif' : 'Pasif'}</Badge></dd>
               <dt>Çalıştığı birim</dt><dd>{p.currentUnit?.workUnitName ?? 'Henüz atanmadı'}</dd>
-              <dt>Danışman</dt><dd>{p.currentAdvisor?.advisorName ?? 'Henüz atanmadı'}</dd>
+              <dt>Sorumlu personel</dt><dd>{p.currentAdvisor?.advisorName ?? 'Henüz atanmadı'}</dd>
             </dl>
           )}
         </Card>
         {p && <EditContact profile={p} onSaved={profile.reload} />}
         {p && (
-          <Card title="Geçmiş" subtitle="Programa katılım, birim ve danışman geçmişiniz.">
+          <Card title="Geçmiş" subtitle="Programa katılım, birim ve sorumlu personel geçmişiniz.">
             <h3 className="sub">Programa katılım</h3>
             <ul className="plain">
               {p.participations.map((x) => (
@@ -47,7 +47,7 @@ export default function ProfilePage() {
                 <li key={x.id}>{x.workUnitName}: {fmtDate(x.startDate)} – {x.endDate ? fmtDate(x.endDate) : 'devam ediyor'}</li>
               ))}
             </ul>
-            <h3 className="sub">Danışman</h3>
+            <h3 className="sub">Sorumlu personel</h3>
             <ul className="plain">
               {p.advisorHistory.length === 0 && <li className="muted">Kayıt yok</li>}
               {p.advisorHistory.map((x) => (
@@ -57,7 +57,11 @@ export default function ProfilePage() {
           </Card>
         )}
       </div>
-      <ChangePassword />
+      <Card title="Şifre">
+        <p className="muted">
+          Bu sisteme OBİS şifrenizle giriş yapıyorsunuz. Şifrenizi değiştirmek veya yenilemek için OBİS'i kullanın ya da bilgi işleme başvurun.
+        </p>
+      </Card>
     </div>
   );
 }
@@ -65,6 +69,8 @@ export default function ProfilePage() {
 function EditContact({ profile, onSaved }: { profile: StudentProfileFull; onSaved: () => void }) {
   const [phone, setPhone] = useState(profile.phoneNumber ?? '');
   const [iban, setIban] = useState(profile.iban);
+  const [holder, setHolder] = useState(profile.fullName);
+  const [confirm, setConfirm] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [done, setDone] = useState(false);
 
@@ -78,7 +84,7 @@ function EditContact({ profile, onSaved }: { profile: StudentProfileFull; onSave
     setError(null);
     setDone(false);
     try {
-      await api.put('/api/students/me', { phoneNumber: phone, iban });
+      await api.put('/api/students/me', { phoneNumber: phone, iban, ibanHolderName: holder, confirmOwnIban: confirm });
       setDone(true);
       onSaved();
     } catch (err) {
@@ -88,7 +94,10 @@ function EditContact({ profile, onSaved }: { profile: StudentProfileFull; onSave
 
   const general = error && Object.keys(error.fieldErrors).length === 0 ? error.message : undefined;
   return (
-    <Card title="İletişim ve IBAN" subtitle="Yalnızca telefon ve IBAN bilgisini kendiniz değiştirebilirsiniz.">
+    <Card
+      title="İletişim ve IBAN"
+      subtitle="IBAN kendi adınıza, şubesi olan bir bankadaki hesabınıza ait olmalıdır. Enpara, Papara gibi dijital/sanal banka hesapları kabul edilmez."
+    >
       <form onSubmit={submit}>
         {general && <Alert>{general}</Alert>}
         {done && <Alert kind="info">Bilgileriniz güncellendi.</Alert>}
@@ -99,46 +108,16 @@ function EditContact({ profile, onSaved }: { profile: StudentProfileFull; onSave
           <Field label="IBAN" error={firstError(error, 'iban')}>
             <input value={iban} onChange={(e) => setIban(e.target.value.toUpperCase())} required />
           </Field>
+          <Field label="Hesap sahibinin adı soyadı" error={firstError(error, 'ibanHolderName')}>
+            <input value={holder} onChange={(e) => setHolder(e.target.value)} required />
+          </Field>
         </div>
+        <label className="row" style={{ margin: '8px 0 12px' }}>
+          <input type="checkbox" checked={confirm} onChange={(e) => setConfirm(e.target.checked)} />
+          Bu IBAN bana aittir ve şubesi olan bir bankadaki hesabımdır.
+        </label>
+        {firstError(error, 'confirmOwnIban') && <Alert>{firstError(error, 'confirmOwnIban')}</Alert>}
         <button className="btn primary">Kaydet</button>
-      </form>
-    </Card>
-  );
-}
-
-function ChangePassword() {
-  const [current, setCurrent] = useState('');
-  const [next, setNext] = useState('');
-  const [error, setError] = useState<ApiError | null>(null);
-  const [done, setDone] = useState(false);
-
-  async function submit(e: FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setDone(false);
-    try {
-      await api.post('/api/auth/change-password', { currentPassword: current, newPassword: next });
-      setDone(true);
-      setCurrent('');
-      setNext('');
-    } catch (err) {
-      setError(err instanceof ApiError ? err : new ApiError(0, 'Parola değiştirilemedi.'));
-    }
-  }
-
-  const general = error && Object.keys(error.fieldErrors).length === 0 ? error.message : undefined;
-  return (
-    <Card title="Parolamı değiştir">
-      <form onSubmit={submit}>
-        {general && <Alert>{general}</Alert>}
-        {done && <Alert kind="info">Parolanız değiştirildi.</Alert>}
-        <Field label="Mevcut parola" error={firstError(error, 'currentPassword')}>
-          <input type="password" value={current} onChange={(e) => setCurrent(e.target.value)} autoComplete="current-password" required />
-        </Field>
-        <Field label="Yeni parola" error={firstError(error, 'newPassword')}>
-          <input type="password" value={next} onChange={(e) => setNext(e.target.value)} autoComplete="new-password" required />
-        </Field>
-        <button className="btn primary wide">Parolayı Değiştir</button>
       </form>
     </Card>
   );
